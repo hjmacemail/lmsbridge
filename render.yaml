@@ -1,0 +1,81 @@
+# Render.com Blueprint — MUST live at the repository root (Render only reads ./render.yaml).
+# Deploy the full stack with one click: New -> Blueprint -> pick this repo -> Apply.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# After the first deploy, set these (marked `sync: false`) in the Render dashboard to the
+# real service URLs, then redeploy:
+#   backend  : TOOL_BASE_URL      = https://<backend-url>
+#              FRONTEND_BASE_URL  = https://<frontend-url>
+#              CORS_ORIGINS       = https://<frontend-url>,https://<marketing-url>
+#   frontend : API_BASE_URL       = https://<backend-url>/api/v1
+#   marketing: API_BASE_URL       = https://<backend-url>/api/v1
+# (With a custom domain, use your own hostnames instead.)
+databases:
+  - name: lms-bridge-db
+    databaseName: lmsbridge
+    user: lmsbridge
+    plan: free
+
+services:
+  - type: web
+    name: lms-bridge-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEPLOYMENT_MODE
+        value: community          # community = free self-host (no license gate); hosted = multi-tenant SaaS
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lms-bridge-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: LLM_PROVIDER
+        value: mock                 # change to anthropic/openai/azure_openai + set the key
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: AZURE_OPENAI_API_KEY
+        sync: false
+      - key: AZURE_OPENAI_ENDPOINT
+        sync: false
+      - key: AZURE_OPENAI_DEPLOYMENT
+        sync: false
+      - key: TOOL_BASE_URL          # https://<backend-url>  (used to build LTI URLs)
+        sync: false
+      - key: FRONTEND_BASE_URL      # https://<frontend-url> (LTI single-sign-on redirect)
+        sync: false
+      - key: CORS_ORIGINS           # https://<frontend-url>,https://<marketing-url>
+        sync: false
+      - key: PLATFORM_ADMIN_EMAIL   # your operator login; created/promoted on startup
+        sync: false
+      - key: PLATFORM_ADMIN_PASSWORD  # set on first deploy to create the operator account
+        sync: false
+
+  - type: web
+    name: lms-bridge-frontend
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      - key: API_BASE_URL           # https://<backend-url>/api/v1  (runtime, no rebuild)
+        sync: false
+
+  - type: web
+    name: lms-bridge-marketing
+    runtime: docker
+    dockerfilePath: ./marketing/Dockerfile
+    dockerContext: ./marketing
+    plan: free
+    envVars:
+      - key: API_BASE_URL           # https://<backend-url>/api/v1  (lead form + LTI config)
+        sync: false
+      - key: APP_BASE_URL           # https://<frontend-url>  ("Try the live demo" link)
+        sync: false

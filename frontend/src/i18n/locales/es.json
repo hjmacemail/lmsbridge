@@ -1,0 +1,62 @@
+{
+  "common": {
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "language": "Idioma"
+  },
+  "login": {
+    "subtitle": "Learning Mastery Support — cierra las brechas antes de que crezcan",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "signingIn": "Iniciando sesión…"
+  },
+  "student": {
+    "greeting": "Hola, {{name}} 👋",
+    "loading": "Cargando…",
+    "subtitle": "Tu apoyo de aprendizaje personalizado para este curso. {{open}} temas activos por trabajar, {{done}} completados.",
+    "recommended": "Recomendado para ti",
+    "recommendedHint": "Agrupado por tema, primero el de mayor riesgo: empieza por arriba.",
+    "nothing": "Nada por hacer ahora mismo: vas por buen camino. Aparecerán nuevas actividades aquí tras las evaluaciones donde puedas beneficiarte de un repaso.",
+    "masteryTitle": "Tu dominio de conceptos",
+    "noteLabel": "Nota:",
+    "masteryNote": "Estos indicadores de dominio son una ayuda de aprendizaje privada para orientar tu estudio. No son una calificación y no afectan de ninguna manera tu nota del curso: tus calificaciones las determina únicamente tu instructor mediante las evaluaciones oficiales.",
+    "interactiveTutor": "Sesión interactiva con el tutor",
+    "startSession": "Comenzar sesión",
+    "continue": "Continuar",
+    "mastery": "{{pct}} de dominio",
+    "noData": "Aún no hay datos."
+  },
+  "status": {
+    "at_risk": "en riesgo",
+    "developing": "en desarrollo",
+    "mastered": "dominado",
+    "in_progress": "en curso",
+    "completed": "completado",
+    "pending": "pendiente"
+  },
+  "tutor": {
+    "intro": "Una sesión individual en vivo con tu tutor de IA. Trabájala: el tutor te dirá cuándo lo has logrado. Te guía; no te da la respuesta.",
+    "groundedIn": "Basado en: {{sources}}.",
+    "inSession": "en sesión",
+    "completed": "completado",
+    "placeholder": "Escribe tu razonamiento… (Enter para enviar, Mayús+Enter para una nueva línea)",
+    "thinking": "pensando…",
+    "send": "Enviar",
+    "back": "← Volver",
+    "complete": "🎉 Sesión completada: ¡buen trabajo! Se ha actualizado tu dominio de este tema.",
+    "backToDashboard": "Volver al panel",
+    "starting": "Iniciando tu sesión…",
+    "aiTutor": "Tutor IA"
+  },
+  "demo": {
+    "title": "Demo de LMS Bridge",
+    "note": "Interfaz simulada de {{lms}} (sin afiliación con {{lms}}): explora el menú; el panel de LMS Bridge es la herramienta real e interactiva.",
+    "reset": "↺ Reiniciar demo",
+    "resetting": "Reiniciando…",
+    "exit": "Salir de la demo",
+    "student": "Estudiante",
+    "instructor": "Instructor",
+    "loadingCourse": "Cargando el curso de demostración…",
+    "wakingUp": "El servidor de la demo se está iniciando o no está disponible. Inténtalo de nuevo en un momento."
+  }
+}

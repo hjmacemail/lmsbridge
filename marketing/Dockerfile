@@ -1,0 +1,7 @@
+FROM nginx:1.27-alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY index.html config.js /usr/share/nginx/html/
+COPY guides/ /usr/share/nginx/html/guides/
+COPY docker-entrypoint.sh /docker-entrypoint.d/99-config.sh
+RUN chmod +x /docker-entrypoint.d/99-config.sh
+EXPOSE 80

@@ -1,0 +1,80 @@
+# LMS Bridge — full local/production-like stack
+# Usage: docker compose up --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lmsbridge
+      POSTGRES_PASSWORD: lmsbridge
+      POSTGRES_DB: lmsbridge
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lmsbridge"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # The app reaches the DB over the internal Docker network; this published port
+    # is only for connecting external tools (psql, a GUI). Defaults to 5433 to avoid
+    # clashing with a local Postgres on 5432. Override with DB_PORT in your .env.
+    ports:
+      - "${DB_PORT:-5433}:5432"
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      DATABASE_URL: postgresql+psycopg://lmsbridge:lmsbridge@db:5432/lmsbridge
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:8080}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_MODEL: ${LLM_MODEL:-claude-3-5-sonnet-latest}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-}
+      BRIGHTSPACE_ADAPTER: ${BRIGHTSPACE_ADAPTER:-mock}
+      # Public URLs used to build LTI launch/redirect targets (set to real hostnames in prod).
+      TOOL_BASE_URL: ${TOOL_BASE_URL:-http://localhost:8000}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:8080}
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m app.scripts.seed --if-empty &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # Runtime-injected API base URL (no rebuild needed to repoint).
+      API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api/v1}
+    ports:
+      - "8080:80"
+
+  # Public marketing / sales site (landing page, pricing, demo request form).
+  marketing:
+    build:
+      context: ./marketing
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      API_BASE_URL: ${MARKETING_API_BASE_URL:-http://localhost:8000/api/v1}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+    ports:
+      - "8090:80"
+
+volumes:
+  postgres-data:

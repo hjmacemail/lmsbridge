@@ -1,0 +1,62 @@
+{
+  "common": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "language": "Language"
+  },
+  "login": {
+    "subtitle": "Learning Mastery Support — bridge early gaps before they widen",
+    "email": "Email",
+    "password": "Password",
+    "signingIn": "Signing in…"
+  },
+  "student": {
+    "greeting": "Hi, {{name}} 👋",
+    "loading": "Loading…",
+    "subtitle": "Your personalized learning support for this course. {{open}} active topics to work on, {{done}} completed.",
+    "recommended": "Recommended for you",
+    "recommendedHint": "Grouped by topic, highest-risk first — start at the top.",
+    "nothing": "Nothing to work on right now — you're on track. New activities appear here after assessments where you may benefit from review.",
+    "masteryTitle": "Your concept mastery",
+    "noteLabel": "Note:",
+    "masteryNote": "These mastery indicators are a private learning aid to help you focus your studying. They are not a grade and do not affect your course grade in any way — your grades are determined solely by your instructor through the official course assessments.",
+    "interactiveTutor": "Interactive tutor session",
+    "startSession": "Start session",
+    "continue": "Continue",
+    "mastery": "{{pct}} mastery",
+    "noData": "No data yet."
+  },
+  "status": {
+    "at_risk": "at risk",
+    "developing": "developing",
+    "mastered": "mastered",
+    "in_progress": "in progress",
+    "completed": "completed",
+    "pending": "pending"
+  },
+  "tutor": {
+    "intro": "A live, one-on-one session with your AI tutor. Work through it — the tutor will let you know when you've got it. It guides; it won't hand you the answer.",
+    "groundedIn": "Grounded in: {{sources}}.",
+    "inSession": "in session",
+    "completed": "completed",
+    "placeholder": "Type your reasoning… (Enter to send, Shift+Enter for a new line)",
+    "thinking": "thinking…",
+    "send": "Send",
+    "back": "← Back",
+    "complete": "🎉 Session complete — nice work. Your mastery of this topic has been updated.",
+    "backToDashboard": "Back to dashboard",
+    "starting": "Starting your session…",
+    "aiTutor": "AI Tutor"
+  },
+  "demo": {
+    "title": "LMS Bridge demo",
+    "note": "Simulated {{lms}} interface (not affiliated with {{lms}}) — click the menu to look around; the LMS Bridge panel is the real, interactive tool.",
+    "reset": "↺ Reset demo",
+    "resetting": "Resetting…",
+    "exit": "Exit demo",
+    "student": "Student",
+    "instructor": "Instructor",
+    "loadingCourse": "Loading the demo course…",
+    "wakingUp": "The demo backend is waking up or unavailable. Try again in a moment."
+  }
+}

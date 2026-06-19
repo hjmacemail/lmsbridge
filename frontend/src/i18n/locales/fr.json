@@ -1,0 +1,62 @@
+{
+  "common": {
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter",
+    "language": "Langue"
+  },
+  "login": {
+    "subtitle": "Learning Mastery Support — comblez les lacunes avant qu'elles ne s'aggravent",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "signingIn": "Connexion…"
+  },
+  "student": {
+    "greeting": "Bonjour, {{name}} 👋",
+    "loading": "Chargement…",
+    "subtitle": "Votre soutien d'apprentissage personnalisé pour ce cours. {{open}} sujets actifs à travailler, {{done}} terminés.",
+    "recommended": "Recommandé pour vous",
+    "recommendedHint": "Regroupé par sujet, le plus à risque en premier — commencez par le haut.",
+    "nothing": "Rien à faire pour le moment — vous êtes sur la bonne voie. De nouvelles activités apparaîtront ici après les évaluations où une révision pourrait vous être utile.",
+    "masteryTitle": "Votre maîtrise des concepts",
+    "noteLabel": "Remarque :",
+    "masteryNote": "Ces indicateurs de maîtrise sont une aide d'apprentissage privée pour orienter vos révisions. Ce ne sont pas une note et n'affectent en rien votre note de cours : vos notes sont déterminées uniquement par votre enseignant via les évaluations officielles.",
+    "interactiveTutor": "Séance interactive avec le tuteur",
+    "startSession": "Commencer la séance",
+    "continue": "Continuer",
+    "mastery": "{{pct}} de maîtrise",
+    "noData": "Pas encore de données."
+  },
+  "status": {
+    "at_risk": "à risque",
+    "developing": "en progression",
+    "mastered": "maîtrisé",
+    "in_progress": "en cours",
+    "completed": "terminé",
+    "pending": "à faire"
+  },
+  "tutor": {
+    "intro": "Une séance individuelle en direct avec votre tuteur IA. Travaillez-la — le tuteur vous dira quand c'est acquis. Il vous guide ; il ne vous donne pas la réponse.",
+    "groundedIn": "Basé sur : {{sources}}.",
+    "inSession": "en séance",
+    "completed": "terminé",
+    "placeholder": "Saisissez votre raisonnement… (Entrée pour envoyer, Maj+Entrée pour une nouvelle ligne)",
+    "thinking": "réflexion…",
+    "send": "Envoyer",
+    "back": "← Retour",
+    "complete": "🎉 Séance terminée — bravo ! Votre maîtrise de ce sujet a été mise à jour.",
+    "backToDashboard": "Retour au tableau de bord",
+    "starting": "Démarrage de votre séance…",
+    "aiTutor": "Tuteur IA"
+  },
+  "demo": {
+    "title": "Démo LMS Bridge",
+    "note": "Interface simulée de {{lms}} (sans affiliation avec {{lms}}) — parcourez le menu ; le panneau LMS Bridge est l'outil réel et interactif.",
+    "reset": "↺ Réinitialiser la démo",
+    "resetting": "Réinitialisation…",
+    "exit": "Quitter la démo",
+    "student": "Étudiant",
+    "instructor": "Enseignant",
+    "loadingCourse": "Chargement du cours de démonstration…",
+    "wakingUp": "Le serveur de la démo démarre ou est indisponible. Réessayez dans un instant."
+  }
+}

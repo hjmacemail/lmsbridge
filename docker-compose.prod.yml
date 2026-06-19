@@ -1,0 +1,87 @@
+# LMS Bridge — production stack using PREBUILT images (no local build).
+#
+# This is the "just download and run" path. It pulls published images from the
+# GitHub Container Registry instead of building from source, so an institution
+# does not need the source tree to run it — only this one file.
+#
+#   1. Download just this file and the example env:
+#        curl -fsSLO https://raw.githubusercontent.com/hjmacemail/lmsbridge/main/docker-compose.prod.yml
+#        curl -fsSL  https://raw.githubusercontent.com/hjmacemail/lmsbridge/main/.env.example -o .env
+#   2. Edit .env  (set SECRET_KEY, your AI provider + key, and public URLs).
+#   3. Run:
+#        docker compose -f docker-compose.prod.yml up -d
+#
+# Pin a version by setting IMAGE_TAG (e.g. IMAGE_TAG=v1.0.0). Defaults to :latest.
+# Override IMAGE_REPO if you forked/renamed the repo.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lmsbridge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lmsbridge}
+      POSTGRES_DB: ${POSTGRES_DB:-lmsbridge}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lmsbridge}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    image: ghcr.io/${IMAGE_REPO:-hjmacemail/lmsbridge}-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      DEPLOYMENT_MODE: ${DEPLOYMENT_MODE:-community}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-lmsbridge}:${POSTGRES_PASSWORD:-lmsbridge}@db:5432/${POSTGRES_DB:-lmsbridge}
+      SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY in .env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_MODEL: ${LLM_MODEL:-claude-3-5-sonnet-latest}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:-}
+      BRIGHTSPACE_ADAPTER: ${BRIGHTSPACE_ADAPTER:-mock}
+      TOOL_BASE_URL: ${TOOL_BASE_URL:-http://localhost:8000}
+      FRONTEND_BASE_URL: ${FRONTEND_BASE_URL:-http://localhost:8080}
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m app.scripts.seed --if-empty &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+
+  frontend:
+    image: ghcr.io/${IMAGE_REPO:-hjmacemail/lmsbridge}-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api/v1}
+      SOURCE_URL: ${SOURCE_URL:-https://github.com/hjmacemail/lmsbridge}
+      SHOW_BRANDING: ${SHOW_BRANDING:-true}
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+  marketing:
+    image: ghcr.io/${IMAGE_REPO:-hjmacemail/lmsbridge}-marketing:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      API_BASE_URL: ${MARKETING_API_BASE_URL:-http://localhost:8000/api/v1}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      SOURCE_URL: ${SOURCE_URL:-https://github.com/hjmacemail/lmsbridge}
+    ports:
+      - "${MARKETING_PORT:-8090}:80"
+
+volumes:
+  postgres-data:

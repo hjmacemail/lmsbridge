@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use LMS Bridge in your research or teaching, please cite it."
+title: "LMS Bridge — Learning Mastery Support"
+abstract: >-
+  An open-source, LTI 1.3 / Advantage tool that converts LMS assessment data into
+  just-in-time, pedagogically-constrained remediation (retrieval practice, Socratic
+  scaffolding, mastery-based progression) for undergraduate STEM courses.
+type: software
+authors:
+  # TODO: replace family-names with your surname; add ORCID if you have one.
+  - given-names: Hasan
+    family-names: "Aljabbouli"
+    affiliation: "New York University"
+    email: info@lmsbridge.app
+    # orcid: "https://orcid.org/0000-0000-0000-0000"
+license: AGPL-3.0-or-later
+repository-code: "https://github.com/hjmacemail/lmsbridge"
+url: "https://lmsbridge.app"
+keywords:
+  - adaptive learning
+  - intelligent tutoring
+  - LTI 1.3
+  - STEM education
+  - retrieval practice
+version: "1.0.0"
+date-released: "2026-06-19"

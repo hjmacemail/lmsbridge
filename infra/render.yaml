@@ -1,0 +1,3 @@
+# NOTE: Render only reads a Blueprint named `render.yaml` at the REPOSITORY ROOT.
+# The canonical, used-by-Render blueprint is therefore at:  ../render.yaml
+# This file is kept only as a pointer; edit the root render.yaml instead.

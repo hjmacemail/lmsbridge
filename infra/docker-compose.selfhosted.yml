@@ -1,0 +1,29 @@
+# ---------------------------------------------------------------------------
+# Self-hosted profile — run LMS Bridge entirely inside YOUR infrastructure.
+# Student data never leaves your boundary: your database, your AI model, no
+# marketing site, no outbound calls except to the AI endpoint YOU configure.
+#
+# Usage:
+#   cp .env.example .env   # set SECRET_KEY, DATABASE_URL, and your AI provider
+#   docker compose -f docker-compose.yml -f infra/docker-compose.selfhosted.yml up -d --build
+# ---------------------------------------------------------------------------
+services:
+  # Use your own managed Postgres if you have one: remove this service and point
+  # DATABASE_URL at it. Kept here so the stack is self-contained out of the box.
+  db:
+    ports: []          # do not publish the database to the host
+
+  backend:
+    environment:
+      APP_ENV: production
+      # Point at YOUR institutional model. Azure OpenAI in your tenant is typical.
+      LLM_PROVIDER: ${LLM_PROVIDER:-azure_openai}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:?set your Azure OpenAI key}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:?set your Azure endpoint}
+      AZURE_OPENAI_DEPLOYMENT: ${AZURE_OPENAI_DEPLOYMENT:?set your deployment}
+      # Belt and suspenders: institutions can also set BYO-AI + privacy per-tenant in the UI.
+    # No port change needed; keep the API internal behind your reverse proxy/SSO.
+
+  # The public marketing site has no place in a private deployment.
+  marketing:
+    profiles: ["disabled"]
