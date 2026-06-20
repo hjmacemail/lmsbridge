@@ -13,6 +13,13 @@
 #
 # Pin a version by setting IMAGE_TAG (e.g. IMAGE_TAG=v1.0.0). Defaults to :latest.
 # Override IMAGE_REPO if you forked/renamed the repo.
+#
+# THIS ONLY HOSTS THE TOOL. LMS Bridge is an LTI 1.3 tool that runs INSIDE your
+# LMS — after it's up, register it in your LMS (Canvas/Moodle/Brightspace/
+# Blackboard) so it launches from within courses. The LMS requires PUBLIC HTTPS,
+# so set TOOL_BASE_URL/FRONTEND_BASE_URL in .env to your real https:// domain and
+# serve this behind a TLS proxy. Registration URLs: GET <host>/api/v1/lti/config.
+# Full per-LMS runbook: docs/INSTALL_LTI.md.
 
 services:
   db:

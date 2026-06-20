@@ -155,6 +155,15 @@ pedagogical guardrails that constrain the AI.
 
 ## Quick start (Docker — recommended)
 
+> **LMS Bridge is an LTI 1.3 tool — it lives *inside* your LMS.** Real users never
+> visit it directly or create a password; they open it from a link in their LMS
+> course, and single sign-on, rostering, and grades flow through LTI. So a real
+> install is **two stages**: **(1) host** the tool (this section), then
+> **(2) register** it in your LMS so it appears in courses — see
+> **[`docs/INSTALL_LTI.md`](docs/INSTALL_LTI.md)**. The `localhost` URLs and demo
+> logins below are a **local preview** to explore the tool standalone; they are
+> not how students reach it in production.
+
 **Prerequisites:** Docker + Docker Compose.
 
 ### Option A — Prebuilt images, no build (fastest)
@@ -187,8 +196,13 @@ That's it. On first boot the backend runs migrations and seeds demo data automat
 - Frontend: **http://localhost:8080**
 - API + interactive docs: **http://localhost:8000/docs**
 - Health check: **http://localhost:8000/api/v1/health**
+- **LTI config (the URLs your LMS admin needs):** **http://localhost:8000/api/v1/lti/config**
 
-Log in with one of the [demo accounts](#demo-accounts).
+To explore the tool standalone, log in with one of the [demo accounts](#demo-accounts).
+**To actually integrate it into an LMS**, host it on a public HTTPS URL (set
+`TOOL_BASE_URL` / `FRONTEND_BASE_URL` to that domain) and follow
+[`docs/INSTALL_LTI.md`](docs/INSTALL_LTI.md) — once registered, it launches from
+inside the course exactly like the [demo simulations](docs/DEMO.md) show.
 
 ---
 

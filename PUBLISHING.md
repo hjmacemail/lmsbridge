@@ -78,30 +78,67 @@ overrode it. Redeploy after changing.
 
 ---
 
-## After go-live: how others install it
+## After go-live: how an institution installs it
 
-Once steps 1–3 are done, anyone can install LMS Bridge two ways.
+> **Important — LMS Bridge is an LTI 1.3 tool, not a standalone website.** Students
+> and instructors never visit it directly or "log in" — they open it from a link
+> *inside their LMS course* (Canvas, Moodle, Brightspace, Blackboard). So
+> installing it is **two stages**: (1) **host** the tool, then (2) **register** it
+> in the LMS so it appears inside courses. The demo logins and `localhost` URLs
+> below are for local preview only.
 
-### A. Run prebuilt images (no source, no build) — recommended
+### Stage 1 — Host the tool (get it running on a public HTTPS URL)
+
+The LMS will only talk to the tool over **HTTPS at a real domain** — it rejects
+`http://` and `localhost`. So host it on a server/PaaS with TLS. Two ways:
+
+**A. Prebuilt images (no source, no build) — recommended**
 
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/hjmacemail/lmsbridge/main/docker-compose.prod.yml
 curl -fsSL  https://raw.githubusercontent.com/hjmacemail/lmsbridge/main/.env.example -o .env
-# edit .env: set SECRET_KEY, your AI provider + key, public URLs
+# edit .env — set SECRET_KEY, your AI provider + key, and the PUBLIC HTTPS URLs:
+#   TOOL_BASE_URL=https://lms-bridge.your-university.edu
+#   FRONTEND_BASE_URL=https://lms-bridge.your-university.edu
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-### B. Build from source
+**B. Build from source**
 
 ```bash
 git clone https://github.com/hjmacemail/lmsbridge.git
-cd lmsbridge
-cp .env.example .env   # edit it
+cd lmsbridge && cp .env.example .env   # edit it (same public URLs as above)
 docker compose up --build
 ```
 
-App → http://localhost:8080 · API docs → http://localhost:8000/docs ·
-Marketing site → http://localhost:8090
+Put it behind a TLS-terminating reverse proxy (Caddy, nginx, Cloudflare Tunnel)
+or deploy on a PaaS that terminates TLS for you — a one-click
+[Render blueprint](./render.yaml) is included (see [`docs/GO_LIVE_RENDER.md`](./docs/GO_LIVE_RENDER.md)).
+
+*Local preview only:* on your own machine the app is at http://localhost:8080,
+API docs at http://localhost:8000/docs, marketing site at http://localhost:8090.
+You can sign in with the [demo accounts](./README.md#demo-accounts) just to look
+around — but that standalone login is **not** how real users reach it.
+
+### Stage 2 — Register it in the LMS (the actual integration)
+
+Once it's running at `https://YOUR-HOST`, the tool publishes everything an LMS
+admin needs at `GET https://YOUR-HOST/api/v1/lti/config`:
+
+| LMS form field | LMS Bridge URL |
+| --- | --- |
+| OIDC initiation / login | `https://YOUR-HOST/api/v1/lti/login` |
+| Target Link / Launch URI | `https://YOUR-HOST/api/v1/lti/launch` |
+| Redirect URI(s) | `https://YOUR-HOST/api/v1/lti/launch` |
+| Public keyset (JWKS) | `https://YOUR-HOST/api/v1/lti/jwks` |
+| Dynamic Registration (Canvas/Moodle one-click) | `https://YOUR-HOST/api/v1/lti/register` |
+
+**Follow the exact click-by-click runbook for each LMS in
+[`docs/INSTALL_LTI.md`](./docs/INSTALL_LTI.md)** (Canvas & Moodle support one-click
+Dynamic Registration; Brightspace & Blackboard use manual registration). After
+registration, add an LMS Bridge link to a course and launch it — single sign-on,
+rostering (NRPS), and gradebook access (AGS) all work automatically. That
+in-course experience is exactly what the simulated demo shows.
 
 ---
 
