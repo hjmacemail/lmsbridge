@@ -64,12 +64,18 @@ uses its own host):
 4. The LMS Bridge registration screen opens; confirm → control returns to Canvas.
 5. On the review screen, leave **Permissions** (scopes) and **Placements** enabled → **Enable &
    Close**.
-6. Back on **Developer Keys**, set the key's **State** to **ON** and **copy the Client ID**.
-7. Install it: **Admin** → **Settings** → **Apps** tab → **View App Configurations** → **+ App** →
-   **Configuration Type: By Client ID** → paste the Client ID → **Submit** → **Install**.
-   *(Newer "Canvas Apps" UI: **Admin → Apps → Manage → Install a New App → LTI 1.3 → Dynamic
-   Registration**, paste the URL, then step through Permissions → Data sharing → Placements →
-   Install.)*
+6. Back on **Developer Keys**, set the key's **State** to **ON** and **copy the Client ID**. **This
+   is the only required admin step** — turning the key ON makes the Client ID usable institution-wide.
+   You now choose *who installs it where* (step 7).
+7. **Get it into courses — two ways:**
+   - **Account-wide (admin pushes to everyone):** **Admin** → **Settings** → **Apps** tab → **View
+     App Configurations** → **+ App** → **Configuration Type: By Client ID** → paste the Client ID →
+     **Submit** → **Install**. It now appears in every course. *(Newer "Canvas Apps" UI: **Admin →
+     Apps → Manage → Install a New App → LTI 1.3 → Dynamic Registration**, then step through
+     Permissions → Data sharing → Placements → Install.)*
+   - **Per instructor (opt-in — like Moodle/Brightspace/Blackboard):** skip the account-wide install.
+     Just hand instructors the **Client ID**; each one installs it in only their own course (see
+     **Instructor self-install** below). This is the closest Canvas gets to instructor-only setup.
 
 ### Option B — Manual key entry
 1. **Admin → Developer Keys → + Developer Key → + LTI Key**.
@@ -82,13 +88,20 @@ uses its own host):
 3. Under **LTI Advantage Services**, enable the toggles for **assignment/line-item data** (AGS) and
    **retrieve user data for the context** (NRPS). Under **Placements**, add **Course Navigation**
    (and, if you want content insertion, a placement with message type **LtiDeepLinkingRequest**).
-4. **Save** → set **State ON** → copy **Client ID** → install **By Client ID** as in Option A, step 7.
+4. **Save** → set **State ON** → copy **Client ID**, then install it via either route in Option A, step 7.
 5. Record the Canvas endpoints above + the Client ID (and the Deployment ID from the app's
    **Settings → Deployment ID**) in LMS Bridge's **LMS (LTI)** tab.
 
-### Instructor places it in a course
-- **Course → Settings → Navigation** → drag **LMS Bridge** from the hidden list into the menu →
-  **Save**; or **Course → Modules → + → External Tool → LMS Bridge → Add Item**.
+### Instructor self-install (course level — no admin push needed)
+Once the developer key is **ON** (the admin's one-time step above), an instructor can add LMS Bridge
+to just their own course — the same opt-in flow as Moodle, Brightspace, and Blackboard:
+1. **Course → Settings → Apps tab → + App → Configuration Type: By Client ID** → paste the **Client
+   ID** your admin gave you → **Submit** → **Install**. *(Same install screen as the account-wide
+   one, but scoped to your course only — no admin rights needed.)*
+2. Surface it: **Course → Settings → Navigation** → drag **LMS Bridge** into the menu → **Save**; or
+   **Course → Modules → + → External Tool → LMS Bridge → Add Item**.
+
+*If your admin already installed it account-wide, skip step 1 — just do step 2.*
 
 ---
 
