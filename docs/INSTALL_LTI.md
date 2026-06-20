@@ -39,6 +39,18 @@ launch redirects won't resolve. Everything must be served over **HTTPS**.
 After any launch, LMS Bridge auto-provisions the user, course, and role on first use — no extra
 password, no manual roster.
 
+### Two ways to roll it out (admin's choice)
+After the one-time admin registration, you decide how widely it's available — each LMS section below
+spells out both under **"Admin's choice — who can use it":**
+- **Account-wide:** make it available to every course so any instructor can use it (Canvas can even
+  push it into every course's navigation automatically).
+- **Opt-in per instructor / pilot:** enable it but limit scope (a developer-key Client ID handed to
+  instructors, a course-category/org-unit restriction, etc.) so only chosen instructors add it to
+  their own courses. Ideal for a single-instructor pilot.
+
+In every LMS except Canvas's account-wide nav push, the instructor still does the final one-click
+placement in their own course.
+
 ---
 
 ## 1. Canvas (Instructure)
@@ -141,6 +153,17 @@ The LTI 1.3 admin flow and labels are identical across Moodle 4.0–5.2.
 | **Access token URL** (`/mod/lti/token.php`) | `auth_token_url` |
 | **Public keyset URL** (`/mod/lti/certs.php`) | `key_set_url` |
 
+### Admin's choice — who can use it
+Moodle external tools are always *added to a course by the instructor*; the admin controls who is
+allowed to:
+- **Available to everyone (recommended):** when activating the tool, set **Tool visibility = Show in
+  activity chooser and as a preconfigured tool**. Every instructor can then self-add it (below).
+- **Restricted pilot:** keep it off the chooser (or share the preconfigured tool with only chosen
+  course categories) and let just the pilot instructors add it. 
+
+There is no whole-site auto-placement in Moodle — even when it's available to all, each instructor
+still adds the activity to their own course.
+
 ### Instructor places it in a course
 - Course → **Edit mode** on → **Add an activity or resource** → pick **LMS Bridge** (or **External
   tool** → Preconfigured tool = LMS Bridge). If deep linking is on, click **Select content** to pick
@@ -188,6 +211,16 @@ Brightspace splits the work across two admin pages: **register** under *Manage E
 - On the deployment → **View Links → New Link** → **Name**, **URL** =
   `https://YOUR-HOST/api/v1/lti/launch`, **Type** = *Basic Launch* (or *Deep Linking Quicklink* for
   content selection) → **Save and Close**.
+
+### Admin's choice — how wide to deploy
+The **Org Units** you attach in Step 2 set the scope:
+- **Whole organization (account-wide):** add the top-level org unit **+ descendants** → every course
+  can use it and any instructor self-places the link (below).
+- **Specific departments/courses (opt-in pilot):** add only those org units → only those courses see
+  it.
+
+Either way the instructor places the link in their own course — Brightspace has no force-into-every-
+course option.
 
 ### Instructor places it in a course
 - **Content → Add Existing → External Learning Tools** → select the LMS Bridge link; or via **Insert
@@ -241,6 +274,16 @@ Portal to get a Client ID; **each institution's admin** then deploys that Client
    post grades"** is enabled.
 5. Copy the generated **Deployment ID** (shown after Submit; later via the tool's **Edit**) — if you
    did **not** enable auto-register, add it under this registration in LMS Bridge's **LMS (LTI)** tab.
+
+### Admin's choice — who can use it
+After the tool is **Approved** (Step 2), control availability:
+- **All courses (account-wide):** leave it available in the **Content Market / Institution Tools** so
+  every course sees it; any instructor self-adds it (below).
+- **Restricted pilot:** use Blackboard's tool-availability / course-tool settings to limit it to
+  specific courses or terms.
+
+Instructors always place it via the Content Market — Blackboard doesn't auto-insert it into every
+course.
 
 ### Instructor places it in a course
 - **Ultra:** Course Content → **+** → **Content Market** → **Institution Tools** → **LMS Bridge**.
