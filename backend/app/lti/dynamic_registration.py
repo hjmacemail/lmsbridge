@@ -48,8 +48,26 @@ def _tool_registration_body() -> dict:
             "target_link_uri": launch,
             "claims": ["iss", "sub", "name", "email"],
             "messages": [
-                {"type": "LtiResourceLinkRequest", "target_link_uri": launch},
-                {"type": "LtiDeepLinkingRequest", "target_link_uri": launch},
+                # Course-level launch. Advertise the placements so the platform
+                # actually surfaces the tool: course_navigation puts an "LMS Bridge"
+                # link in the course menu (Canvas), link/assignment selection enable
+                # placing it as content.
+                {
+                    "type": "LtiResourceLinkRequest",
+                    "target_link_uri": launch,
+                    "label": settings.app_name,
+                    "icon_uri": f"{base}/favicon.ico",
+                    "placements": ["course_navigation", "link_selection", "assignment_selection"],
+                    # Canvas extensions: show to all roles, enabled by default.
+                    "https://canvas.instructure.com/lti/course_navigation/default_enabled": True,
+                    "https://canvas.instructure.com/lti/visibility": "public",
+                },
+                {
+                    "type": "LtiDeepLinkingRequest",
+                    "target_link_uri": launch,
+                    "label": settings.app_name,
+                    "placements": ["link_selection", "assignment_selection"],
+                },
             ],
         },
     }

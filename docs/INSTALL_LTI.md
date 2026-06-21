@@ -301,6 +301,12 @@ course.
    common causes are: a mismatched **Redirect URI**, the wrong **JWKS** URL, `TOOL_BASE_URL` not set
    to your real host, or a **Deployment ID** that wasn't recorded (unless auto-register is on).
 
+**Tool registered but no "LMS Bridge" link / nowhere to add it?** The registration must advertise a
+`course_navigation` placement (and `link_selection` / `assignment_selection` for content). LMS Bridge
+includes these by default. If you registered with an older build that didn't, **delete the
+developer key / registration in the LMS and re-run Dynamic Registration** against the updated tool —
+the placement is sent at registration time, so re-registering is what picks it up.
+
 ## 6. Data-flow notes
 
 - **Scores** arrive via **AGS** at the line-item level — map each LMS line item to a concept when you
