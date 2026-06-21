@@ -95,6 +95,7 @@
     <a href="#features">Features</a>
     <a href="#how">How it works</a>
     <a href="#lms">LMS integration</a>
+    <a href="#sage">Sage</a>
     <a href="#opensource">Open source</a>
     <a href="#install">Install</a>
     <a href="#usedby">Used by</a>
@@ -199,6 +200,19 @@
       assessment outcomes; mastery can post back as a <em>non-graded</em> column.</p></div>
     <div class="card"><h3>One-click placement</h3><p>Deep Linking lets instructors drop LMS Bridge
       into any module from the LMS content menu.</p></div>
+  </div>
+</div></section>
+
+<section id="sage" class="alt"><div class="wrap">
+  <span class="pill" style="color:#7c5cff;background:rgba(124,92,255,.1);border-color:rgba(124,92,255,.25)">New · Sage</span>
+  <h2>No LMS? Start with Sage.</h2>
+  <p class="lead">Sage is a standalone, AI-guided class Q&amp;A board — like a discussion forum, but the
+  AI answers Socratically, flags the misconception behind each question, and turns it into instant
+  retrieval practice. Any instructor can spin up a class in minutes and share a join code — no IT,
+  no LMS admin. The same LMS Bridge pedagogy, with zero setup.</p>
+  <div class="cta">
+    <a class="btn" id="sageBtn" href="#" target="_blank" rel="noopener">Open Sage</a>
+    <a class="btn secondary" href="#install">Or install the full platform</a>
   </div>
 </div></section>
 
@@ -422,6 +436,8 @@
       var el = document.getElementById('demo_' + id);
       if (el) el.href = app + '/demo?lms=' + id + home;
     });
+    var sage = document.getElementById('sageBtn');
+    if (sage) sage.href = app + '/sage';
     // Point "View source" + maintainer link at the real repo (set via SOURCE_URL).
     var src = window.LMSBRIDGE_SOURCE;
     if (src) {

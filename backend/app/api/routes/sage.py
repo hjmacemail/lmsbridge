@@ -317,6 +317,22 @@ def add_answer(
     return _post_detail(db, post, viewer_is_instructor=m.role == "instructor")
 
 
+@router.post("/posts/{post_id}/practice")
+def practice(
+    post_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> dict:
+    """Turn a question's flagged misconception into a short retrieval-practice set."""
+    post = db.get(SagePost, post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    _require_member(db, post.class_id, user)
+    sc = db.get(SageClass, post.class_id)
+    items = sage_ai.practice_items(
+        post.title, post.body or "", post.ai_misconception, sc.subject if sc else None
+    )
+    return {"post_id": post.id, "items": items}
+
+
 @router.post("/answers/{answer_id}/endorse")
 def endorse_answer(
     answer_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)

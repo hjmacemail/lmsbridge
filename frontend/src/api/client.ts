@@ -312,5 +312,10 @@ export const sageApi = {
   resolve: (postId: number) =>
     request<{ id: number; resolved: boolean }>(`/sage/posts/${postId}/resolve`,
       { method: "POST" }),
+  practice: (postId: number) =>
+    request<{ post_id: number; items: SagePracticeItem[] }>(`/sage/posts/${postId}/practice`,
+      { method: "POST" }),
   insights: (classId: number) => request<SageInsights>(`/sage/classes/${classId}/insights`),
 };
+
+export interface SagePracticeItem { question: string; answer: string; explanation: string; }

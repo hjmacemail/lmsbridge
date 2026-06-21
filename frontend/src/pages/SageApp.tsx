@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {
   sageApi, saveToken, clearToken, loadToken,
   type SageAuth, type SageClassSummary, type SagePostItem,
-  type SagePostDetail, type SageInsights,
+  type SagePostDetail, type SageInsights, type SagePracticeItem,
 } from "../api/client";
 
 type View = "auth" | "classes" | "board" | "thread" | "insights";
@@ -276,11 +276,18 @@ function Thread({ postId, cls, onBack }: {
 }) {
   const [p, setP] = useState<SagePostDetail | null>(null);
   const [reply, setReply] = useState(""); const [busy, setBusy] = useState(false);
+  const [practice, setPractice] = useState<SagePracticeItem[] | null>(null);
+  const [pBusy, setPBusy] = useState(false); const [reveal, setReveal] = useState<number | null>(null);
   const isInstr = cls.role === "instructor";
 
   const load = () => sageApi.post(postId).then(setP).catch(() => setP(null));
-  useEffect(() => { load(); }, [postId]);
+  useEffect(() => { load(); setPractice(null); }, [postId]);
   if (!p) return <p>Loading…</p>;
+
+  async function startPractice() {
+    setPBusy(true);
+    try { setPractice((await sageApi.practice(postId)).items); } finally { setPBusy(false); }
+  }
 
   async function send(e: React.FormEvent) {
     e.preventDefault(); if (!reply.trim()) return; setBusy(true);
@@ -301,7 +308,31 @@ function Thread({ postId, cls, onBack }: {
           {p.author}{p.tags ? ` · ${p.tags}` : ""}
           {p.ai_misconception && <span style={{ color: "#b4530c" }}> · flag: {p.ai_misconception}</span>}
         </div>
+        <button className="btn" style={{ marginTop: 12, background: "#7c5cff", color: "#fff" }}
+          onClick={startPractice} disabled={pBusy}>
+          {pBusy ? "Building practice…" : "Practice this concept"}
+        </button>
       </Card>
+
+      {practice && (
+        <Card style={{ borderLeft: "3px solid #7c5cff", background: "#f7f5ff" }}>
+          <h3 style={{ marginTop: 0, color: "#5b3fd6" }}>Retrieval practice</h3>
+          {practice.map((it, i) => (
+            <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #ece8fb" }}>
+              <div style={{ fontWeight: 600, fontSize: 14 }}>{i + 1}. {it.question}</div>
+              {reveal === i ? (
+                <div style={{ fontSize: 13, marginTop: 6 }}>
+                  <div><b>Answer:</b> {it.answer}</div>
+                  <div style={{ color: "#6b6585" }}>{it.explanation}</div>
+                </div>
+              ) : (
+                <button className="btn" style={{ padding: "2px 10px", fontSize: 12, marginTop: 6 }}
+                  onClick={() => setReveal(i)}>Show answer</button>
+              )}
+            </div>
+          ))}
+        </Card>
+      )}
 
       {p.answers.map((a) => (
         <Card key={a.id} style={{

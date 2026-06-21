@@ -47,3 +47,54 @@ def socratic_reply(
     mis = data.get("misconception")
     misconception = mis.strip() if isinstance(mis, str) and mis.strip() else None
     return reply, misconception
+
+
+_PRACTICE_SYSTEM = (
+    "You are Sage, an AI tutor. Generate a SHORT retrieval-practice set (3 items) to help a "
+    "student overcome a specific misconception. Each item has a focused question, the correct "
+    "answer, and a one-sentence explanation that targets the misconception. Keep it concept-level "
+    'and active. Respond ONLY as JSON: '
+    '{"items": [{"question": string, "answer": string, "explanation": string}]}.'
+)
+
+
+def practice_items(
+    title: str, body: str, misconception: str | None, subject: str | None = None
+) -> list[dict]:
+    """Generate a few retrieval-practice items targeting the question's misconception."""
+    focus = misconception or title
+    user = (
+        f"Subject: {subject or 'this course'}.\n"
+        f"Student's question: {title}\nDetails: {body or '(none)'}\n"
+        f"Target misconception to remediate: {focus}"
+    )
+    try:
+        resp = get_llm_provider().complete(
+            [LLMMessage("system", _PRACTICE_SYSTEM), LLMMessage("user", user)], json_mode=True
+        )
+        data = extract_json(resp.text) or {}
+        items = data.get("items") if isinstance(data, dict) else None
+    except Exception as e:  # noqa: BLE001
+        logger.warning("Sage practice generation failed: %s", e)
+        items = None
+
+    clean: list[dict] = []
+    for it in items or []:
+        if isinstance(it, dict) and it.get("question"):
+            clean.append({
+                "question": str(it.get("question")).strip(),
+                "answer": str(it.get("answer") or "").strip(),
+                "explanation": str(it.get("explanation") or "").strip(),
+            })
+    if clean:
+        return clean[:5]
+    # Deterministic fallback so the feature always works (e.g. with the mock provider).
+    return [{
+        "question": f"In your own words, explain the key idea behind: {focus}.",
+        "answer": "Compare your explanation with your notes and the endorsed answer.",
+        "explanation": "Retrieving and restating the concept yourself strengthens understanding.",
+    }, {
+        "question": f"Give one example where '{focus}' applies, and one where it does not.",
+        "answer": "Any correct contrasting pair.",
+        "explanation": "Contrasting cases expose the boundary of the concept and fix errors.",
+    }]

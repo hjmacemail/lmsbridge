@@ -66,6 +66,26 @@ def test_sage_end_to_end(client):
     assert client.get(f"/api/v1/sage/classes/{cid}/insights", headers=sh).status_code == 403
 
 
+def test_sage_practice_from_post(client):
+    s = client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr P", "email": "p@uni.edu", "password": "secret123"})
+    ih = _auth(client, s.json())
+    cid = client.post("/api/v1/sage/classes", headers=ih,
+                      json={"name": "Stats", "subject": "Probability"}).json()["id"]
+    g = client.post("/api/v1/sage/guest", json={
+        "join_code": client.get(f"/api/v1/sage/classes/{cid}", headers=ih).json()["join_code"],
+        "full_name": "Stu"})
+    sh = _auth(client, g.json())
+    pid = client.post(f"/api/v1/sage/classes/{cid}/posts", headers=sh, json={
+        "title": "Are independent events mutually exclusive?", "body": "I always mix these up."}
+    ).json()["id"]
+
+    pr = client.post(f"/api/v1/sage/posts/{pid}/practice", headers=sh)
+    assert pr.status_code == 200, pr.text
+    items = pr.json()["items"]
+    assert len(items) >= 1 and all("question" in it for it in items)
+
+
 def test_sage_join_requires_valid_code(client):
     client.post("/api/v1/sage/signup", json={
         "full_name": "X", "email": "x@uni.edu", "password": "secret123"})
