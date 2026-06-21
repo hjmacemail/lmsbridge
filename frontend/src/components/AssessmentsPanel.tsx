@@ -38,7 +38,12 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
   }
 
   if (data.length === 0)
-    return <div className="card muted">No assessments yet. Run a Brightspace sync.</div>;
+    return (
+      <div className="card muted">
+        No assessments yet. They import automatically from your LMS gradebook the next time an
+        instructor launches LMS Bridge from the course — or add one manually under Course Setup.
+      </div>
+    );
 
   const disabledCount = data.filter((a) => !a.adaptive_enabled).length;
 

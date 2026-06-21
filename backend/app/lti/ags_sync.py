@@ -12,32 +12,47 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.logging import get_logger
 from app.lti import services
+from app.lti.claims import is_admin_role, is_instructor
 from app.lti.launch import LtiLaunch
 from app.models.assessment import Assessment
+from app.models.course import Course
 from app.models.enums import AssessmentType, UserRole
 from app.models.lti import LtiRegistration
 from app.models.user import User
 from app.services.ingestion_service import ingest_result
 
+logger = get_logger("lti.ags")
+
 
 def sync_course_from_ags(
     db: Session, *, course_id: int, reg: LtiRegistration, ags_endpoint: dict,
-    lineitem_to_concept: dict[str, str], auto_remediate: bool = True,
+    lineitem_to_concept: dict[str, str] | None = None, auto_remediate: bool = True,
 ) -> dict:
-    """Pull AGS line items + results and run them through the ingestion pipeline."""
+    """Pull AGS line items + results and run them through the ingestion pipeline.
+
+    Every line item becomes an Assessment (so the instructor console populates from the LMS
+    gradebook). Per-student result ingestion + remediation runs only for line items the
+    instructor has mapped to a concept (``lineitem_to_concept``).
+    """
     lineitems_url = ags_endpoint.get("lineitems")
     if not lineitems_url:
-        return {"ingested": 0, "modules": 0, "note": "no lineitems endpoint in AGS claim"}
+        return {"assessments": 0, "ingested": 0, "modules": 0, "note": "no lineitems endpoint"}
 
+    lineitem_to_concept = lineitem_to_concept or {}
     lineitems = services.ags_get_lineitems(db, reg, lineitems_url)
-    ingested = modules = 0
+    assessments = ingested = modules = 0
     for li in lineitems:
         li_url = li.get("id")
-        concept_key = lineitem_to_concept.get(li.get("label") or li.get("id", ""))
-        if not (li_url and concept_key):
+        if not li_url:
             continue
+        # Always surface the assessment from the LMS gradebook column.
         assessment = _ensure_assessment(db, course_id, li)
+        assessments += 1
+        concept_key = lineitem_to_concept.get(li.get("label") or li.get("id", ""))
+        if not concept_key:
+            continue
         for result in services.ags_get_results(db, reg, li_url):
             user = db.scalar(
                 select(User).where(
@@ -57,7 +72,32 @@ def sync_course_from_ags(
             )
             ingested += 1
             modules += len(mods)
-    return {"ingested": ingested, "modules": modules}
+    db.commit()
+    logger.info(
+        "AGS sync: course=%s assessments=%d ingested=%d modules=%d",
+        course_id, assessments, ingested, modules,
+    )
+    return {"assessments": assessments, "ingested": ingested, "modules": modules}
+
+
+def maybe_sync_assessments_on_launch(db: Session, launch: LtiLaunch, course: Course | None) -> None:
+    """Best-effort assessment import on an instructor/admin launch. Never raises."""
+    if course is None:
+        return
+    roles = launch.roles or []
+    if not (is_instructor(roles) or is_admin_role(roles)):
+        return
+    ags = launch.ags or {}
+    if not ags.get("lineitems"):
+        return
+    try:
+        sync_course_from_ags(
+            db, course_id=course.id, reg=launch.registration, ags_endpoint=ags,
+            lineitem_to_concept={},
+        )
+    except Exception as e:  # noqa: BLE001 — assessment sync must never break a launch
+        db.rollback()
+        logger.warning("AGS assessment sync failed for course=%s: %s", course.id, e)
 
 
 def _ensure_assessment(db: Session, course_id: int, lineitem: dict) -> Assessment:

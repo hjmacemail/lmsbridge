@@ -15,6 +15,7 @@ from app.api.deps import require_instructor, require_platform_admin
 from app.core.config import settings
 from app.db.session import get_db
 from app.lti import keys
+from app.lti.ags_sync import maybe_sync_assessments_on_launch, sync_course_from_ags
 from app.lti.deeplink import build_deep_linking_response, resource_link_item
 from app.lti.launch import validate_launch
 from app.lti.oidc import LtiError, build_login_redirect
@@ -148,9 +149,10 @@ def launch(
     # Resource link launch: provision + single sign-on into the SPA.
     user, course, token = provision(db, parsed)
 
-    # On an instructor/admin launch, import the whole class roster via NRPS so the
-    # instructor console isn't empty before students have individually launched.
+    # On an instructor/admin launch, import the whole class roster via NRPS and the
+    # gradebook assessments via AGS, so the instructor console isn't empty.
     maybe_sync_roster_on_launch(db, parsed, course)
+    maybe_sync_assessments_on_launch(db, parsed, course)
 
     # Licensing gate: block the launch (with a friendly screen) when the institution's
     # subscription/seat entitlement — or a self-hosted license — does not permit it.
@@ -199,6 +201,39 @@ def sync_roster_endpoint(
         return sync_course_roster(db, reg, course)
     except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"Roster sync failed: {e}") from e
+
+
+@router.post("/courses/{course_id}/sync-assessments")
+def sync_assessments_endpoint(
+    course_id: int,
+    db: Session = Depends(get_db),
+    _user: User = Depends(require_instructor),
+) -> dict:
+    """Manually (re)import a course's assessments from the LMS gradebook via AGS."""
+    course = db.get(Course, course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    if not course.lti_lineitems_url:
+        raise HTTPException(
+            status_code=400,
+            detail="No LMS gradebook link for this course yet — launch it once from the LMS "
+            "as an instructor so LMS Bridge can capture the AGS line-items endpoint.",
+        )
+    tenant = db.get(Tenant, course.tenant_id) if course.tenant_id else None
+    reg = (
+        db.get(LtiRegistration, tenant.lti_registration_id)
+        if tenant and tenant.lti_registration_id
+        else None
+    )
+    if not reg:
+        raise HTTPException(status_code=400, detail="No LMS registration is linked to this course.")
+    try:
+        return sync_course_from_ags(
+            db, course_id=course.id, reg=reg,
+            ags_endpoint={"lineitems": course.lti_lineitems_url},
+        )
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"Assessment sync failed: {e}") from e
 
 
 def _license_blocked_page(detail: str) -> str:

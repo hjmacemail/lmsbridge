@@ -19,6 +19,9 @@ class Course(Base, TimestampMixin):
     # LTI NRPS (Names & Role Provisioning) context membership URL, captured at launch so the
     # full course roster can be (re)synced from the LMS without waiting for each student to launch.
     lti_memberships_url: Mapped[str | None] = mapped_column(String(1024))
+    # LTI AGS (Assignment & Grade Services) line-items URL, captured at launch so the course's
+    # assessments/gradebook columns can be (re)synced from the LMS automatically.
+    lti_lineitems_url: Mapped[str | None] = mapped_column(String(1024))
     tenant_id: Mapped[int | None] = mapped_column(
         ForeignKey("tenants.id", ondelete="SET NULL"), index=True
     )

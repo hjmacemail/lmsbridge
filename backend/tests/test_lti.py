@@ -168,6 +168,33 @@ def test_instructor_launch_syncs_full_roster_via_nrps(db, monkeypatch):
     assert ada and ada.role == UserRole.student and ada.full_name == "Ada"
 
 
+def test_instructor_launch_syncs_assessments_via_ags(db, monkeypatch):
+    from app.lti import ags_sync
+    from app.models.assessment import Assessment
+
+    pem, jwks = _platform_keypair()
+    reg = _register(db)
+    jwks_client.prime_cache(reg.key_set_url, jwks)
+    state, nonce = _login_state(db, reg)
+    parsed = validate_launch(db, state=state, id_token=_mint_id_token(pem, nonce, instructor=True))
+    _i, course, _t = provision(db, parsed)
+    # The AGS line-items URL from the launch is captured on the course.
+    assert course.lti_lineitems_url == f"{ISSUER}/ags/lineitems"
+
+    lineitems = [
+        {"id": f"{ISSUER}/ags/li/1", "label": "Quiz 1", "scoreMaximum": 10},
+        {"id": f"{ISSUER}/ags/li/2", "label": "Quiz 2", "scoreMaximum": 20},
+    ]
+    monkeypatch.setattr(ags_sync.services, "ags_get_lineitems", lambda db, reg, url: lineitems)
+
+    ags_sync.maybe_sync_assessments_on_launch(db, parsed, course)
+    ags_sync.maybe_sync_assessments_on_launch(db, parsed, course)  # idempotent
+
+    rows = db.scalars(select(Assessment).where(Assessment.course_id == course.id)).all()
+    assert len(rows) == 2  # one per line item, no duplicates on re-run
+    assert {a.title for a in rows} == {"Quiz 1", "Quiz 2"}
+
+
 def test_student_launch_does_not_trigger_roster_sync(db, monkeypatch):
     from app.lti import provisioning
 

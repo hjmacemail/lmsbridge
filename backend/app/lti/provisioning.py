@@ -112,6 +112,10 @@ def provision(db: Session, launch: LtiLaunch) -> tuple[User, Course | None, str]
         nrps_url = (launch.nrps or {}).get("context_memberships_url")
         if nrps_url:
             course.lti_memberships_url = nrps_url
+        # Capture the AGS line-items endpoint so assessments can be (re)synced later.
+        lineitems_url = (launch.ags or {}).get("lineitems")
+        if lineitems_url:
+            course.lti_lineitems_url = lineitems_url
         # Ensure enrollment.
         enr = db.scalar(
             select(Enrollment).where(
