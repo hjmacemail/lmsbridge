@@ -17,6 +17,7 @@ from app.api.routes import (
     lti,
     materials,
     remediation,
+    sage,
     students,
     tenants,
 )
@@ -76,3 +77,4 @@ app.include_router(materials.router, prefix=API)
 app.include_router(lti.router, prefix=API)
 app.include_router(leads.router, prefix=API)
 app.include_router(tenants.router, prefix=API)
+app.include_router(sage.router, prefix=API)

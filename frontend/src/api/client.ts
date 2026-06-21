@@ -250,3 +250,67 @@ export const api = {
     URL.revokeObjectURL(url);
   },
 };
+
+// ---- Sage (standalone AI Q&A board) ----
+export interface SageAuth {
+  access_token: string; token_type: string; user_id: number; full_name: string; role: string;
+}
+export interface SageClassSummary {
+  id: number; name: string; subject: string | null; role: string;
+  join_code: string; member_count: number; post_count: number;
+}
+export interface SageAnswerItem {
+  id: number; body: string; is_ai: boolean; is_instructor: boolean;
+  endorsed: boolean; author: string; created_at: string;
+}
+export interface SagePostDetail {
+  id: number; class_id: number; title: string; body: string; tags: string | null;
+  anonymous: boolean; resolved: boolean; author: string; answers: SageAnswerItem[];
+  ai_misconception?: string | null; created_at: string;
+}
+export interface SagePostItem {
+  id: number; title: string; tags: string | null; anonymous: boolean; resolved: boolean;
+  author: string; answer_count: number; has_endorsed: boolean;
+  ai_misconception?: string | null; created_at: string;
+}
+export interface SageInsights {
+  members: number; total_posts: number; open_count: number; resolved_count: number;
+  unanswered_by_humans: number; top_tags: { tag: string; count: number }[];
+  top_misconceptions: { label: string; count: number }[];
+}
+
+export const sageApi = {
+  signup: (full_name: string, email: string, password: string) =>
+    request<SageAuth>(`/sage/signup`, { method: "POST",
+      body: JSON.stringify({ full_name, email, password }) }),
+  guestJoin: (join_code: string, full_name: string) =>
+    request<SageAuth>(`/sage/guest`, { method: "POST",
+      body: JSON.stringify({ join_code, full_name }) }),
+  joinSignup: (join_code: string, full_name: string, email: string, password: string) =>
+    request<SageAuth>(`/sage/join`, { method: "POST",
+      body: JSON.stringify({ join_code, full_name, email, password }) }),
+  login: (email: string, password: string) => api.login(email, password),
+  classes: () => request<SageClassSummary[]>(`/sage/classes`),
+  createClass: (name: string, subject: string) =>
+    request<SageClassSummary>(`/sage/classes`, { method: "POST",
+      body: JSON.stringify({ name, subject }) }),
+  joinExisting: (join_code: string) =>
+    request<{ class_id: number; name: string }>(`/sage/classes/join`, { method: "POST",
+      body: JSON.stringify({ join_code }) }),
+  classDetail: (id: number) => request<SageClassSummary>(`/sage/classes/${id}`),
+  posts: (classId: number) => request<SagePostItem[]>(`/sage/classes/${classId}/posts`),
+  createPost: (classId: number, title: string, body: string, tags: string, anonymous: boolean) =>
+    request<SagePostDetail>(`/sage/classes/${classId}/posts`, { method: "POST",
+      body: JSON.stringify({ title, body, tags, anonymous }) }),
+  post: (postId: number) => request<SagePostDetail>(`/sage/posts/${postId}`),
+  answer: (postId: number, body: string) =>
+    request<SagePostDetail>(`/sage/posts/${postId}/answers`, { method: "POST",
+      body: JSON.stringify({ body }) }),
+  endorse: (answerId: number) =>
+    request<{ id: number; endorsed: boolean }>(`/sage/answers/${answerId}/endorse`,
+      { method: "POST" }),
+  resolve: (postId: number) =>
+    request<{ id: number; resolved: boolean }>(`/sage/posts/${postId}/resolve`,
+      { method: "POST" }),
+  insights: (classId: number) => request<SageInsights>(`/sage/classes/${classId}/insights`),
+};
