@@ -37,11 +37,30 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
     }
   }
 
+  async function syncLms() {
+    setBusy(true); setNote(null);
+    try {
+      const r = await api.syncAssessments(courseId);
+      setNote(`Imported ${r.assessments} assessment(s) from the LMS gradebook.`);
+      load();
+    } catch (e) {
+      setNote((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (data.length === 0)
     return (
-      <div className="card muted">
-        No assessments yet. They import automatically from your LMS gradebook the next time an
-        instructor launches LMS Bridge from the course — or add one manually under Course Setup.
+      <div className="card">
+        <p className="muted" style={{ marginTop: 0 }}>
+          No assessments yet. They import automatically from your LMS gradebook the next time an
+          instructor launches LMS Bridge from the course — or pull them now:
+        </p>
+        <button className="btn" onClick={syncLms} disabled={busy}>
+          {busy ? "Syncing…" : "Sync from LMS"}
+        </button>
+        {note && <p className="muted" style={{ fontSize: 13 }}>{note}</p>}
       </div>
     );
 
@@ -59,9 +78,14 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
               remediation. {disabledCount > 0 && <strong>{disabledCount} disabled.</strong>}
             </p>
           </div>
-          <button className="btn" onClick={recompute} disabled={busy}>
-            {busy ? "Recomputing…" : "Recompute adaptive model"}
-          </button>
+          <div className="row" style={{ gap: 8 }}>
+            <button className="btn" onClick={syncLms} disabled={busy}>
+              {busy ? "Syncing…" : "Sync from LMS"}
+            </button>
+            <button className="btn" onClick={recompute} disabled={busy}>
+              {busy ? "Recomputing…" : "Recompute adaptive model"}
+            </button>
+          </div>
         </div>
         {note && <div className="feedback" style={{ marginTop: 10, fontSize: 13 }}>{note}</div>}
       </div>

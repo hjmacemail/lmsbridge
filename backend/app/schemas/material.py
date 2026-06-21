@@ -2,7 +2,16 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from pydantic import BaseModel, Field
+
 from app.schemas.common import ORMModel
+
+
+class CanvasImportRequest(BaseModel):
+    course_id: int
+    base_url: str = Field(..., description="Canvas host, e.g. https://school.instructure.com")
+    access_token: str = Field(..., description="Canvas access token (Account > Settings)")
+    canvas_course_id: str = Field(..., description="Numeric Canvas course id (from course URL)")
 
 
 class MaterialOut(ORMModel):

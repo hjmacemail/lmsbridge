@@ -16,10 +16,35 @@ export default function MaterialsPanel({
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Canvas import
+  const [cvBase, setCvBase] = useState("");
+  const [cvToken, setCvToken] = useState("");
+  const [cvCourse, setCvCourse] = useState("");
+  const [cvBusy, setCvBusy] = useState(false);
+  const [cvNote, setCvNote] = useState<string | null>(null);
+
   function load() {
     api.materials(courseId).then(setMaterials).catch((e) => setErr((e as Error).message));
   }
   useEffect(load, [courseId]);
+
+  async function importCanvas(e: React.FormEvent) {
+    e.preventDefault();
+    if (!cvBase || !cvToken || !cvCourse) {
+      setCvNote("Enter your Canvas URL, an access token, and the Canvas course id."); return;
+    }
+    setCvBusy(true); setCvNote(null);
+    try {
+      const r = await api.importCanvasFiles(courseId, cvBase, cvToken, cvCourse);
+      setCvNote(`Imported ${r.imported} file(s); skipped ${r.skipped} of ${r.total}.`);
+      setCvToken("");
+      load();
+    } catch (e) {
+      setCvNote((e as Error).message);
+    } finally {
+      setCvBusy(false);
+    }
+  }
 
   async function upload(e: React.FormEvent) {
     e.preventDefault();
@@ -75,6 +100,39 @@ export default function MaterialsPanel({
             {busy ? "Uploading…" : "Upload"}
           </button>
           {err && <div className="error">{err}</div>}
+        </form>
+      </div>
+
+      <div className="card" style={{ marginBottom: 18 }}>
+        <h3>Import from Canvas</h3>
+        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+          Pull your Canvas course files in automatically. Create a token in Canvas under
+          <strong> Account → Settings → New Access Token</strong>, and find the course id in your
+          course URL (<code>…/courses/<strong>12345</strong></code>). The token is used once and not
+          stored. Document files (PDF, DOCX, PPTX, TXT, MD, HTML, CSV) are imported and text-extracted.
+        </p>
+        <form onSubmit={importCanvas}>
+          <div className="grid cols-3" style={{ alignItems: "end" }}>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Canvas URL</label>
+              <input value={cvBase} onChange={(e) => setCvBase(e.target.value)}
+                placeholder="https://school.instructure.com" />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Access token</label>
+              <input type="password" value={cvToken} onChange={(e) => setCvToken(e.target.value)}
+                placeholder="paste token" autoComplete="off" />
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>Canvas course id</label>
+              <input value={cvCourse} onChange={(e) => setCvCourse(e.target.value)}
+                placeholder="e.g. 12345" />
+            </div>
+          </div>
+          <button className="btn" style={{ marginTop: 14 }} disabled={cvBusy}>
+            {cvBusy ? "Importing…" : "Import course files"}
+          </button>
+          {cvNote && <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>{cvNote}</div>}
         </form>
       </div>
 

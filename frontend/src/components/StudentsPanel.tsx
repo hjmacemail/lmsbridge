@@ -135,15 +135,35 @@ function StudentDrill({ courseId, studentId }: { courseId: number; studentId: nu
 export default function StudentsPanel({ courseId }: { courseId: number }) {
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [open, setOpen] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
 
-  useEffect(() => {
-    api.roster(courseId).then(setRoster).catch(() => setRoster([]));
-    setOpen(null);
-  }, [courseId]);
+  const load = () => api.roster(courseId).then(setRoster).catch(() => setRoster([]));
+  useEffect(() => { load(); setOpen(null); setNote(null); }, [courseId]);
+
+  async function sync() {
+    setBusy(true); setNote(null);
+    try {
+      const r = await api.syncRoster(courseId);
+      setNote(`Synced ${r.synced} of ${r.members} members from the LMS.`);
+      await load();
+    } catch (e) {
+      setNote((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <div className="card">
-      <h3>Roster ({roster.length}) — click a student to drill down</h3>
+      <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
+        <h3 style={{ margin: 0 }}>Roster ({roster.length}) — click a student to drill down</h3>
+        <button className="btn" onClick={sync} disabled={busy}>
+          {busy ? "Syncing…" : "Sync roster from LMS"}
+        </button>
+      </div>
+      {note && <p className="muted" style={{ fontSize: 13, margin: "8px 0 0" }}>{note}</p>}
+      <div style={{ height: 12 }} />
       <table>
         <thead>
           <tr><th>Student</th><th>Avg mastery</th><th>At-risk concepts</th>

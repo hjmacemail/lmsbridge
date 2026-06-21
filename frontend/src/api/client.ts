@@ -130,6 +130,24 @@ export const api = {
       method: "POST",
     }),
 
+  // ---- LMS sync (LTI Advantage services) ----
+  syncRoster: (courseId: number) =>
+    request<{ synced: number; members: number }>(
+      `/lti/courses/${courseId}/sync-roster`, { method: "POST" }),
+  syncAssessments: (courseId: number) =>
+    request<{ assessments: number; ingested: number; modules: number }>(
+      `/lti/courses/${courseId}/sync-assessments`, { method: "POST" }),
+  importCanvasFiles: (
+    courseId: number, baseUrl: string, accessToken: string, canvasCourseId: string,
+  ) =>
+    request<{ imported: number; skipped: number; total: number }>(
+      `/materials/import/canvas`,
+      { method: "POST", body: JSON.stringify({
+        course_id: courseId, base_url: baseUrl,
+        access_token: accessToken, canvas_course_id: canvasCourseId,
+      }) },
+    ),
+
   // ---- Instructor detail views ----
   roster: (courseId: number) =>
     request<RosterEntry[]>(`/analytics/courses/${courseId}/roster`),
