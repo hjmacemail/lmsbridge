@@ -42,6 +42,29 @@ def _course_key(launch: LtiLaunch) -> str:
     return f"lti::{launch.registration.issuer}::{launch.context_id}"
 
 
+def infer_lms(launch: LtiLaunch) -> tuple[str | None, str | None]:
+    """Best-effort (provider, course_ref) for the file-import prefill, from launch claims.
+
+    - Canvas: course id comes from the `$Canvas.course.id` custom parameter.
+    - Brightspace / Moodle: the LTI context_id is the org-unit id / course id.
+    """
+    iss = (launch.registration.issuer or "").lower()
+    fam = (launch.registration.name or "").lower()
+    custom = launch.custom or {}
+    if "instructure" in iss or "canvas" in fam:
+        provider = "canvas"
+        ref = custom.get("canvas_course_id") or custom.get("course_id")
+    elif "brightspace" in iss or "d2l" in iss or "desire2learn" in fam:
+        provider = "brightspace"
+        ref = launch.context_id
+    elif "moodle" in iss or "moodle" in fam:
+        provider = "moodle"
+        ref = custom.get("course_id") or launch.context_id
+    else:
+        return None, None
+    return provider, (str(ref) if ref else None)
+
+
 def _role_from_roles(roles: list[str]) -> UserRole:
     # LMS Administrator/sysadmin -> institution admin (scoped to their tenant; never platform).
     if is_admin_role(roles):
@@ -116,6 +139,12 @@ def provision(db: Session, launch: LtiLaunch) -> tuple[User, Course | None, str]
         lineitems_url = (launch.ags or {}).get("lineitems")
         if lineitems_url:
             course.lti_lineitems_url = lineitems_url
+        # Capture which LMS + course id, to prefill the "import course files" form.
+        provider, course_ref = infer_lms(launch)
+        if provider:
+            course.lms_provider = provider
+        if course_ref:
+            course.lms_course_ref = course_ref
         # Ensure enrollment.
         enr = db.scalar(
             select(Enrollment).where(

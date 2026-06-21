@@ -7,11 +7,12 @@ from pydantic import BaseModel, Field
 from app.schemas.common import ORMModel
 
 
-class CanvasImportRequest(BaseModel):
+class LmsImportRequest(BaseModel):
     course_id: int
-    base_url: str = Field(..., description="Canvas host, e.g. https://school.instructure.com")
-    access_token: str = Field(..., description="Canvas access token (Account > Settings)")
-    canvas_course_id: str = Field(..., description="Numeric Canvas course id (from course URL)")
+    provider: str = Field(..., description="canvas | moodle | brightspace")
+    base_url: str = Field(..., description="LMS host, e.g. https://school.instructure.com")
+    access_token: str = Field(..., description="LMS API token / OAuth2 bearer token")
+    lms_course_id: str = Field(..., description="Provider course/org-unit id")
 
 
 class MaterialOut(ORMModel):

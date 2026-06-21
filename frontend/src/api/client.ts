@@ -137,14 +137,19 @@ export const api = {
   syncAssessments: (courseId: number) =>
     request<{ assessments: number; ingested: number; modules: number }>(
       `/lti/courses/${courseId}/sync-assessments`, { method: "POST" }),
-  importCanvasFiles: (
-    courseId: number, baseUrl: string, accessToken: string, canvasCourseId: string,
+  lmsContext: (courseId: number) =>
+    request<{
+      provider: string | null; lms_course_ref: string | null;
+      has_roster_link: boolean; has_gradebook_link: boolean;
+    }>(`/lti/courses/${courseId}/lms-context`),
+  importLmsFiles: (
+    courseId: number, provider: string, baseUrl: string, accessToken: string, lmsCourseId: string,
   ) =>
     request<{ imported: number; skipped: number; total: number }>(
-      `/materials/import/canvas`,
+      `/materials/import/lms`,
       { method: "POST", body: JSON.stringify({
-        course_id: courseId, base_url: baseUrl,
-        access_token: accessToken, canvas_course_id: canvasCourseId,
+        course_id: courseId, provider, base_url: baseUrl,
+        access_token: accessToken, lms_course_id: lmsCourseId,
       }) },
     ),
 

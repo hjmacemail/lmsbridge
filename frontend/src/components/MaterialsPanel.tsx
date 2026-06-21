@@ -16,7 +16,8 @@ export default function MaterialsPanel({
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Canvas import
+  // LMS file import
+  const [cvProvider, setCvProvider] = useState("canvas");
   const [cvBase, setCvBase] = useState("");
   const [cvToken, setCvToken] = useState("");
   const [cvCourse, setCvCourse] = useState("");
@@ -28,14 +29,31 @@ export default function MaterialsPanel({
   }
   useEffect(load, [courseId]);
 
-  async function importCanvas(e: React.FormEvent) {
+  // Prefill provider + course id from the LTI launch context.
+  useEffect(() => {
+    api.lmsContext(courseId).then((c) => {
+      if (c.provider) setCvProvider(c.provider);
+      if (c.lms_course_ref) setCvCourse(c.lms_course_ref);
+    }).catch(() => {});
+  }, [courseId]);
+
+  const ID_LABEL: Record<string, string> = {
+    canvas: "Canvas course id", moodle: "Moodle course id", brightspace: "Org unit id",
+  };
+  const TOKEN_HELP: Record<string, string> = {
+    canvas: "Canvas access token (Account → Settings → New Access Token)",
+    moodle: "Moodle web-service token (Preferences → Security keys)",
+    brightspace: "Brightspace OAuth2 bearer token",
+  };
+
+  async function importLms(e: React.FormEvent) {
     e.preventDefault();
     if (!cvBase || !cvToken || !cvCourse) {
-      setCvNote("Enter your Canvas URL, an access token, and the Canvas course id."); return;
+      setCvNote("Enter the LMS URL, a token, and the course id."); return;
     }
     setCvBusy(true); setCvNote(null);
     try {
-      const r = await api.importCanvasFiles(courseId, cvBase, cvToken, cvCourse);
+      const r = await api.importLmsFiles(courseId, cvProvider, cvBase, cvToken, cvCourse);
       setCvNote(`Imported ${r.imported} file(s); skipped ${r.skipped} of ${r.total}.`);
       setCvToken("");
       load();
@@ -104,17 +122,24 @@ export default function MaterialsPanel({
       </div>
 
       <div className="card" style={{ marginBottom: 18 }}>
-        <h3>Import from Canvas</h3>
+        <h3>Import course files from your LMS</h3>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          Pull your Canvas course files in automatically. Create a token in Canvas under
-          <strong> Account → Settings → New Access Token</strong>, and find the course id in your
-          course URL (<code>…/courses/<strong>12345</strong></code>). The token is used once and not
-          stored. Document files (PDF, DOCX, PPTX, TXT, MD, HTML, CSV) are imported and text-extracted.
+          Pull your course files in automatically from Canvas, Moodle, or Brightspace. The token is
+          used once and not stored. Document files (PDF, DOCX, PPTX, TXT, MD, HTML, CSV) are imported
+          and text-extracted to ground the AI. <em>{TOKEN_HELP[cvProvider]}.</em>
         </p>
-        <form onSubmit={importCanvas}>
-          <div className="grid cols-3" style={{ alignItems: "end" }}>
+        <form onSubmit={importLms}>
+          <div className="grid cols-2" style={{ alignItems: "end" }}>
             <div className="field" style={{ marginBottom: 0 }}>
-              <label>Canvas URL</label>
+              <label>LMS</label>
+              <select value={cvProvider} onChange={(e) => setCvProvider(e.target.value)}>
+                <option value="canvas">Canvas</option>
+                <option value="moodle">Moodle</option>
+                <option value="brightspace">Brightspace</option>
+              </select>
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label>LMS URL</label>
               <input value={cvBase} onChange={(e) => setCvBase(e.target.value)}
                 placeholder="https://school.instructure.com" />
             </div>
@@ -124,7 +149,7 @@ export default function MaterialsPanel({
                 placeholder="paste token" autoComplete="off" />
             </div>
             <div className="field" style={{ marginBottom: 0 }}>
-              <label>Canvas course id</label>
+              <label>{ID_LABEL[cvProvider]}</label>
               <input value={cvCourse} onChange={(e) => setCvCourse(e.target.value)}
                 placeholder="e.g. 12345" />
             </div>

@@ -47,6 +47,9 @@ def _tool_registration_body() -> dict:
             "domain": domain,
             "target_link_uri": launch,
             "claims": ["iss", "sub", "name", "email"],
+            # Ask Canvas to substitute the numeric course id into a custom param so the tool can
+            # auto-prefill the "import course files" form. (Other LMSs ignore unknown params.)
+            "custom_parameters": {"canvas_course_id": "$Canvas.course.id"},
             "messages": [
                 # Course-level launch. Advertise the placements so the platform
                 # actually surfaces the tool: course_navigation puts an "LMS Bridge"

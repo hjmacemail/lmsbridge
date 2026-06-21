@@ -22,6 +22,10 @@ class Course(Base, TimestampMixin):
     # LTI AGS (Assignment & Grade Services) line-items URL, captured at launch so the course's
     # assessments/gradebook columns can be (re)synced from the LMS automatically.
     lti_lineitems_url: Mapped[str | None] = mapped_column(String(1024))
+    # Which LMS this course came from (canvas | moodle | brightspace | ...) and the provider's
+    # own course/org-unit id, captured at launch to prefill the "import course files" form.
+    lms_provider: Mapped[str | None] = mapped_column(String(32))
+    lms_course_ref: Mapped[str | None] = mapped_column(String(128))
     tenant_id: Mapped[int | None] = mapped_column(
         ForeignKey("tenants.id", ondelete="SET NULL"), index=True
     )

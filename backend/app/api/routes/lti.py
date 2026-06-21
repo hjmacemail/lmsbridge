@@ -203,6 +203,24 @@ def sync_roster_endpoint(
         raise HTTPException(status_code=502, detail=f"Roster sync failed: {e}") from e
 
 
+@router.get("/courses/{course_id}/lms-context")
+def lms_context(
+    course_id: int,
+    db: Session = Depends(get_db),
+    _user: User = Depends(require_instructor),
+) -> dict:
+    """What LMS this course came from + the provider course id (to prefill file import)."""
+    course = db.get(Course, course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return {
+        "provider": course.lms_provider,
+        "lms_course_ref": course.lms_course_ref,
+        "has_roster_link": bool(course.lti_memberships_url),
+        "has_gradebook_link": bool(course.lti_lineitems_url),
+    }
+
+
 @router.post("/courses/{course_id}/sync-assessments")
 def sync_assessments_endpoint(
     course_id: int,
