@@ -307,6 +307,18 @@ includes these by default. If you registered with an older build that didn't, **
 developer key / registration in the LMS and re-run Dynamic Registration** against the updated tool —
 the placement is sent at registration time, so re-registering is what picks it up.
 
+**Roster is empty in the instructor console?** LMS Bridge pulls the class list over **NRPS** (Names &
+Role Provisioning). It captures the course's NRPS endpoint and imports the full roster the first time
+an **instructor** launches the tool — students don't need to launch first. If it's still empty:
+1. Confirm **NRPS is enabled** for the tool in the LMS (Canvas: the developer key's *"retrieve user
+   data for the context"* / Names and Roles scope; Moodle: *IMS LTI Names and Role Provisioning =
+   retrieve members*; Brightspace: *Names and Role Provisioning Services* on the deployment;
+   Blackboard: *Allow Membership Service access = Yes*).
+2. Re-launch once as an instructor (this is what triggers the import), or call
+   `POST /api/v1/lti/courses/{course_id}/sync-roster` (instructor-authenticated) to re-sync on demand.
+3. The launch must include the NRPS claim — if the deployment was created before NRPS was enabled,
+   toggle it on and relaunch.
+
 ## 6. Data-flow notes
 
 - **Scores** arrive via **AGS** at the line-item level — map each LMS line item to a concept when you

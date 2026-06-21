@@ -11,15 +11,17 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.api.deps import require_platform_admin
+from app.api.deps import require_instructor, require_platform_admin
 from app.core.config import settings
 from app.db.session import get_db
 from app.lti import keys
 from app.lti.deeplink import build_deep_linking_response, resource_link_item
 from app.lti.launch import validate_launch
 from app.lti.oidc import LtiError, build_login_redirect
-from app.lti.provisioning import provision
+from app.lti.provisioning import maybe_sync_roster_on_launch, provision, sync_course_roster
+from app.models.course import Course
 from app.models.lti import LtiDeployment, LtiRegistration
+from app.models.tenant import Tenant
 from app.models.user import User
 from app.schemas.lti import (
     DeploymentCreate,
@@ -146,6 +148,10 @@ def launch(
     # Resource link launch: provision + single sign-on into the SPA.
     user, course, token = provision(db, parsed)
 
+    # On an instructor/admin launch, import the whole class roster via NRPS so the
+    # instructor console isn't empty before students have individually launched.
+    maybe_sync_roster_on_launch(db, parsed, course)
+
     # Licensing gate: block the launch (with a friendly screen) when the institution's
     # subscription/seat entitlement — or a self-hosted license — does not permit it.
     from app.models.tenant import Tenant
@@ -163,6 +169,36 @@ def launch(
     if course:
         params += f"&course_id={course.id}"
     return RedirectResponse(f"{fe}/lti?{params}", status_code=302)
+
+
+@router.post("/courses/{course_id}/sync-roster")
+def sync_roster_endpoint(
+    course_id: int,
+    db: Session = Depends(get_db),
+    _user: User = Depends(require_instructor),
+) -> dict:
+    """Manually (re)import a course's roster from the LMS via NRPS."""
+    course = db.get(Course, course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    if not course.lti_memberships_url:
+        raise HTTPException(
+            status_code=400,
+            detail="No LMS roster link for this course yet — launch it once from the LMS "
+            "as an instructor so LMS Bridge can capture the membership endpoint.",
+        )
+    tenant = db.get(Tenant, course.tenant_id) if course.tenant_id else None
+    reg = (
+        db.get(LtiRegistration, tenant.lti_registration_id)
+        if tenant and tenant.lti_registration_id
+        else None
+    )
+    if not reg:
+        raise HTTPException(status_code=400, detail="No LMS registration is linked to this course.")
+    try:
+        return sync_course_roster(db, reg, course)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"Roster sync failed: {e}") from e
 
 
 def _license_blocked_page(detail: str) -> str:

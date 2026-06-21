@@ -16,6 +16,9 @@ class Course(Base, TimestampMixin):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     term: Mapped[str] = mapped_column(String(64), nullable=False)
     brightspace_course_id: Mapped[str | None] = mapped_column(String(128), index=True)
+    # LTI NRPS (Names & Role Provisioning) context membership URL, captured at launch so the
+    # full course roster can be (re)synced from the LMS without waiting for each student to launch.
+    lti_memberships_url: Mapped[str | None] = mapped_column(String(1024))
     tenant_id: Mapped[int | None] = mapped_column(
         ForeignKey("tenants.id", ondelete="SET NULL"), index=True
     )

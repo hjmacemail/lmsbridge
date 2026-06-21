@@ -121,6 +121,72 @@ def test_instructor_role_mapped(db):
     assert user.role.value == "instructor"
 
 
+def test_instructor_launch_syncs_full_roster_via_nrps(db, monkeypatch):
+    from app.lti import provisioning
+    from app.models.enums import UserRole
+    from app.models.user import User
+
+    pem, jwks = _platform_keypair()
+    reg = _register(db)
+    jwks_client.prime_cache(reg.key_set_url, jwks)
+    state, nonce = _login_state(db, reg)
+
+    parsed = validate_launch(db, state=state, id_token=_mint_id_token(pem, nonce, instructor=True))
+    _instructor, course, _t = provision(db, parsed)
+    # The NRPS membership URL from the launch is captured on the course.
+    assert course.lti_memberships_url == f"{ISSUER}/nrps/members"
+
+    learner = ["http://purl.imsglobal.org/vocab/lis/v2/membership#Learner"]
+    members = [
+        {"user_id": "stu-1", "name": "Ada", "email": "ada@ex.edu", "roles": learner,
+         "status": "Active"},
+        {"user_id": "stu-2", "name": "Bo", "email": "bo@ex.edu", "roles": learner,
+         "status": "Active"},
+        {"user_id": "stu-3", "name": "Gone", "email": "g@ex.edu", "roles": learner,
+         "status": "Inactive"},  # must be skipped
+    ]
+    calls = {"n": 0}
+
+    def fake_members(db, reg, url):
+        calls["n"] += 1
+        assert url == f"{ISSUER}/nrps/members"
+        return members
+
+    monkeypatch.setattr(provisioning.services, "nrps_get_members", fake_members)
+
+    provisioning.maybe_sync_roster_on_launch(db, parsed, course)
+    provisioning.maybe_sync_roster_on_launch(db, parsed, course)  # idempotent
+
+    assert calls["n"] == 2  # NRPS actually called each time
+    students = db.scalars(
+        select(Enrollment).where(
+            Enrollment.course_id == course.id, Enrollment.role == UserRole.student
+        )
+    ).all()
+    assert len(students) == 2  # stu-1, stu-2 (stu-3 inactive skipped); no duplicates on re-run
+    ada = db.scalar(select(User).where(User.external_id == f"lti::{ISSUER}::stu-1"))
+    assert ada and ada.role == UserRole.student and ada.full_name == "Ada"
+
+
+def test_student_launch_does_not_trigger_roster_sync(db, monkeypatch):
+    from app.lti import provisioning
+
+    pem, jwks = _platform_keypair()
+    reg = _register(db)
+    jwks_client.prime_cache(reg.key_set_url, jwks)
+    state, nonce = _login_state(db, reg)
+    parsed = validate_launch(db, state=state, id_token=_mint_id_token(pem, nonce))  # learner
+    _u, course, _t = provision(db, parsed)
+
+    called = {"n": 0}
+    monkeypatch.setattr(
+        provisioning.services, "nrps_get_members",
+        lambda *a, **k: called.__setitem__("n", called["n"] + 1) or [],
+    )
+    provisioning.maybe_sync_roster_on_launch(db, parsed, course)
+    assert called["n"] == 0  # students don't pull the roster
+
+
 def test_replayed_state_is_rejected(db):
     pem, jwks = _platform_keypair()
     reg = _register(db)
