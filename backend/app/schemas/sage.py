@@ -29,7 +29,7 @@ class SageAuthOut(BaseModel):
     role: str
 
 
-class ClassCreate(BaseModel):
+class CourseCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=160)
     subject: str | None = Field(None, max_length=120)
 
@@ -38,12 +38,22 @@ class JoinByCode(BaseModel):
     join_code: str = Field(..., min_length=4, max_length=12)
 
 
-class PostCreate(BaseModel):
+class QuizQuestionIn(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=2000)
+    choices: list[str] = Field(..., min_length=2, max_length=8)
+    correct: str = Field(..., min_length=1)
+    concept: str = Field(..., min_length=1, max_length=120)
+
+
+class QuizCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
-    body: str = Field("", max_length=8000)
-    tags: str | None = Field(None, max_length=255)
-    anonymous: bool = False
+    questions: list[QuizQuestionIn] = Field(..., min_length=1, max_length=50)
 
 
-class AnswerCreate(BaseModel):
-    body: str = Field(..., min_length=1, max_length=8000)
+class QuizAnswer(BaseModel):
+    question_id: int
+    choice: str
+
+
+class QuizSubmit(BaseModel):
+    answers: list[QuizAnswer]

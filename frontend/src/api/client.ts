@@ -251,33 +251,36 @@ export const api = {
   },
 };
 
-// ---- Sage (standalone AI Q&A board) ----
+// ---- Sage (standalone mini-LMS) ----
 export interface SageAuth {
   access_token: string; token_type: string; user_id: number; full_name: string; role: string;
 }
-export interface SageClassSummary {
-  id: number; name: string; subject: string | null; role: string;
-  join_code: string; member_count: number; post_count: number;
+export interface SageCourseSummary {
+  id: number; name: string; role: string; join_code: string | null;
+  student_count: number; quiz_count: number;
 }
-export interface SageAnswerItem {
-  id: number; body: string; is_ai: boolean; is_instructor: boolean;
-  endorsed: boolean; author: string; created_at: string;
+export interface SageQuizListItem {
+  id: number; title: string; question_count: number;
+  submission_count?: number; my_score?: number | null;
 }
-export interface SagePostDetail {
-  id: number; class_id: number; title: string; body: string; tags: string | null;
-  anonymous: boolean; resolved: boolean; author: string; answers: SageAnswerItem[];
-  ai_misconception?: string | null; created_at: string;
+export interface SageTakeQuestion { id: number; prompt: string; choices: string[]; }
+export interface SageTakeQuiz { id: number; title: string; questions: SageTakeQuestion[]; }
+export interface SageReviewItem {
+  question_id: number; is_correct: boolean; correct: string; selected: string | null;
 }
-export interface SagePostItem {
-  id: number; title: string; tags: string | null; anonymous: boolean; resolved: boolean;
-  author: string; answer_count: number; has_endorsed: boolean;
-  ai_misconception?: string | null; created_at: string;
+export interface SageSubmitResult {
+  score: number; correct: number; total: number;
+  review: SageReviewItem[]; remediation_created: number;
 }
-export interface SageInsights {
-  members: number; total_posts: number; open_count: number; resolved_count: number;
-  unanswered_by_humans: number; top_tags: { tag: string; count: number }[];
-  top_misconceptions: { label: string; count: number }[];
+export interface SageStudent { id: number; full_name: string; email: string; }
+export interface SageGrades {
+  quizzes: { id: number; title: string }[];
+  is_instructor: boolean;
+  rows?: { student_id: number; full_name: string; scores: Record<string, number>; open_remediation: number }[];
+  scores?: Record<string, number>;
+  open_remediation?: number;
 }
+export interface SageQuestionDraft { prompt: string; choices: string[]; correct: string; concept: string; }
 
 export const sageApi = {
   signup: (full_name: string, email: string, password: string) =>
@@ -290,32 +293,23 @@ export const sageApi = {
     request<SageAuth>(`/sage/join`, { method: "POST",
       body: JSON.stringify({ join_code, full_name, email, password }) }),
   login: (email: string, password: string) => api.login(email, password),
-  classes: () => request<SageClassSummary[]>(`/sage/classes`),
-  createClass: (name: string, subject: string) =>
-    request<SageClassSummary>(`/sage/classes`, { method: "POST",
+  courses: () => request<SageCourseSummary[]>(`/sage/courses`),
+  createCourse: (name: string, subject: string) =>
+    request<SageCourseSummary>(`/sage/courses`, { method: "POST",
       body: JSON.stringify({ name, subject }) }),
+  courseDetail: (id: number) => request<SageCourseSummary>(`/sage/courses/${id}`),
   joinExisting: (join_code: string) =>
-    request<{ class_id: number; name: string }>(`/sage/classes/join`, { method: "POST",
+    request<{ course_id: number; name: string }>(`/sage/courses/join`, { method: "POST",
       body: JSON.stringify({ join_code }) }),
-  classDetail: (id: number) => request<SageClassSummary>(`/sage/classes/${id}`),
-  posts: (classId: number) => request<SagePostItem[]>(`/sage/classes/${classId}/posts`),
-  createPost: (classId: number, title: string, body: string, tags: string, anonymous: boolean) =>
-    request<SagePostDetail>(`/sage/classes/${classId}/posts`, { method: "POST",
-      body: JSON.stringify({ title, body, tags, anonymous }) }),
-  post: (postId: number) => request<SagePostDetail>(`/sage/posts/${postId}`),
-  answer: (postId: number, body: string) =>
-    request<SagePostDetail>(`/sage/posts/${postId}/answers`, { method: "POST",
-      body: JSON.stringify({ body }) }),
-  endorse: (answerId: number) =>
-    request<{ id: number; endorsed: boolean }>(`/sage/answers/${answerId}/endorse`,
-      { method: "POST" }),
-  resolve: (postId: number) =>
-    request<{ id: number; resolved: boolean }>(`/sage/posts/${postId}/resolve`,
-      { method: "POST" }),
-  practice: (postId: number) =>
-    request<{ post_id: number; items: SagePracticeItem[] }>(`/sage/posts/${postId}/practice`,
-      { method: "POST" }),
-  insights: (classId: number) => request<SageInsights>(`/sage/classes/${classId}/insights`),
+  students: (courseId: number) => request<SageStudent[]>(`/sage/courses/${courseId}/students`),
+  quizzes: (courseId: number) => request<SageQuizListItem[]>(`/sage/courses/${courseId}/quizzes`),
+  createQuiz: (courseId: number, title: string, questions: SageQuestionDraft[]) =>
+    request<{ id: number; title: string; question_count: number }>(
+      `/sage/courses/${courseId}/quizzes`,
+      { method: "POST", body: JSON.stringify({ title, questions }) }),
+  takeQuiz: (quizId: number) => request<SageTakeQuiz>(`/sage/quizzes/${quizId}/take`),
+  submitQuiz: (quizId: number, answers: { question_id: number; choice: string }[]) =>
+    request<SageSubmitResult>(`/sage/quizzes/${quizId}/submit`,
+      { method: "POST", body: JSON.stringify({ answers }) }),
+  grades: (courseId: number) => request<SageGrades>(`/sage/courses/${courseId}/grades`),
 };
-
-export interface SagePracticeItem { question: string; answer: string; explanation: string; }

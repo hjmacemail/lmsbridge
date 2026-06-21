@@ -26,6 +26,9 @@ class Course(Base, TimestampMixin):
     # own course/org-unit id, captured at launch to prefill the "import course files" form.
     lms_provider: Mapped[str | None] = mapped_column(String(32))
     lms_course_ref: Mapped[str | None] = mapped_column(String(128))
+    # Standalone "Sage" courses (no LMS): a join code students enter, and the owning instructor.
+    join_code: Mapped[str | None] = mapped_column(String(12), unique=True, index=True)
+    owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     tenant_id: Mapped[int | None] = mapped_column(
         ForeignKey("tenants.id", ondelete="SET NULL"), index=True
     )

@@ -1,89 +1,66 @@
-"""Sage Q&A board: signup, join, post -> AI reply, answers, endorse, insights."""
+"""Sage standalone mini-LMS: signup, course, quiz authoring, take/submit -> remediation, grades."""
 from __future__ import annotations
 
 
-def _auth(client, resp_json):
+def _auth(resp_json):
     return {"Authorization": f"Bearer {resp_json['access_token']}"}
 
 
-def test_sage_end_to_end(client):
-    # Instructor signs up and creates a class.
-    s = client.post("/api/v1/sage/signup", json={
-        "full_name": "Dr Lee", "email": "lee@uni.edu", "password": "secret123"})
-    assert s.status_code == 201, s.text
-    ih = _auth(client, s.json())
-    assert s.json()["role"] == "instructor"
+def _quiz_payload():
+    return {"title": "Binary basics", "questions": [
+        {"prompt": "1011 in decimal?", "choices": ["9", "11", "13"], "correct": "11",
+         "concept": "Binary representation"},
+        {"prompt": "1 + 1 in binary?", "choices": ["10", "2", "11"], "correct": "10",
+         "concept": "Binary arithmetic"},
+    ]}
 
-    c = client.post("/api/v1/sage/classes", headers=ih,
-                    json={"name": "CS 201", "subject": "Data Structures"})
+
+def test_sage_minilms_end_to_end(client):
+    # Instructor signs up, creates a course, authors a quiz.
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr Lee", "email": "lee@uni.edu", "password": "secret123"}).json())
+    c = client.post("/api/v1/sage/courses", headers=ih,
+                    json={"name": "CS Architecture", "subject": "Computing"})
     assert c.status_code == 201, c.text
-    cls = c.json()
-    code = cls["join_code"]
-    cid = cls["id"]
-    assert cls["role"] == "instructor" and len(code) == 6
+    course = c.json()
+    cid, code = course["id"], course["join_code"]
+    assert len(code) == 6 and course["role"] == "instructor"
 
-    # Student joins by code (guest, name only).
-    g = client.post("/api/v1/sage/guest", json={"join_code": code, "full_name": "Sam"})
-    assert g.status_code == 201, g.text
-    sh = _auth(client, g.json())
+    q = client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih, json=_quiz_payload())
+    assert q.status_code == 201, q.text
+    quiz_id = q.json()["id"]
 
-    # Student posts a question -> Sage auto-replies (AI) with a misconception flag.
-    p = client.post(f"/api/v1/sage/classes/{cid}/posts", headers=sh, json={
-        "title": "Why is my BST insert wrong?", "body": "It overwrites the root every time.",
-        "tags": "trees,bst", "anonymous": True})
-    assert p.status_code == 201, p.text
-    post = p.json()
-    pid = post["id"]
-    assert any(a["is_ai"] for a in post["answers"])  # Sage answered
-    # Anonymous: student viewer sees "Anonymous" as author.
-    assert post["author"] == "Anonymous"
+    # Student joins by code, takes the quiz (no correct answers leaked).
+    sh = _auth(client.post("/api/v1/sage/guest", json={
+        "join_code": code, "full_name": "Sam"}).json())
+    take = client.get(f"/api/v1/sage/quizzes/{quiz_id}/take", headers=sh).json()
+    assert len(take["questions"]) == 2
+    assert all("correct" not in qq for qq in take["questions"])
+    qids = [qq["id"] for qq in take["questions"]]
 
-    # Instructor view of the same post sees the real (flagged) author + misconception field.
-    pi = client.get(f"/api/v1/sage/posts/{pid}", headers=ih).json()
-    assert "anonymous" in pi["author"].lower()
-    assert "ai_misconception" in pi
+    # Student answers BOTH wrong -> low score -> mastery drops -> remediation generated.
+    sub = client.post(f"/api/v1/sage/quizzes/{quiz_id}/submit", headers=sh, json={
+        "answers": [{"question_id": qids[0], "choice": "9"},
+                    {"question_id": qids[1], "choice": "2"}]})
+    assert sub.status_code == 200, sub.text
+    res = sub.json()
+    assert res["correct"] == 0 and res["total"] == 2
+    assert res["remediation_created"] >= 1  # LMS Bridge kicked in automatically
 
-    # Instructor answers and endorses their own answer.
-    a = client.post(f"/api/v1/sage/posts/{pid}/answers", headers=ih,
-                    json={"body": "Check what your function returns on the empty case."})
-    ans = a.json()["answers"]
-    instr_ans = [x for x in ans if x["is_instructor"]][0]
-    assert instr_ans["author"].endswith("(instructor)")
-    e = client.post(f"/api/v1/sage/answers/{instr_ans['id']}/endorse", headers=ih)
-    assert e.json()["endorsed"] is True
+    # The remediation modules are visible via the existing student endpoint.
+    mods = client.get("/api/v1/remediation/modules", headers=sh)
+    assert mods.status_code == 200 and len(mods.json()) >= 1
 
-    # A non-instructor cannot endorse.
-    no = client.post(f"/api/v1/sage/answers/{instr_ans['id']}/endorse", headers=sh)
-    assert no.status_code == 403
+    # Instructor grades view shows the student + their open remediation.
+    g = client.get(f"/api/v1/sage/courses/{cid}/grades", headers=ih).json()
+    assert g["is_instructor"] is True and len(g["rows"]) == 1
+    assert g["rows"][0]["open_remediation"] >= 1
 
-    # Insights (instructor only) reflect the activity.
-    ins = client.get(f"/api/v1/sage/classes/{cid}/insights", headers=ih)
-    assert ins.status_code == 200, ins.text
-    body = ins.json()
-    assert body["total_posts"] == 1 and body["members"] == 2
-    assert {"tag": "trees", "count": 1} in body["top_tags"]
-    # Students may not see insights.
-    assert client.get(f"/api/v1/sage/classes/{cid}/insights", headers=sh).status_code == 403
-
-
-def test_sage_practice_from_post(client):
-    s = client.post("/api/v1/sage/signup", json={
-        "full_name": "Dr P", "email": "p@uni.edu", "password": "secret123"})
-    ih = _auth(client, s.json())
-    cid = client.post("/api/v1/sage/classes", headers=ih,
-                      json={"name": "Stats", "subject": "Probability"}).json()["id"]
-    g = client.post("/api/v1/sage/guest", json={
-        "join_code": client.get(f"/api/v1/sage/classes/{cid}", headers=ih).json()["join_code"],
-        "full_name": "Stu"})
-    sh = _auth(client, g.json())
-    pid = client.post(f"/api/v1/sage/classes/{cid}/posts", headers=sh, json={
-        "title": "Are independent events mutually exclusive?", "body": "I always mix these up."}
-    ).json()["id"]
-
-    pr = client.post(f"/api/v1/sage/posts/{pid}/practice", headers=sh)
-    assert pr.status_code == 200, pr.text
-    items = pr.json()["items"]
-    assert len(items) >= 1 and all("question" in it for it in items)
+    # Students cannot author quizzes or see instructor grades rows.
+    assert client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=sh,
+                       json=_quiz_payload()).status_code == 403
+    sg = client.get(f"/api/v1/sage/courses/{cid}/grades", headers=sh).json()
+    assert sg["is_instructor"] is False and "scores" in sg
 
 
 def test_sage_join_requires_valid_code(client):

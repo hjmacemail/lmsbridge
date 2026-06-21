@@ -43,6 +43,9 @@ class Question(Base, TimestampMixin):
     concept_id: Mapped[int | None] = mapped_column(ForeignKey("concepts.id", ondelete="SET NULL"))
     prompt: Mapped[str] = mapped_column(Text)
     max_points: Mapped[float] = mapped_column(Float, default=1.0)
+    # Authored MCQ content (Sage quizzes): list of choice strings + the correct choice text.
+    choices: Mapped[list | None] = mapped_column(JSON)
+    correct_answer: Mapped[str | None] = mapped_column(Text)
 
     assessment: Mapped[Assessment] = relationship(back_populates="questions")
     concept: Mapped[Concept | None] = relationship()  # noqa: F821
