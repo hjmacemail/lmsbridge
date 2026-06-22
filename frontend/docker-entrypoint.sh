@@ -5,8 +5,11 @@
 # Source link (kept visible for AGPL §13) and whether to show the "Powered by" footer badge.
 : "${SOURCE_URL:=https://github.com/hjmacemail/lmsbridge}"
 : "${SHOW_BRANDING:=true}"
+# LMS Bridge marketing homepage (the "by LMS Bridge" link in Sage points here).
+: "${HOME_URL:=https://www.lmsbridge.app}"
 cat > /usr/share/nginx/html/config.js <<CFG
 window.__LMSBRIDGE_API__ = "${API_BASE_URL}";
 window.__LMSBRIDGE_SOURCE__ = "${SOURCE_URL}";
 window.__LMSBRIDGE_BRANDING__ = ${SHOW_BRANDING};
+window.__LMSBRIDGE_HOME__ = "${HOME_URL}";
 CFG

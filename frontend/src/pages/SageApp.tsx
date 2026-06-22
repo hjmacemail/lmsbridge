@@ -10,6 +10,12 @@ import type { RemediationModule } from "../types";
 
 const USER_KEY = "sage_user";
 
+// LMS Bridge marketing homepage (override at deploy time via window.__LMSBRIDGE_HOME__).
+const LMSBRIDGE_HOME =
+  (typeof window !== "undefined" &&
+    (window as unknown as { __LMSBRIDGE_HOME__?: string }).__LMSBRIDGE_HOME__) ||
+  "https://www.lmsbridge.app";
+
 const C = {
   brand: "#3C3489", primary: "#534AB7", accentBg: "#EEEDFE", accentInk: "#3C3489",
   pageBg: "#faf9ff", line: "#e7e3f5", ink: "#2b2740", muted: "#6b6585",
@@ -87,10 +93,14 @@ export default function SageApp() {
       <header style={{ background: C.brand, color: "#fff", padding: "14px 0" }}>
         <div style={{ maxWidth: 940, margin: "0 auto", padding: "0 16px", display: "flex",
           justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ cursor: "pointer", fontWeight: 800, fontSize: 19, display: "flex", alignItems: "center", gap: 9 }}
-            onClick={() => setView(user ? "courses" : "auth")}>
-            <Icon name="school" size={22} /> Sage
-            <span style={{ opacity: 0.65, fontWeight: 400, fontSize: 12.5 }}>· by LMS Bridge</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <div style={{ cursor: "pointer", fontWeight: 800, fontSize: 19, display: "flex", alignItems: "center", gap: 9 }}
+              onClick={() => setView(user ? "courses" : "auth")} title="Sage home">
+              <Icon name="school" size={22} /> Sage
+            </div>
+            <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer" title="Go to the LMS Bridge website"
+              style={{ opacity: 0.7, fontWeight: 400, fontSize: 12.5, color: "#fff",
+                textDecoration: "underline", textUnderlineOffset: 3 }}>· by LMS Bridge</a>
           </div>
           {user && (
             <div style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 13.5 }}>
