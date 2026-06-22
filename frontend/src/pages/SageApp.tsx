@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   api, sageApi, saveToken, clearToken, loadToken,
-  type SageAuth, type SageCourseSummary, type SageQuizListItem,
+  type SageAuth, type SageCourseSummary, type SageCourseDetail, type SageQuizListItem,
   type SageTakeQuiz, type SageSubmitResult, type SageStudent,
-  type SageGrades, type SageQuestionDraft,
+  type SageGrades, type SageQuestionDraft, type SageMaterial, type SageProfile,
 } from "../api/client";
 import type { RemediationModule } from "../types";
 
@@ -51,6 +51,12 @@ function Icon({ name, size = 18, color = "currentColor" }: { name: string; size?
     arrow: "M10 17l5-5-5-5v10z",
     back: "M15 18l-6-6 6-6",
     logout: "M16 17v-2h-6v-2h6V11l3 3-3 3zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z",
+    edit: "M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z",
+    download: "M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z",
+    trash: "M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z",
+    file: "M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z",
+    note: "M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm4 4h10V7H7v2zm0 4h10v-2H7v2zm0 4h7v-2H7v2z",
+    code: "M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z",
   };
   const fillStroke = name === "back" ? { fill: "none", stroke: color, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const } : { fill: color };
   return (
@@ -81,7 +87,7 @@ const inputStyle: React.CSSProperties = { width: "100%", padding: "11px 13px", b
 
 export default function SageApp() {
   const [user, setUser] = useState<SageAuth | null>(loadUser());
-  const [view, setView] = useState<"auth" | "courses" | "course">(
+  const [view, setView] = useState<"auth" | "courses" | "course" | "profile">(
     loadToken() && loadUser() ? "courses" : "auth");
   const [course, setCourse] = useState<SageCourseSummary | null>(null);
 
@@ -104,7 +110,8 @@ export default function SageApp() {
           </div>
           {user && (
             <div style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 13.5 }}>
-              <div style={{ width: 30, height: 30, borderRadius: "50%", background: "#7F77DD",
+              <div onClick={() => setView("profile")} title="Your profile"
+                style={{ width: 30, height: 30, borderRadius: "50%", background: "#7F77DD", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600 }}>
                 {initials(user.full_name)}</div>
               <button onClick={signOut} style={{ background: "rgba(255,255,255,.14)", color: "#fff",
@@ -116,6 +123,8 @@ export default function SageApp() {
       </header>
       <div style={{ maxWidth: 940, margin: "0 auto", padding: "24px 16px 56px" }}>
         {view === "auth" && <Auth onAuth={onAuth} />}
+        {view === "profile" && <Profile onName={(n) => user && setUser({ ...user, full_name: n })}
+          onBack={() => setView("courses")} />}
         {view === "courses" && <Courses onOpen={(c) => { setCourse(c); setView("course"); }} />}
         {view === "course" && course &&
           <CourseView course={course} onBack={() => setView("courses")} />}
@@ -275,9 +284,13 @@ function CopyChip({ code }: { code: string | null }) {
 
 function CourseView({ course, onBack }: { course: SageCourseSummary; onBack: () => void }) {
   const instr = course.role === "instructor";
-  const tabs = instr ? ["Home", "Quizzes", "Students", "Grades"]
-    : ["Home", "Quizzes", "Grades", "Needs review"];
+  const tabs = instr ? ["Home", "Syllabus", "Materials", "Quizzes", "Students", "Grades"]
+    : ["Home", "Syllabus", "Materials", "Quizzes", "Grades", "Needs review"];
   const [tab, setTab] = useState("Home");
+  const [detail, setDetail] = useState<SageCourseDetail | null>(null);
+  const loadDetail = () => sageApi.courseDetail(course.id).then(setDetail).catch(() => setDetail(null));
+  useEffect(() => { loadDetail(); }, [course.id]);
+
   return (
     <div>
       <GhostBtn onClick={onBack}><Icon name="back" size={16} /> Courses</GhostBtn>
@@ -295,7 +308,9 @@ function CourseView({ course, onBack }: { course: SageCourseSummary; onBack: () 
             borderBottom: tab === t ? `2px solid ${C.primary}` : "2px solid transparent", marginBottom: -2 }}>{t}</button>
         ))}
       </div>
-      {tab === "Home" && <Home course={course} instr={instr} />}
+      {tab === "Home" && <Home course={course} instr={instr} detail={detail} />}
+      {tab === "Syllabus" && <Syllabus course={course} instr={instr} detail={detail} onSaved={loadDetail} />}
+      {tab === "Materials" && <Materials course={course} instr={instr} />}
       {tab === "Quizzes" && (instr ? <QuizzesInstructor course={course} /> : <QuizzesStudent course={course} />)}
       {tab === "Students" && <Students course={course} />}
       {tab === "Grades" && <GradesTab course={course} />}
@@ -314,7 +329,9 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "da
   );
 }
 
-function Home({ course, instr }: { course: SageCourseSummary; instr: boolean }) {
+function Home({ course, instr, detail }:
+  { course: SageCourseSummary; instr: boolean; detail: SageCourseDetail | null }) {
+  const ins = detail?.instructor;
   return (
     <div style={{ display: "grid", gap: 14 }}>
       {instr && (
@@ -322,6 +339,19 @@ function Home({ course, instr }: { course: SageCourseSummary; instr: boolean }) 
           <Stat label="Students" value={course.student_count} />
           <Stat label="Quizzes" value={course.quiz_count} />
         </div>
+      )}
+      {ins && (ins.title || ins.bio || ins.full_name) && (
+        <Card style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.accentBg, color: C.accentInk,
+            display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>
+            {initials(ins.full_name)}</div>
+          <div>
+            <div style={{ fontSize: 12, color: C.muted }}>Taught by</div>
+            <div style={{ fontWeight: 700 }}>{ins.full_name}</div>
+            {ins.title && <div style={{ fontSize: 13.5, color: C.accentInk }}>{ins.title}</div>}
+            {ins.bio && <div style={{ fontSize: 13.5, color: "#444", marginTop: 4, lineHeight: 1.5 }}>{ins.bio}</div>}
+          </div>
+        </Card>
       )}
       <Card>
         <h3 style={{ marginTop: 0, fontSize: 17 }}>Welcome to {course.name}</h3>
@@ -633,6 +663,198 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
         <div style={{ background: C.infoBg, color: C.info, borderRadius: 10, padding: "10px 14px",
           marginTop: 12, fontSize: 14 }}>
           You have {g.open_remediation} guided practice session(s) waiting under “Needs review”.</div>
+      )}
+    </Card>
+  );
+}
+
+// --------------------------------------------------------------- Profile
+function Profile({ onName, onBack }: { onName: (n: string) => void; onBack: () => void }) {
+  const [p, setP] = useState<SageProfile | null>(null);
+  const [name, setName] = useState(""); const [title, setTitle] = useState(""); const [bio, setBio] = useState("");
+  const [busy, setBusy] = useState(false); const [msg, setMsg] = useState<string | null>(null);
+  useEffect(() => {
+    sageApi.profile().then((pr) => { setP(pr); setName(pr.full_name); setTitle(pr.title || ""); setBio(pr.bio || ""); })
+      .catch(() => {});
+  }, []);
+  async function save(e: React.FormEvent) {
+    e.preventDefault(); setBusy(true); setMsg(null);
+    try { const r = await sageApi.updateProfile({ full_name: name.trim(), title, bio }); onName(r.full_name); setMsg("Saved."); }
+    catch (e) { setMsg((e as Error).message); } finally { setBusy(false); }
+  }
+  const lbl: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: C.muted };
+  return (
+    <div style={{ maxWidth: 520, margin: "0 auto" }}>
+      <GhostBtn onClick={onBack}><Icon name="back" size={16} /> Back</GhostBtn>
+      <h2 style={{ color: C.brand, fontSize: 22, marginTop: 12 }}>Your profile</h2>
+      <p style={{ color: C.muted, fontSize: 14, marginTop: 0 }}>
+        A few details your students will see on the course page.</p>
+      <Card>
+        <form onSubmit={save} style={{ display: "grid", gap: 6 }}>
+          <label style={lbl}>Name</label>
+          <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} />
+          <label style={lbl}>Title (optional)</label>
+          <input style={inputStyle} placeholder="e.g. Professor of CS, NYU" value={title}
+            onChange={(e) => setTitle(e.target.value)} />
+          <label style={lbl}>About you (optional)</label>
+          <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} value={bio}
+            placeholder="A sentence or two — what you teach, office hours, anything friendly."
+            onChange={(e) => setBio(e.target.value)} />
+          <div style={{ marginTop: 8 }}><PrimaryBtn type="submit" disabled={busy}>{busy ? "Saving…" : "Save profile"}</PrimaryBtn></div>
+          {msg && <div style={{ fontSize: 13, color: msg === "Saved." ? C.success : C.danger }}>{msg}</div>}
+          {p && <div style={{ fontSize: 12, color: C.muted }}>Signed in as {p.email}</div>}
+        </form>
+      </Card>
+    </div>
+  );
+}
+
+// --------------------------------------------------------------- Syllabus
+function Syllabus({ course, instr, detail, onSaved }:
+  { course: SageCourseSummary; instr: boolean; detail: SageCourseDetail | null; onSaved: () => void }) {
+  const [edit, setEdit] = useState(false);
+  const [text, setText] = useState(""); const [busy, setBusy] = useState(false);
+  useEffect(() => { setText(detail?.syllabus || ""); }, [detail]);
+  async function save() {
+    setBusy(true);
+    try { await sageApi.updateSyllabus(course.id, text); setEdit(false); onSaved(); } finally { setBusy(false); }
+  }
+  if (instr && edit) {
+    return (
+      <Card>
+        <textarea style={{ ...inputStyle, minHeight: 240, resize: "vertical", fontFamily: "inherit" }}
+          value={text} onChange={(e) => setText(e.target.value)}
+          placeholder="Course overview, schedule, grading, policies…" />
+        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+          <PrimaryBtn onClick={save} disabled={busy}>{busy ? "Saving…" : "Save syllabus"}</PrimaryBtn>
+          <GhostBtn onClick={() => { setEdit(false); setText(detail?.syllabus || ""); }}>Cancel</GhostBtn>
+        </div>
+      </Card>
+    );
+  }
+  return (
+    <Card>
+      {detail?.syllabus
+        ? <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6, fontSize: 14.5 }}>{detail.syllabus}</div>
+        : <div style={{ color: C.muted }}>{instr
+            ? "No syllabus yet — add one so students know what the course covers."
+            : "No syllabus posted yet."}</div>}
+      {instr && <div style={{ marginTop: 14 }}>
+        <GhostBtn onClick={() => setEdit(true)}><Icon name="edit" size={15} /> {detail?.syllabus ? "Edit syllabus" : "Add syllabus"}</GhostBtn>
+      </div>}
+    </Card>
+  );
+}
+
+// --------------------------------------------------------------- Materials
+function Materials({ course, instr }: { course: SageCourseSummary; instr: boolean }) {
+  const [mats, setMats] = useState<SageMaterial[]>([]);
+  const [form, setForm] = useState<null | "note" | "code" | "file">(null);
+  const load = () => sageApi.materials(course.id).then(setMats).catch(() => setMats([]));
+  useEffect(() => { load(); }, [course.id]);
+  return (
+    <div style={{ display: "grid", gap: 12 }}>
+      {instr && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <GhostBtn onClick={() => setForm(form === "note" ? null : "note")}><Icon name="note" size={16} /> Add note</GhostBtn>
+          <GhostBtn onClick={() => setForm(form === "code" ? null : "code")}><Icon name="code" size={16} /> Add code</GhostBtn>
+          <GhostBtn onClick={() => setForm(form === "file" ? null : "file")}><Icon name="file" size={16} /> Upload file</GhostBtn>
+        </div>
+      )}
+      {form && <MaterialForm courseId={course.id} kind={form} onDone={() => { setForm(null); load(); }} />}
+      {mats.length === 0 && !form && (
+        <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
+          No materials yet.{instr ? " Add notes, code snippets, or upload files for your students." : " Check back soon."}
+        </Card>
+      )}
+      {mats.map((m) => <MaterialRow key={m.id} m={m} instr={instr} onChange={load} />)}
+    </div>
+  );
+}
+
+function MaterialForm({ courseId, kind, onDone }:
+  { courseId: number; kind: "note" | "code" | "file"; onDone: () => void }) {
+  const [title, setTitle] = useState(""); const [body, setBody] = useState("");
+  const [language, setLanguage] = useState(""); const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null);
+  async function save() {
+    setErr(null);
+    if (!title.trim()) { setErr("Add a title."); return; }
+    setBusy(true);
+    try {
+      if (kind === "file") {
+        if (!file) { setErr("Choose a file."); setBusy(false); return; }
+        await sageApi.uploadCourseFile(courseId, file, title.trim());
+      } else {
+        if (!body.trim()) { setErr("Add some content."); setBusy(false); return; }
+        await sageApi.addTextMaterial(courseId, { kind, title: title.trim(), body, language: language || undefined });
+      }
+      onDone();
+    } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  }
+  return (
+    <Card style={{ background: C.soft }}>
+      <input style={{ ...inputStyle, marginBottom: 8 }}
+        placeholder={kind === "code" ? "File name (e.g. adder.py)" : "Title"}
+        value={title} onChange={(e) => setTitle(e.target.value)} />
+      {kind === "file" ? (
+        <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+      ) : (
+        <>
+          {kind === "code" && <input style={{ ...inputStyle, marginBottom: 8 }} placeholder="Language (e.g. python)"
+            value={language} onChange={(e) => setLanguage(e.target.value)} />}
+          <textarea style={{ ...inputStyle, minHeight: 140, resize: "vertical",
+            fontFamily: kind === "code" ? "var(--font-mono, monospace)" : "inherit" }}
+            placeholder={kind === "code" ? "Paste code here…" : "Write your note here…"}
+            value={body} onChange={(e) => setBody(e.target.value)} />
+        </>
+      )}
+      <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+        <PrimaryBtn onClick={save} disabled={busy}>{busy ? "Saving…" : "Add"}</PrimaryBtn>
+      </div>
+      {err && <div style={{ color: C.danger, fontSize: 13, marginTop: 8 }}>{err}</div>}
+    </Card>
+  );
+}
+
+function fmtSize(n: number) {
+  return n < 1024 ? `${n} B` : n < 1048576 ? `${Math.round(n / 1024)} KB` : `${(n / 1048576).toFixed(1)} MB`;
+}
+
+function MaterialRow({ m, instr, onChange }: { m: SageMaterial; instr: boolean; onChange: () => void }) {
+  const [body, setBody] = useState<string | null>(null);
+  const [openB, setOpenB] = useState(false);
+  const isText = m.kind === "note" || m.kind === "code";
+  async function view() {
+    if (!openB && body === null) { const d = await sageApi.material(m.id); setBody(d.body || ""); }
+    setOpenB((o) => !o);
+  }
+  return (
+    <Card>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+          <Icon name={m.kind === "code" ? "code" : m.kind === "file" ? "file" : "note"} size={20} color={C.accentInk} />
+          <div>
+            <b style={{ fontSize: 14.5 }}>{m.title}</b>
+            <div style={{ color: C.muted, fontSize: 12.5 }}>
+              {m.kind}{m.language ? ` · ${m.language}` : ""}{m.kind === "file" ? ` · ${fmtSize(m.size_bytes)}` : ""}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {isText && <GhostBtn onClick={view}>{openB ? "Hide" : "View"}</GhostBtn>}
+          {m.kind === "file" && <GhostBtn onClick={() => api.authedDownload(`/sage/materials/${m.id}/download`, m.filename)}>
+            <Icon name="download" size={15} /> Download</GhostBtn>}
+          {instr && <button onClick={() => sageApi.deleteMaterial(m.id).then(onChange)}
+            title="Delete" style={{ background: "none", border: "none", cursor: "pointer", color: C.danger,
+              display: "inline-flex", alignItems: "center", padding: 6 }}><Icon name="trash" size={16} /></button>}
+        </div>
+      </div>
+      {openB && isText && (
+        <pre style={{ marginTop: 12, padding: 12, background: m.kind === "code" ? "#1e1b2e" : C.soft,
+          color: m.kind === "code" ? "#e6e3f5" : C.ink, borderRadius: 10, overflowX: "auto",
+          whiteSpace: "pre-wrap", fontSize: 13.5, lineHeight: 1.55,
+          fontFamily: m.kind === "code" ? "var(--font-mono, monospace)" : "inherit" }}>{body}</pre>
       )}
     </Card>
   );

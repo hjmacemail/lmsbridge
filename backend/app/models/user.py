@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from sqlalchemy import Boolean, ForeignKey, String, false
+from sqlalchemy import Boolean, ForeignKey, String, Text, false
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,6 +16,9 @@ class User(Base, TimestampMixin):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(SAEnum(UserRole), default=UserRole.student)
+    # Minimal self-introduction shown to students (e.g. "Professor of CS, NYU" + short bio).
+    title: Mapped[str | None] = mapped_column(String(160))
+    bio: Mapped[str | None] = mapped_column(Text)
     # Identifier in the source LMS (Brightspace user id)
     external_id: Mapped[str | None] = mapped_column(String(128), index=True, nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True)

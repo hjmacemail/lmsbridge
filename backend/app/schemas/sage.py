@@ -57,3 +57,20 @@ class QuizAnswer(BaseModel):
 
 class QuizSubmit(BaseModel):
     answers: list[QuizAnswer]
+
+
+class ProfileUpdate(BaseModel):
+    full_name: str | None = Field(None, min_length=1, max_length=255)
+    title: str | None = Field(None, max_length=160)
+    bio: str | None = Field(None, max_length=2000)
+
+
+class SyllabusUpdate(BaseModel):
+    syllabus: str = Field("", max_length=20000)
+
+
+class MaterialTextCreate(BaseModel):
+    kind: str = Field("note", description="note | code")
+    title: str = Field(..., min_length=1, max_length=255)
+    body: str = Field(..., min_length=1, max_length=100000)
+    language: str | None = Field(None, max_length=32)

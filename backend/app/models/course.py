@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import ForeignKey, String, UniqueConstraint
+from sqlalchemy import ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
@@ -29,6 +29,8 @@ class Course(Base, TimestampMixin):
     # Standalone "Sage" courses (no LMS): a join code students enter, and the owning instructor.
     join_code: Mapped[str | None] = mapped_column(String(12), unique=True, index=True)
     owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    # Free-text syllabus (Sage standalone courses).
+    syllabus: Mapped[str | None] = mapped_column(Text)
     tenant_id: Mapped[int | None] = mapped_column(
         ForeignKey("tenants.id", ondelete="SET NULL"), index=True
     )

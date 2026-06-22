@@ -63,6 +63,52 @@ def test_sage_minilms_end_to_end(client):
     assert sg["is_instructor"] is False and "scores" in sg
 
 
+def test_sage_profile_syllabus_and_materials(client):
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr Ray", "email": "ray@uni.edu", "password": "secret123"}).json())
+
+    # Instructor profile (minimal self-details).
+    prof = client.put("/api/v1/sage/me", headers=ih,
+                      json={"title": "Professor of CS, NYU", "bio": "I teach systems."})
+    assert prof.status_code == 200 and prof.json()["title"] == "Professor of CS, NYU"
+
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "Systems"}).json()["id"]
+
+    # Syllabus.
+    client.put(f"/api/v1/sage/courses/{cid}/syllabus", headers=ih,
+               json={"syllabus": "Week 1: binary. Week 2: logic."})
+    detail = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()
+    assert "binary" in detail["syllabus"]
+    assert detail["instructor"]["title"] == "Professor of CS, NYU"
+
+    # Materials: a note, a code snippet, and a file.
+    note = client.post(f"/api/v1/sage/courses/{cid}/materials/text", headers=ih, json={
+        "kind": "note", "title": "Lecture 1 notes", "body": "Two's complement is..."})
+    assert note.status_code == 201 and note.json()["kind"] == "note"
+    code = client.post(f"/api/v1/sage/courses/{cid}/materials/text", headers=ih, json={
+        "kind": "code", "title": "adder.py", "body": "def add(a,b): return a+b",
+        "language": "python"})
+    assert code.json()["language"] == "python"
+    up = client.post(f"/api/v1/sage/courses/{cid}/materials/file", headers=ih,
+                     files={"file": ("syllabus.txt", b"hello world", "text/plain")},
+                     data={"title": "Handout"})
+    assert up.status_code == 201 and up.json()["kind"] == "file"
+
+    mats = client.get(f"/api/v1/sage/courses/{cid}/materials", headers=ih).json()
+    assert len(mats) == 3
+
+    # Note body is readable; student (joined) can view materials too.
+    body = client.get(f"/api/v1/sage/materials/{note.json()['id']}", headers=ih).json()
+    assert "complement" in body["body"]
+    code_g = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"]
+    sh = _auth(client.post("/api/v1/sage/guest",
+                           json={"join_code": code_g, "full_name": "Su"}).json())
+    assert client.get(f"/api/v1/sage/courses/{cid}/materials", headers=sh).status_code == 200
+    # Students cannot add materials.
+    assert client.post(f"/api/v1/sage/courses/{cid}/materials/text", headers=sh, json={
+        "kind": "note", "title": "x", "body": "y"}).status_code == 403
+
+
 def test_sage_join_requires_valid_code(client):
     client.post("/api/v1/sage/signup", json={
         "full_name": "X", "email": "x@uni.edu", "password": "secret123"})

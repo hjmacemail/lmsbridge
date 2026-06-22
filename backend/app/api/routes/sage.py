@@ -8,10 +8,12 @@ Reuses the platform Course / Enrollment / Concept / Assessment / Question / resu
 """
 from __future__ import annotations
 
+import io
 import re
 import secrets
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -22,19 +24,24 @@ from app.models.assessment import Assessment, AssessmentResult, Question
 from app.models.concept import Concept
 from app.models.course import Course, Enrollment
 from app.models.enums import AssessmentType, RemediationStatus, UserRole
+from app.models.material import CourseMaterial
 from app.models.remediation import RemediationModule
 from app.models.user import User
 from app.schemas.sage import (
     CourseCreate,
     JoinByCode,
+    MaterialTextCreate,
+    ProfileUpdate,
     QuizCreate,
     QuizSubmit,
     SageAuthOut,
     SageGuestJoin,
     SageJoinSignup,
     SageSignup,
+    SyllabusUpdate,
 )
 from app.services.ingestion_service import ingest_result
+from app.services.material_service import MAX_UPLOAD_BYTES, create_material
 
 router = APIRouter(prefix="/sage", tags=["sage"])
 
@@ -199,7 +206,50 @@ def course_detail(
     course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ) -> dict:
     course, role = _require_role(db, course_id, user)
-    return _course_summary(db, course, role)
+    out = _course_summary(db, course, role)
+    out["syllabus"] = course.syllabus
+    owner = db.get(User, course.owner_id) if course.owner_id else None
+    out["instructor"] = ({
+        "full_name": owner.full_name, "title": owner.title, "bio": owner.bio,
+    } if owner else None)
+    return out
+
+
+# ------------------------------------------------------------- instructor profile
+
+@router.get("/me")
+def my_profile(user: User = Depends(get_current_user)) -> dict:
+    return {"id": user.id, "full_name": user.full_name, "email": user.email,
+            "title": user.title, "bio": user.bio}
+
+
+@router.put("/me")
+def update_profile(
+    payload: ProfileUpdate, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> dict:
+    if payload.full_name is not None:
+        user.full_name = payload.full_name.strip()
+    if payload.title is not None:
+        user.title = payload.title.strip() or None
+    if payload.bio is not None:
+        user.bio = payload.bio.strip() or None
+    db.commit()
+    db.refresh(user)
+    return {"id": user.id, "full_name": user.full_name, "email": user.email,
+            "title": user.title, "bio": user.bio}
+
+
+@router.put("/courses/{course_id}/syllabus")
+def update_syllabus(
+    course_id: int, payload: SyllabusUpdate,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    course, role = _require_role(db, course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    course.syllabus = payload.syllabus.strip() or None
+    db.commit()
+    return {"syllabus": course.syllabus}
 
 
 @router.get("/courses/{course_id}/students")
@@ -383,3 +433,115 @@ def grades(
         "open_remediation": open_remediation(user.id),
         "is_instructor": False,
     }
+
+
+# ------------------------------------------------------------- materials (notes / code / files)
+
+def _material_out(m: CourseMaterial) -> dict:
+    return {"id": m.id, "kind": m.kind, "title": m.title, "filename": m.filename,
+            "content_type": m.content_type, "size_bytes": m.size_bytes,
+            "language": m.language, "has_text": bool(m.extracted_text),
+            "created_at": m.created_at}
+
+
+@router.get("/courses/{course_id}/materials")
+def list_course_materials(
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> list[dict]:
+    _require_role(db, course_id, user)
+    rows = db.scalars(
+        select(CourseMaterial).where(CourseMaterial.course_id == course_id)
+        .order_by(CourseMaterial.created_at.desc())
+    ).all()
+    return [_material_out(m) for m in rows]
+
+
+@router.post("/courses/{course_id}/materials/text", status_code=201)
+def add_text_material(
+    course_id: int, payload: MaterialTextCreate,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    course, role = _require_role(db, course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    kind = payload.kind if payload.kind in ("note", "code") else "note"
+    ext = ".md" if kind == "note" else ".txt"
+    content_type = "text/markdown" if kind == "note" else "text/plain"
+    m = create_material(
+        db, course_id=course.id, title=payload.title.strip(),
+        filename=f"{_slug(payload.title)}{ext}", content_type=content_type,
+        data=payload.body.encode("utf-8"), uploaded_by=user.id,
+    )
+    m.kind = kind
+    m.language = (payload.language or None) if kind == "code" else None
+    db.commit()
+    db.refresh(m)
+    return _material_out(m)
+
+
+@router.post("/courses/{course_id}/materials/file", status_code=201)
+async def upload_file_material(
+    course_id: int,
+    title: str = Form(""),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> dict:
+    course, role = _require_role(db, course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty file")
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit")
+    m = create_material(
+        db, course_id=course.id, title=title.strip() or file.filename or "Untitled",
+        filename=file.filename or "upload", content_type=file.content_type or "",
+        data=data, uploaded_by=user.id,
+    )
+    m.kind = "file"
+    db.commit()
+    db.refresh(m)
+    return _material_out(m)
+
+
+@router.get("/materials/{material_id}")
+def get_material(
+    material_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> dict:
+    m = db.get(CourseMaterial, material_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Material not found")
+    _require_role(db, m.course_id, user)
+    out = _material_out(m)
+    out["body"] = (m.content.decode("utf-8", errors="replace")
+                   if m.kind in ("note", "code") and m.content is not None else None)
+    return out
+
+
+@router.get("/materials/{material_id}/download")
+def download_material(
+    material_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> StreamingResponse:
+    m = db.get(CourseMaterial, material_id)
+    if not m or m.content is None:
+        raise HTTPException(status_code=404, detail="Material not found")
+    _require_role(db, m.course_id, user)
+    return StreamingResponse(
+        io.BytesIO(m.content), media_type=m.content_type or "application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{m.filename}"'})
+
+
+@router.delete("/materials/{material_id}", status_code=204)
+def delete_material(
+    material_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> None:
+    m = db.get(CourseMaterial, material_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Material not found")
+    _course, role = _require_role(db, m.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    db.delete(m)
+    db.commit()

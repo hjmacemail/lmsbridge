@@ -301,6 +301,16 @@ export interface SageGrades {
   open_remediation?: number;
 }
 export interface SageQuestionDraft { prompt: string; choices: string[]; correct: string; concept: string; }
+export interface SageInstructor { full_name: string; title: string | null; bio: string | null; }
+export interface SageCourseDetail extends SageCourseSummary {
+  syllabus?: string | null; instructor?: SageInstructor | null;
+}
+export interface SageProfile { id: number; full_name: string; email: string; title: string | null; bio: string | null; }
+export interface SageMaterial {
+  id: number; kind: string; title: string; filename: string; content_type: string;
+  size_bytes: number; language: string | null; has_text: boolean; created_at: string;
+}
+export interface SageMaterialDetail extends SageMaterial { body: string | null; }
 
 export const sageApi = {
   signup: (full_name: string, email: string, password: string) =>
@@ -317,7 +327,28 @@ export const sageApi = {
   createCourse: (name: string, subject: string) =>
     request<SageCourseSummary>(`/sage/courses`, { method: "POST",
       body: JSON.stringify({ name, subject }) }),
-  courseDetail: (id: number) => request<SageCourseSummary>(`/sage/courses/${id}`),
+  courseDetail: (id: number) => request<SageCourseDetail>(`/sage/courses/${id}`),
+  profile: () => request<SageProfile>(`/sage/me`),
+  updateProfile: (p: { full_name?: string; title?: string; bio?: string }) =>
+    request<SageProfile>(`/sage/me`, { method: "PUT", body: JSON.stringify(p) }),
+  updateSyllabus: (courseId: number, syllabus: string) =>
+    request<{ syllabus: string | null }>(`/sage/courses/${courseId}/syllabus`,
+      { method: "PUT", body: JSON.stringify({ syllabus }) }),
+  materials: (courseId: number) => request<SageMaterial[]>(`/sage/courses/${courseId}/materials`),
+  material: (id: number) => request<SageMaterialDetail>(`/sage/materials/${id}`),
+  addTextMaterial: (courseId: number, m: { kind: string; title: string; body: string; language?: string }) =>
+    request<SageMaterial>(`/sage/courses/${courseId}/materials/text`,
+      { method: "POST", body: JSON.stringify(m) }),
+  uploadCourseFile: async (courseId: number, file: File, title: string): Promise<SageMaterial> => {
+    const token = loadToken();
+    const form = new FormData();
+    form.append("title", title); form.append("file", file);
+    const res = await fetch(`${BASE}/sage/courses/${courseId}/materials/file`, {
+      method: "POST", headers: token ? { Authorization: `Bearer ${token.access_token}` } : {}, body: form });
+    if (!res.ok) throw new Error(errorMessage(await res.json().catch(() => ({})), res.status));
+    return (await res.json()) as SageMaterial;
+  },
+  deleteMaterial: (id: number) => request<void>(`/sage/materials/${id}`, { method: "DELETE" }),
   joinExisting: (join_code: string) =>
     request<{ course_id: number; name: string }>(`/sage/courses/join`, { method: "POST",
       body: JSON.stringify({ join_code }) }),

@@ -21,6 +21,10 @@ class CourseMaterial(Base, TimestampMixin):
     concept_id: Mapped[int | None] = mapped_column(ForeignKey("concepts.id", ondelete="SET NULL"))
     uploaded_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
 
+    # What kind of resource this is: file | note | code | link (drives how Sage renders it).
+    kind: Mapped[str] = mapped_column(String(16), default="file", server_default="file")
+    # Programming language for code snippets (e.g. "python"), optional.
+    language: Mapped[str | None] = mapped_column(String(32))
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
     content_type: Mapped[str] = mapped_column(String(128), default="application/octet-stream")
