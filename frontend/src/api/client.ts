@@ -46,6 +46,26 @@ export function clearToken() {
   sessionStorage.removeItem(TOKEN_KEY);
 }
 
+// Turn any error body (incl. FastAPI 422 validation arrays) into a readable string.
+export function errorMessage(body: unknown, status: number): string {
+  const d = (body as { detail?: unknown })?.detail;
+  if (typeof d === "string") return d;
+  if (Array.isArray(d)) {
+    const msgs = d
+      .map((e) => {
+        const loc = Array.isArray((e as { loc?: unknown[] }).loc) ? (e as { loc: unknown[] }).loc : [];
+        const field = loc.length ? String(loc[loc.length - 1]) : "";
+        const msg = (e as { msg?: string }).msg || "invalid value";
+        return field && field !== "body" ? `${field}: ${msg}` : msg;
+      })
+      .filter(Boolean);
+    if (msgs.length) return msgs.join("; ");
+  }
+  const m = (body as { message?: string })?.message;
+  if (typeof m === "string") return m;
+  return `Request failed (${status})`;
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = loadToken();
   const headers: Record<string, string> = {
@@ -55,8 +75,8 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (token) headers["Authorization"] = `Bearer ${token.access_token}`;
   const res = await fetch(`${BASE}${path}`, { ...init, headers });
   if (!res.ok) {
-    const detail = await res.json().catch(() => ({}));
-    throw new Error(detail.detail || `Request failed (${res.status})`);
+    const body = await res.json().catch(() => ({}));
+    throw new Error(errorMessage(body, res.status));
   }
   return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
 }
@@ -226,7 +246,7 @@ export const api = {
     });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
-      throw new Error(d.detail || `Upload failed (${res.status})`);
+      throw new Error(errorMessage(d, res.status));
     }
     return (await res.json()) as Material;
   },

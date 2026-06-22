@@ -122,9 +122,20 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
   const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
 
   async function go(e: React.FormEvent) {
-    e.preventDefault(); setBusy(true); setErr(null);
+    e.preventDefault(); setErr(null);
+    // Friendly client-side checks so the user isn't bounced by a server validation error.
+    if (mode === "join" && !code.trim()) { setErr("Enter the course join code."); return; }
+    if (mode !== "login" && !name.trim()) { setErr("Please enter your name."); return; }
+    if (mode !== "join") {
+      if (!email.trim()) { setErr("Enter your email address."); return; }
+      if (!pw) { setErr("Enter a password."); return; }
+      if (mode === "signup" && pw.length < 6) {
+        setErr("Password must be at least 6 characters."); return;
+      }
+    }
+    setBusy(true);
     try {
-      if (mode === "signup") onAuth(await sageApi.signup(name, email, pw));
+      if (mode === "signup") onAuth(await sageApi.signup(name.trim(), email.trim(), pw));
       else if (mode === "login") {
         const t = await sageApi.login(email, pw);
         onAuth({ access_token: t.access_token, token_type: t.token_type,
