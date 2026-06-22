@@ -1,6 +1,8 @@
 """LMS file connectors (Canvas / Moodle / Brightspace) + generic import endpoint."""
 from __future__ import annotations
 
+from sqlalchemy import select
+
 from app.core.security import hash_password
 from app.integrations.brightspace import files as bs
 from app.integrations.canvas import files as cf
@@ -80,10 +82,14 @@ def test_brightspace_walks_toc_topics(monkeypatch):
 
 
 def test_import_from_lms_endpoint(client, db, monkeypatch):
-    course = Course(code="ARCH 101", title="Architecture", term="LTI")
-    db.add(course)
-    db.commit()
+    from app.models.course import Enrollment
     headers = _instructor_headers(client, db)
+    instr = db.scalar(select(User).where(User.email == "prof@ex.edu"))
+    course = Course(code="ARCH 101", title="Architecture", term="LTI", owner_id=instr.id)
+    db.add(course)
+    db.flush()
+    db.add(Enrollment(user_id=instr.id, course_id=course.id, role=UserRole.instructor))
+    db.commit()
 
     from app.integrations import lms_files
     listing = [

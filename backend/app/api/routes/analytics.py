@@ -34,6 +34,7 @@ from app.schemas.analytics import (
     TranscriptTurn,
 )
 from app.schemas.remediation import ConceptRisk, InstructorAnalytics, MasteryOut
+from app.services.course_access import require_course_instructor
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 require_admin = require_role(UserRole.admin)
@@ -156,11 +157,9 @@ def institution_usage(
 
 @router.get("/courses/{course_id}", response_model=InstructorAnalytics)
 def course_analytics(
-    course_id: int, db: Session = Depends(get_db), _: User = Depends(require_instructor)
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(require_instructor)
 ) -> InstructorAnalytics:
-    course = db.get(Course, course_id)
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
+    course = require_course_instructor(db, course_id, user)
 
     enrolled = db.scalar(
         select(func.count(Enrollment.id)).where(
@@ -213,10 +212,10 @@ def _require_course(db: Session, course_id: int) -> Course:
 
 @router.get("/courses/{course_id}/roster", response_model=list[RosterEntry])
 def course_roster(
-    course_id: int, db: Session = Depends(get_db), _: User = Depends(require_instructor)
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(require_instructor)
 ) -> list[RosterEntry]:
     """One row per enrolled student with a mastery + remediation summary."""
-    _require_course(db, course_id)
+    require_course_instructor(db, course_id, user)
     students = db.scalars(
         select(User)
         .join(Enrollment, Enrollment.user_id == User.id)
@@ -262,10 +261,10 @@ def course_roster(
 @router.get("/courses/{course_id}/students/{student_id}", response_model=StudentDetail)
 def student_detail(
     course_id: int, student_id: int,
-    db: Session = Depends(get_db), _: User = Depends(require_instructor),
+    db: Session = Depends(get_db), user: User = Depends(require_instructor),
 ) -> StudentDetail:
     """Full drill-down: mastery, every assessment result, and remediation modules."""
-    _require_course(db, course_id)
+    require_course_instructor(db, course_id, user)
     student = db.get(User, student_id)
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
@@ -334,10 +333,10 @@ def student_detail(
 
 @router.get("/courses/{course_id}/assessments", response_model=list[AssessmentBreakdown])
 def assessment_breakdown(
-    course_id: int, db: Session = Depends(get_db), _: User = Depends(require_instructor)
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(require_instructor)
 ) -> list[AssessmentBreakdown]:
     """Per-assessment, per-concept score distributions plus sample rubric feedback."""
-    _require_course(db, course_id)
+    require_course_instructor(db, course_id, user)
     assessments = db.scalars(
         select(Assessment).where(Assessment.course_id == course_id)
         .order_by(Assessment.available_at)
@@ -384,10 +383,10 @@ def assessment_breakdown(
 @router.get("/courses/{course_id}/remediation", response_model=list[ModuleWithStudent])
 def course_remediation(
     course_id: int, status: RemediationStatus | None = None,
-    db: Session = Depends(get_db), _: User = Depends(require_instructor),
+    db: Session = Depends(get_db), user: User = Depends(require_instructor),
 ) -> list[ModuleWithStudent]:
     """Every remediation module in the course with its activities and student responses."""
-    _require_course(db, course_id)
+    require_course_instructor(db, course_id, user)
     concept_names = {
         c.id: c.name
         for c in db.scalars(select(Concept).where(Concept.course_id == course_id)).all()
@@ -438,10 +437,10 @@ def course_remediation(
 
 @router.get("/courses/{course_id}/export.csv")
 def export_csv(
-    course_id: int, db: Session = Depends(get_db), _: User = Depends(require_instructor)
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(require_instructor)
 ) -> StreamingResponse:
     """Download per-student concept mastery + remediation status as CSV."""
-    course = _require_course(db, course_id)
+    course = require_course_instructor(db, course_id, user)
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow([

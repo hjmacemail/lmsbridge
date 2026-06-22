@@ -12,10 +12,10 @@ from app.db.session import get_db
 from app.integrations import lms_files
 from app.integrations.lms_common import is_text_file
 from app.models.concept import Concept
-from app.models.course import Course
 from app.models.material import CourseMaterial
 from app.models.user import User
 from app.schemas.material import LmsImportRequest, MaterialDetail, MaterialOut
+from app.services.course_access import require_course_instructor, require_course_member
 from app.services.material_service import MAX_UPLOAD_BYTES, create_material
 
 router = APIRouter(prefix="/materials", tags=["materials"])
@@ -31,8 +31,9 @@ def _to_out(m: CourseMaterial) -> MaterialOut:
 
 @router.get("", response_model=list[MaterialOut])
 def list_materials(
-    course_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ) -> list[MaterialOut]:
+    require_course_member(db, course_id, user)
     rows = db.scalars(
         select(CourseMaterial)
         .where(CourseMaterial.course_id == course_id)
@@ -50,9 +51,7 @@ async def upload_material(
     db: Session = Depends(get_db),
     user: User = Depends(require_instructor),
 ) -> MaterialDetail:
-    course = db.get(Course, course_id)
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
+    require_course_instructor(db, course_id, user)
     if concept_id is not None and not db.get(Concept, concept_id):
         raise HTTPException(status_code=404, detail="Concept not found")
 
@@ -86,9 +85,7 @@ def import_from_lms(
     files (PDF/DOCX/PPTX/TXT/MD/HTML/CSV/RTF) are downloaded and text-extracted for AI grounding;
     other types and already-imported files are skipped. The token is used transiently, not stored.
     """
-    course = db.get(Course, payload.course_id)
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
+    course = require_course_instructor(db, payload.course_id, user)
     try:
         provider = lms_files.get_provider(payload.provider)
     except ValueError as e:
@@ -140,11 +137,12 @@ def import_from_lms(
 
 @router.get("/{material_id}/download")
 def download_material(
-    material_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)
+    material_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ) -> StreamingResponse:
     m = db.get(CourseMaterial, material_id)
     if not m or m.content is None:
         raise HTTPException(status_code=404, detail="Material not found")
+    require_course_member(db, m.course_id, user)
     return StreamingResponse(
         io.BytesIO(m.content),
         media_type=m.content_type or "application/octet-stream",
@@ -154,10 +152,11 @@ def download_material(
 
 @router.delete("/{material_id}", status_code=204)
 def delete_material(
-    material_id: int, db: Session = Depends(get_db), _: User = Depends(require_instructor)
+    material_id: int, db: Session = Depends(get_db), user: User = Depends(require_instructor)
 ) -> None:
     m = db.get(CourseMaterial, material_id)
     if not m:
         raise HTTPException(status_code=404, detail="Material not found")
+    require_course_instructor(db, m.course_id, user)
     db.delete(m)
     db.commit()
