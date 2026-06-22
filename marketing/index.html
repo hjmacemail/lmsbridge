@@ -5,6 +5,91 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>LMS Bridge — free, open-source AI remediation for any LMS</title>
 <meta name="description" content="LMS Bridge is a free, open-source (AGPL-3.0) tool that turns your LMS assessment data into just-in-time, AI-guided remediation. Self-host it and install into Blackboard, Brightspace, Canvas, and Moodle via LTI 1.3, using your own AI key." />
+<meta name="keywords" content="LMS Bridge, LTI 1.3, LTI Advantage, adaptive learning, AI remediation, open source edtech, AGPL, Canvas, Moodle, Brightspace, Blackboard, STEM, retrieval practice, mastery learning, Socratic tutor" />
+<meta name="author" content="LMS Bridge authors" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta name="theme-color" content="#0b1020" />
+<link rel="canonical" href="https://www.lmsbridge.app/" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+<!-- Open Graph (link previews on social + some answer engines) -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="LMS Bridge" />
+<meta property="og:title" content="LMS Bridge — free, open-source AI remediation for any LMS" />
+<meta property="og:description" content="Turn your LMS assessment data into just-in-time, AI-guided remediation. Free and open source (AGPL-3.0), installs via LTI 1.3 into Canvas, Moodle, Brightspace, and Blackboard, with your own AI key." />
+<meta property="og:url" content="https://www.lmsbridge.app/" />
+<meta property="og:image" content="https://www.lmsbridge.app/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="LMS Bridge — Bridge early gaps before they widen." />
+
+<!-- Twitter / X card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="LMS Bridge — free, open-source AI remediation for any LMS" />
+<meta name="twitter:description" content="Just-in-time, AI-guided remediation for STEM. Free, open source, LTI 1.3, bring-your-own AI key." />
+<meta name="twitter:image" content="https://www.lmsbridge.app/og-image.png" />
+
+<!-- Structured data (SEO rich results + machine-readable facts for AI answer engines) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "LMS Bridge",
+      "applicationCategory": "EducationalApplication",
+      "applicationSubCategory": "Learning Management System integration (LTI 1.3 tool)",
+      "operatingSystem": "Web, Docker (self-hosted)",
+      "description": "Free, open-source AI-guided adaptive remediation for undergraduate STEM. Turns LMS assessment results into just-in-time, pedagogically constrained tutoring; installs into any LTI 1.3 LMS and runs on the institution's own AI key.",
+      "url": "https://www.lmsbridge.app/",
+      "softwareHelp": "https://www.lmsbridge.app/#install",
+      "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "LTI 1.3 / Advantage integration (Canvas, Moodle, Brightspace, Blackboard)",
+        "One-click Dynamic Registration",
+        "AGS grade sync and NRPS roster sync",
+        "Just-in-time AI remediation with Socratic scaffolding and retrieval practice",
+        "Bring-your-own AI key (Anthropic, OpenAI, Azure OpenAI)",
+        "Sage standalone mini-LMS for instructors without an LMS",
+        "FERPA-aware, self-hosted"
+      ],
+      "author": { "@type": "Organization", "name": "LMS Bridge" },
+      "codeRepository": "https://github.com/hjmacemail/lmsbridge"
+    },
+    {
+      "@type": "Organization",
+      "name": "LMS Bridge",
+      "url": "https://www.lmsbridge.app/",
+      "logo": "https://www.lmsbridge.app/favicon.svg",
+      "sameAs": ["https://github.com/hjmacemail/lmsbridge"]
+    },
+    {
+      "@type": "WebSite",
+      "name": "LMS Bridge",
+      "url": "https://www.lmsbridge.app/"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "Does this affect students' grades?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Mastery indicators are a private learning aid. Grades are set solely by the instructor through official assessments. Any LMS gradebook write-back is a non-graded column." } },
+        { "@type": "Question", "name": "Is it a homework cheating tool?",
+          "acceptedAnswer": { "@type": "Answer", "text": "The opposite. The tutor is pedagogically constrained: it diagnoses and guides with Socratic questions and never provides graded answers." } },
+        { "@type": "Question", "name": "Where does student data go?",
+          "acceptedAnswer": { "@type": "Answer", "text": "LMS Bridge is FERPA-aware with role-based access. For full governance you can run the AI on your own approved infrastructure (e.g. your Azure OpenAI tenant) via bring-your-own-key." } },
+        { "@type": "Question", "name": "Which LMSs are supported?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Any LTI 1.3 / Advantage platform — Blackboard, Brightspace, Canvas, Moodle, Schoology, and more — from a single integration." } },
+        { "@type": "Question", "name": "Is it really free?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. LMS Bridge is open source under AGPL-3.0 — free to self-host and use at any size, with no per-student fee. You pay only for your own AI usage (your key) and your hosting. Optional commercial support, managed hosting, and an OEM license are available." } },
+        { "@type": "Question", "name": "How is it licensed?",
+          "acceptedAnswer": { "@type": "Answer", "text": "GNU AGPL-3.0. You can run, modify, and deploy it freely; if you modify it and offer it as a network service, AGPL asks you to share your changes. Internal institutional use carries no extra obligation." } }
+      ]
+    }
+  ]
+}
+</script>
 <style>
   :root{
     --bg:#0b1020; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --soft:#f8fafc;

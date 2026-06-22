@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LMS Bridge">
+  <rect width="64" height="64" rx="14" fill="#0b1020"/>
+  <!-- bridge arch -->
+  <path d="M10 42 Q32 16 54 42" fill="none" stroke="#a5b4fc" stroke-width="4" stroke-linecap="round"/>
+  <line x1="10" y1="42" x2="10" y2="50" stroke="#a5b4fc" stroke-width="4" stroke-linecap="round"/>
+  <line x1="54" y1="42" x2="54" y2="50" stroke="#a5b4fc" stroke-width="4" stroke-linecap="round"/>
+  <line x1="22" y1="30" x2="22" y2="46" stroke="#4f46e5" stroke-width="3" stroke-linecap="round"/>
+  <line x1="32" y1="25" x2="32" y2="46" stroke="#4f46e5" stroke-width="3" stroke-linecap="round"/>
+  <line x1="42" y1="30" x2="42" y2="46" stroke="#4f46e5" stroke-width="3" stroke-linecap="round"/>
+  <line x1="8" y1="50" x2="56" y2="50" stroke="#ffffff" stroke-width="4" stroke-linecap="round"/>
+</svg>

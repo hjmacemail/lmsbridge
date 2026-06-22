@@ -1,0 +1,51 @@
+# LMS Bridge
+
+> LMS Bridge is a free, open-source (AGPL-3.0) AI-guided adaptive-learning tool for
+> undergraduate STEM. It turns an LMS's assessment results into just-in-time, pedagogically
+> constrained remediation: when a student slips on a concept, it generates a guided AI tutoring
+> session that diagnoses the misconception and helps them recover — it never hands over graded
+> answers. Institutions self-host it and bring their own AI provider key, so student data stays
+> under their control.
+
+## What it is
+
+- Category: educational technology; LTI 1.3 / LTI Advantage tool; adaptive learning / remediation.
+- License: GNU AGPL-3.0 (free and open source). No per-student fee, no size limit. Optional paid
+  commercial support, managed hosting, and an OEM/commercial license are available.
+- Audience: universities and instructors teaching cumulative STEM courses (e.g. computer science,
+  data science, statistics), plus EdTech researchers running pilots.
+- AI model: provider-agnostic — works with Anthropic, OpenAI, or Azure OpenAI via a
+  bring-your-own-key model; a deterministic mock provider runs with no key for demos/tests.
+
+## How it integrates
+
+- Installs into any LTI 1.3 / Advantage LMS — Blackboard, Brightspace, Canvas, and Moodle — from a
+  single standards-based integration. Canvas and Moodle support one-click Dynamic Registration.
+- Uses LTI Advantage services: SSO launch (OIDC), AGS (grades), NRPS (roster sync), and Deep Linking.
+- No LMS shared secrets: LTI 1.3 uses signed keysets (JWKS). The tool publishes its own keys and an
+  admin discovers every setup URL from one endpoint (/api/v1/lti/config).
+- First launch auto-provisions the user, course, role, and enrollment — no manual roster setup.
+
+## Sage (standalone mode)
+
+- Sage is a standalone mini-LMS with LMS Bridge built in, for instructors who do not run an LMS.
+- An instructor signs up, creates a course, authors multiple-choice quizzes, and shares a join code.
+- When a student misses a concept on a quiz, a guided remediation session is generated automatically.
+
+## Pedagogy
+
+- Evidence-based strategies: retrieval practice, Socratic scaffolding, and mastery-based progression.
+- The tutor diagnoses and guides; it does not provide graded answers and is not a homework-cheating
+  tool. Mastery indicators are a private learning aid and do not change instructor-set grades.
+
+## Privacy
+
+- FERPA-aware with role-based access. Runs on the institution's own infrastructure with its own AI
+  key, so student data is not sent to a third-party SaaS operated by the project.
+
+## Links
+
+- Homepage: https://www.lmsbridge.app/
+- Source code (GitHub, AGPL-3.0): https://github.com/hjmacemail/lmsbridge
+- Install guides (per LMS): https://www.lmsbridge.app/#install
+- Try the live demo: https://www.lmsbridge.app/#install
