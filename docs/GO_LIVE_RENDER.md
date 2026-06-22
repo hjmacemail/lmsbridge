@@ -13,7 +13,7 @@ Three public services (Render gives each free automatic HTTPS), backed by manage
 |---------|--------------------|------------------|
 | Backend API | `lms-bridge-backend.onrender.com` | `api.yourdomain.edu` |
 | Student/instructor app | `lms-bridge-frontend.onrender.com` | `app.yourdomain.edu` |
-| Marketing / sales site | `lms-bridge-marketing.onrender.com` | `www.yourdomain.edu` (root) |
+| Marketing site (landing + Sage) | `lms-bridge-marketing.onrender.com` | `www.yourdomain.edu` (root) |
 
 You do **not** need a domain to do the first LTI test — the free `*.onrender.com` URLs are already
 HTTPS. Add the domain when you're ready to show people.

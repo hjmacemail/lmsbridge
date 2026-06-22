@@ -57,21 +57,26 @@ LMS Bridge runs in one of two modes, set by `DEPLOYMENT_MODE` (default **`commun
 | **Course materials** | pypdf / python-docx extraction | Instructor uploads (PDF/DOCX/MD/text) that **ground** the AI in the course's own content |
 | **Database** | PostgreSQL (SQLite for local/tests) | Persistence with versioned migrations |
 | **LLM layer** | Provider-agnostic abstraction | Anthropic / OpenAI / Azure OpenAI / deterministic mock |
-| **LMS integration** | **LTI 1.3 / LTI Advantage** tool provider | Installs into Blackboard, Brightspace, Canvas, Moodle: SSO launch, AGS, NRPS, Deep Linking + Brightspace Valence scaffold + seeded mock |
-| **Sales platform** | Static marketing site + lead-capture API | Landing page, pricing, demo/purchase form → `/api/v1/leads` |
-| **Ops** | Docker, docker-compose, GitHub Actions | One-command stack, CI, cloud-agnostic deploy configs |
+| **LMS integration** | **LTI 1.3 / LTI Advantage** tool provider | Installs into Blackboard, Brightspace, Canvas, Moodle: SSO launch, AGS (grades), NRPS (roster), Deep Linking, one-click Dynamic Registration |
+| **Sage (standalone mini-LMS)** | Self-contained course UI at `/sage` | No LMS needed: an instructor creates a course, authors quizzes, and shares a join code; quiz results auto-trigger the same adaptive remediation |
+| **Course-file import** | Canvas / Moodle / Brightspace connectors | Pull an existing LMS course's files in as AI grounding material |
+| **Marketing site** | Static landing site + adopter API | Landing page, live demo, Sage entry point, open-source info; optional adopter/testimonial form → `/api/v1/leads` |
+| **Ops** | Docker, docker-compose, GitHub Actions | One-command stack, CI, prebuilt images, cloud-agnostic deploy |
 
-### LMS integration (LTI 1.3) and the sales site
+### LMS integration (LTI 1.3), Sage, and the marketing site
 
 LMS Bridge ships a real **LTI 1.3 / LTI Advantage** tool provider (`backend/app/lti/`), so it
 installs into any compliant LMS from a single integration — OIDC SSO launch, id_token validation
 against the platform JWKS, just-in-time user/course provisioning, and the **AGS** (grades),
 **NRPS** (roster), and **Deep Linking** services. See **[`docs/INSTALL_LTI.md`](docs/INSTALL_LTI.md)**
-for per-LMS setup, and **[`docs/LMS_INTEGRATION_AND_BUSINESS_MODEL.md`](docs/LMS_INTEGRATION_AND_BUSINESS_MODEL.md)**
-for the integration + go-to-market strategy. A polished **marketing/sales site** lives in
-`marketing/` (served at **http://localhost:8090** in the stack) with pricing, a buy/demo flow, and
-an install guide; its form posts to a public lead-capture endpoint that admins review at
-`GET /api/v1/leads`.
+for per-LMS setup.
+
+No LMS? **Sage** (served at **/sage**) is a standalone mini-LMS with the same adaptive engine built
+in: an instructor signs up, creates a course, authors multiple-choice quizzes, and shares a join
+code — when a student misses a concept, a guided remediation session is generated automatically.
+A static **marketing site** lives in `marketing/` (served at **http://localhost:8090**) with the
+landing page, live demo, Sage entry point, and open-source info; its optional adopter/testimonial
+form posts to `GET /api/v1/leads`.
 
 ### Data privacy, bring-your-own-AI, and self-hosting
 
