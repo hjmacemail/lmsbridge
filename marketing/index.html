@@ -301,6 +301,30 @@
   </div>
 </div></section>
 
+<section id="bring"><div class="wrap">
+  <h2>Love it? Bring it to your institution.</h2>
+  <p class="lead">Two ways forward — start on your own today, or hand your IT team everything they
+  need to install it for the whole campus.</p>
+  <div class="grid cols-2">
+    <div class="card">
+      <h3>Start today with Sage — no IT needed</h3>
+      <p class="muted">Create a class, add quizzes, share a join code. The adaptive tutoring works
+      out of the box, so you can pilot it this week without waiting on anyone.</p>
+      <a class="btn" id="bringSage" href="#" target="_blank" rel="noopener" style="margin-top:6px">Open Sage</a>
+    </div>
+    <div class="card">
+      <h3>Ask your IT admin to install it</h3>
+      <p class="muted">It installs into your existing LMS via LTI&nbsp;1.3 — free, open-source,
+      self-hosted, on your own AI key. We've written the email for you.</p>
+      <div class="cta" style="gap:10px;margin-top:6px">
+        <a class="btn" id="emailAdmin" href="#">Email your IT admin</a>
+        <a class="btn secondary" id="copyShare" href="#">Copy link to share</a>
+        <a class="btn secondary" href="/guides/lms-bridge-overview.pdf" target="_blank" rel="noopener">One-page overview (PDF)</a>
+      </div>
+    </div>
+  </div>
+</div></section>
+
 <section id="opensource"><div class="wrap">
   <h2>Free and open source</h2>
   <p class="lead">LMS Bridge is licensed under the GNU AGPL-3.0. Any institution can download it,
@@ -480,8 +504,11 @@
       <div class="card" style="margin-top:18px"><h3>For developers</h3><p>Full source is on GitHub
         (AGPL-3.0), with an OpenAPI spec at <code>/docs</code>, the LTI provider, and deployment
         guides. Issues and pull requests welcome.</p></div>
-      <div class="card" style="margin-top:18px"><h3>For procurement</h3><p>A DPA, accessibility
-        statement (VPAT), and security documentation (HECVAT) are available on request.</p></div>
+      <div class="card" style="margin-top:18px"><h3>For security &amp; procurement</h3><p>Read the
+        <a href="https://github.com/hjmacemail/lmsbridge/blob/main/SECURITY.md" target="_blank" rel="noopener">Security policy</a>,
+        the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/docs/COMPLIANCE.md" target="_blank" rel="noopener">data-processing &amp; compliance summary (HECVAT-lite)</a>,
+        and the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/docs/PRIVACY_AND_SELF_HOSTING.md" target="_blank" rel="noopener">privacy &amp; self-hosting guide</a>.
+        A full HECVAT, VPAT, and DPA are available on request.</p></div>
       <div class="card" style="margin-top:18px"><h3>Maintainer</h3><p>Built and maintained by
         <a href="https://cs.nyu.edu/~ha2285"><b></b>Hasan Aljabbouli</b>, New York University.</a>
         <a href="mailto:info@lmsbridge.app">info@lmsbridge.app</a> ·
@@ -523,6 +550,46 @@
     });
     var sage = document.getElementById('sageBtn');
     if (sage) sage.href = app + '/sage';
+    var bsage = document.getElementById('bringSage');
+    if (bsage) bsage.href = app + '/sage';
+
+    // Faculty -> IT-admin advocacy: a pre-written email + a copy-to-share link.
+    var siteUrl = window.location.origin + '/';
+    var emailA = document.getElementById('emailAdmin');
+    if (emailA) {
+      var subject = 'Please consider installing LMS Bridge in our LMS';
+      var body = [
+        'Hi,',
+        '',
+        'I came across LMS Bridge and think it could help our students. It turns our LMS’s',
+        'assessment results into just-in-time, AI-guided remediation — when a student misses a',
+        'concept, it runs a guided tutoring session that diagnoses the gap (it never hands over',
+        'answers).',
+        '',
+        'Why it should be easy for us to adopt:',
+        '• Free and open source (AGPL-3.0); we self-host it on our own infrastructure.',
+        '• Installs into our existing LMS via LTI 1.3 (Canvas/Moodle = one-click registration).',
+        '• Runs on our own AI key, so student data stays under our control (FERPA-aware).',
+        '',
+        'Site: ' + siteUrl,
+        'Admin install guide: ' + siteUrl + '#install',
+        'Security & compliance: https://github.com/hjmacemail/lmsbridge/blob/main/SECURITY.md',
+        '',
+        'Could we evaluate it for a pilot? Happy to help.',
+        '',
+        'Thanks!'
+      ].join('\n');
+      emailA.href = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    }
+    var copyS = document.getElementById('copyShare');
+    if (copyS) {
+      copyS.addEventListener('click', function (e) {
+        e.preventDefault();
+        var done = function () { var t = copyS.textContent; copyS.textContent = 'Link copied ✓';
+          setTimeout(function () { copyS.textContent = t; }, 1600); };
+        if (navigator.clipboard) { navigator.clipboard.writeText(siteUrl).then(done, done); } else { done(); }
+      });
+    }
     // Point "View source" + maintainer link at the real repo (set via SOURCE_URL).
     var src = window.LMSBRIDGE_SOURCE;
     if (src) {
