@@ -7,6 +7,7 @@ import {
   type SageGrades, type SageQuestionDraft, type SageMaterial, type SageProfile,
 } from "../api/client";
 import type { RemediationModule } from "../types";
+import { renderMarkdown, highlightCode } from "../lib/richtext";
 
 const USER_KEY = "sage_user";
 
@@ -735,7 +736,8 @@ function Syllabus({ course, instr, detail, onSaved }:
   return (
     <Card>
       {detail?.syllabus
-        ? <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6, fontSize: 14.5 }}>{detail.syllabus}</div>
+        ? <div className="sage-md" style={{ fontSize: 14.5 }}
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(detail.syllabus) }} />
         : <div style={{ color: C.muted }}>{instr
             ? "No syllabus yet — add one so students know what the course covers."
             : "No syllabus posted yet."}</div>}
@@ -805,7 +807,8 @@ function MaterialForm({ courseId, kind, onDone }:
             value={language} onChange={(e) => setLanguage(e.target.value)} />}
           <textarea style={{ ...inputStyle, minHeight: 140, resize: "vertical",
             fontFamily: kind === "code" ? "var(--font-mono, monospace)" : "inherit" }}
-            placeholder={kind === "code" ? "Paste code here…" : "Write your note here…"}
+            placeholder={kind === "code" ? "Paste code here…"
+              : "Write your note here…  (Markdown: # heading, **bold**, - list, `code`)"}
             value={body} onChange={(e) => setBody(e.target.value)} />
         </>
       )}
@@ -850,11 +853,18 @@ function MaterialRow({ m, instr, onChange }: { m: SageMaterial; instr: boolean; 
               display: "inline-flex", alignItems: "center", padding: 6 }}><Icon name="trash" size={16} /></button>}
         </div>
       </div>
-      {openB && isText && (
-        <pre style={{ marginTop: 12, padding: 12, background: m.kind === "code" ? "#1e1b2e" : C.soft,
-          color: m.kind === "code" ? "#e6e3f5" : C.ink, borderRadius: 10, overflowX: "auto",
-          whiteSpace: "pre-wrap", fontSize: 13.5, lineHeight: 1.55,
-          fontFamily: m.kind === "code" ? "var(--font-mono, monospace)" : "inherit" }}>{body}</pre>
+      {openB && isText && body !== null && (
+        m.kind === "code" ? (
+          <pre style={{ marginTop: 12, padding: 12, background: "#1e1b2e", color: "#e6e3f5",
+            borderRadius: 10, overflowX: "auto", fontSize: 13.5, lineHeight: 1.55,
+            fontFamily: "var(--font-mono, monospace)" }}>
+            <code dangerouslySetInnerHTML={{ __html: highlightCode(body) }} />
+          </pre>
+        ) : (
+          <div className="sage-md" style={{ marginTop: 12, padding: "12px 14px", background: C.soft,
+            color: C.ink, borderRadius: 10, fontSize: 14, overflowX: "auto" }}
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(body) }} />
+        )
       )}
     </Card>
   );
