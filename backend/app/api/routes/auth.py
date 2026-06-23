@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-
 from pydantic import BaseModel
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.core.config import settings
@@ -54,6 +53,22 @@ def demo_login(payload: DemoLoginRequest, db: Session = Depends(get_db)) -> Toke
     )
     if not user:
         raise HTTPException(status_code=404, detail="No seeded demo user available")
+
+    # Self-heal: if the shared demo has been emptied (e.g. visitors completed everything, or a
+    # prior reset cleared it), regenerate the rich starting state so nobody lands on an empty demo.
+    from app.models.enums import RemediationStatus
+    from app.models.remediation import RemediationModule
+    has_open = db.scalar(
+        select(func.count(RemediationModule.id)).where(
+            RemediationModule.status.in_(
+                [RemediationStatus.pending, RemediationStatus.in_progress]))
+    ) or 0
+    if has_open == 0:
+        from app.services.demo_service import reset_demo_data
+        try:
+            reset_demo_data(db)
+        except Exception:  # noqa: BLE001 — never block demo sign-in on a regeneration hiccup
+            db.rollback()
     token = create_access_token(subject=str(user.id), role=user.role.value)
     return Token(
         access_token=token, role=user.role, user_id=user.id, full_name=user.full_name,

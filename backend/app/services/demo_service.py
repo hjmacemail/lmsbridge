@@ -13,6 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.integrations.brightspace.mock import MockBrightspaceAdapter
 from app.models.assessment import Assessment, AssessmentResult
 from app.models.concept import Concept
 from app.models.course import Course
@@ -24,9 +25,16 @@ logger = get_logger("demo")
 
 
 def reset_demo_data(db: Session) -> dict:
+    # The demo is always backed by deterministic mock data — regenerate from the mock explicitly
+    # (independent of the deployment's configured Brightspace adapter), so a reset can never leave
+    # the demo empty.
+    adapter = MockBrightspaceAdapter()
     courses = db.scalars(select(Course).where(Course.brightspace_course_id.is_not(None))).all()
     regenerated = 0
     for c in courses:
+        # Safety: never wipe a course the mock doesn't recognize (would leave it empty).
+        if not adapter.fetch_new_results(c.brightspace_course_id):
+            continue
         # Clear remediation modules (cascades to activities/messages/responses), the ingested
         # assessment results, and concept mastery — so everything regenerates from the mock.
         for m in db.scalars(
@@ -48,8 +56,8 @@ def reset_demo_data(db: Session) -> dict:
             ).all():
                 db.delete(cm)
         db.flush()
-        # Re-pull from the (mock) LMS to regenerate results + mastery + remediation.
-        summary = sync_course_results(db, c.id, c.brightspace_course_id)
+        # Re-pull from the mock LMS to regenerate results + mastery + remediation.
+        summary = sync_course_results(db, c.id, c.brightspace_course_id, adapter=adapter)
         regenerated += summary.get("modules_triggered", 0)
     db.commit()
     out = {"courses_reset": len(courses), "modules_regenerated": regenerated}
