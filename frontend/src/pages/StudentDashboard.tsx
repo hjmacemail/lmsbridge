@@ -27,6 +27,9 @@ export default function StudentDashboard(
   const [courseId, setCourseId] = useState<number | null>(null);
   const [dash, setDash] = useState<Dash | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [openTopic, setOpenTopic] = useState<number | null>(null);
+  const [showAll, setShowAll] = useState(false);
+  const VISIBLE = 4;
 
   useEffect(() => {
     api.myCourses().then((cs) => {
@@ -65,6 +68,12 @@ export default function StudentDashboard(
     );
   }, [dash]);
 
+  // Auto-expand the highest-risk topic; collapse the rest so a long list stays scannable.
+  useEffect(() => {
+    setOpenTopic(topics.length ? topics[0].conceptId : null);
+    setShowAll(false);
+  }, [topics]);
+
   if (err) return <div className="container"><div className="card error">{err}</div></div>;
 
   return (
@@ -92,43 +101,60 @@ export default function StudentDashboard(
           {topics.length === 0 ? (
             <div className="card muted">{tr("student.nothing")}</div>
           ) : (
-            <div className="stack" style={{ gap: 18 }}>
-              {topics.map((t) => (
-                <div key={t.conceptId}>
-                  <div className="row" style={{ marginBottom: 8 }}>
-                    <div className="row" style={{ gap: 10 }}>
-                      <h3 style={{ margin: 0 }}>{t.name}</h3>
-                      <span className={`pill ${t.status}`}>{tr("status." + t.status)}</span>
-                    </div>
-                    <div className="row" style={{ gap: 8, minWidth: 200 }}>
-                      <div className="bar" style={{ width: 120 }}>
-                        <span style={{ width: pct(t.score), background: masteryColor(t.status) }} />
-                      </div>
-                      <span className="muted" style={{ fontSize: 12 }}>{tr("student.mastery", { pct: pct(t.score) })}</span>
-                    </div>
-                  </div>
-                  <div className="grid cols-2">
-                    {t.modules.map((m) => (
-                      <div className="card" key={m.id}>
-                        <div className="row">
-                          <h3 style={{ fontSize: 14 }}>{m.title}</h3>
-                          <span className={`pill ${m.status}`}>{tr("status." + m.status)}</span>
+            <>
+              <div className="stack" style={{ gap: 10 }}>
+                {(showAll ? topics : topics.slice(0, VISIBLE)).map((t) => {
+                  const open = openTopic === t.conceptId;
+                  const primary = t.modules[0];
+                  return (
+                    <div className="card" key={t.conceptId} style={{ padding: "12px 16px" }}>
+                      <div className="row" style={{ alignItems: "center", cursor: "pointer", gap: 10 }}
+                        onClick={() => setOpenTopic(open ? null : t.conceptId)}>
+                        <div className="row" style={{ gap: 10, alignItems: "center", minWidth: 0 }}>
+                          <span style={{ color: "var(--muted, #888)", fontSize: 12, width: 12 }}>
+                            {open ? "▾" : "▸"}</span>
+                          <h3 style={{ margin: 0, fontSize: 15 }}>{t.name}</h3>
+                          <span className={`pill ${t.status}`}>{tr("status." + t.status)}</span>
                         </div>
-                        <p className="muted" style={{ fontSize: 13 }}>{m.rationale}</p>
-                        <div className="row">
-                          <span className="muted" style={{ fontSize: 12 }}>
-                            💬 {tr("student.interactiveTutor")} · {m.strategy.replace(/_/g, " ")}
-                          </span>
-                          <Link className="btn" to={moduleLink(m.id)}>
-                            {m.status === "pending" ? tr("student.startSession") : tr("student.continue")}
-                          </Link>
+                        <div className="row" style={{ gap: 10, alignItems: "center" }}>
+                          <span className="muted" style={{ fontSize: 12 }}>{pct(t.score)}</span>
+                          {primary && (
+                            <Link className="btn" to={moduleLink(primary.id)}
+                              onClick={(e) => e.stopPropagation()}>
+                              {primary.status === "pending" ? tr("student.startSession") : tr("student.continue")}
+                            </Link>
+                          )}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+                      {open && (
+                        <div style={{ marginTop: 10, paddingLeft: 22 }}>
+                          {t.modules.map((m) => (
+                            <div key={m.id} style={{ marginBottom: t.modules.length > 1 ? 12 : 0 }}>
+                              <p className="muted" style={{ fontSize: 13, margin: "0 0 6px" }}>{m.rationale}</p>
+                              <div className="row">
+                                <span className="muted" style={{ fontSize: 12 }}>
+                                  💬 {tr("student.interactiveTutor")} · {m.strategy.replace(/_/g, " ")}
+                                </span>
+                                {t.modules.length > 1 && (
+                                  <Link className="btn secondary" to={moduleLink(m.id)} style={{ padding: "5px 12px" }}>
+                                    {m.status === "pending" ? tr("student.startSession") : tr("student.continue")}
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {topics.length > VISIBLE && !showAll && (
+                <button className="btn secondary" style={{ marginTop: 12 }} onClick={() => setShowAll(true)}>
+                  Show {topics.length - VISIBLE} more {topics.length - VISIBLE === 1 ? "topic" : "topics"}
+                </button>
+              )}
+            </>
           )}
 
           <h2 style={{ marginTop: 32 }}>{tr("student.masteryTitle")}</h2>
