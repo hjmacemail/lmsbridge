@@ -304,13 +304,16 @@ class MockBrightspaceAdapter(BrightspaceAdapter):
         term_start = datetime(2026, 1, 26, tzinfo=timezone.utc)
         results: list[BSResult] = []
 
-        for s in students:
+        for si, s in enumerate(students):
             # Deterministic per-student RNG so re-syncs are stable.
             rng = random.Random(f"{self._seed}:{s.external_id}")
-            # Each student is persistently weaker on one early, foundational concept.
-            weak_idx = rng.choice([0, 1])
-            weak_key = concepts[weak_idx][0] if concepts else None
-            weak_label = next((c[1] for c in concepts if c[0] == weak_key), None)
+            # Each student is persistently weaker on SEVERAL concepts, so multiple review
+            # topics surface (richer demo). The first student (the one the demo signs in as)
+            # always has 3 weak topics so "Recommended to review" is well populated.
+            n_weak = min(len(concepts), 3 if si == 0 else rng.choice([2, 3]))
+            weak_idxs = set(rng.sample(range(len(concepts)), n_weak)) if concepts else set()
+            weak_keys = {concepts[i][0] for i in weak_idxs}
+            weak_label = (concepts[min(weak_idxs)][1] if weak_idxs else None)
 
             for ext_id, title, atype, max_score, week, concept_idxs in assessments:
                 available_at = term_start + timedelta(weeks=week)
@@ -321,7 +324,7 @@ class MockBrightspaceAdapter(BrightspaceAdapter):
                     if ci >= len(concepts):
                         continue
                     ckey, clabel = concepts[ci]
-                    base = 0.42 if ckey == weak_key else rng.uniform(0.72, 0.97)
+                    base = 0.42 if ckey in weak_keys else rng.uniform(0.72, 0.97)
                     frac = max(0.05, min(1.0, base + rng.uniform(-0.07, 0.07)))
 
                     # Quizzes & exams are multiple-choice: emit per-question answers where the
