@@ -12,6 +12,7 @@ import io
 import json
 import re
 import secrets
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
@@ -27,8 +28,10 @@ from app.models.course import Course, Enrollment
 from app.models.enums import AssessmentType, RemediationStatus, UserRole
 from app.models.material import CourseMaterial
 from app.models.remediation import RemediationModule
+from app.models.sage import SageAnnouncement
 from app.models.user import User
 from app.schemas.sage import (
+    AnnouncementCreate,
     CourseCreate,
     JoinByCode,
     MaterialTextCreate,
@@ -59,6 +62,15 @@ def _gen_join_code(db: Session) -> str:
 
 def _slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", name.strip().lower()).strip("_") or "concept"
+
+
+def _parse_dt(s: str | None) -> datetime | None:
+    if not s:
+        return None
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except ValueError:
+        return None
 
 
 def _auth_out(user: User) -> SageAuthOut:
@@ -344,7 +356,8 @@ def create_quiz(
     if role != "instructor":
         raise HTTPException(status_code=403, detail="Instructors only")
     quiz = Assessment(course_id=course_id, title=payload.title.strip(),
-                      type=AssessmentType.quiz, max_score=float(len(payload.questions)))
+                      type=AssessmentType.quiz, max_score=float(len(payload.questions)),
+                      due_at=_parse_dt(payload.due_at))
     db.add(quiz)
     db.flush()
     for q in payload.questions:
@@ -367,6 +380,7 @@ def update_quiz(
         raise HTTPException(status_code=403, detail="Instructors only")
     quiz.title = payload.title.strip()
     quiz.max_score = float(len(payload.questions))
+    quiz.due_at = _parse_dt(payload.due_at)
     for old in db.scalars(select(Question).where(Question.assessment_id == quiz.id)).all():
         db.delete(old)
     db.flush()
@@ -428,12 +442,64 @@ def quiz_for_edit(
     questions = db.scalars(select(Question).where(Question.assessment_id == quiz.id)).all()
     return {
         "id": quiz.id, "title": quiz.title,
+        "due_at": quiz.due_at.isoformat() if quiz.due_at else None,
         "questions": [{
             "prompt": q.prompt, "qtype": q.qtype or "mcq", "choices": q.choices or [],
             "correct": _correct_list(q),
             "concept": (db.get(Concept, q.concept_id).name if q.concept_id else ""),
         } for q in questions],
     }
+
+
+# ------------------------------------------------------------- announcements
+
+@router.get("/courses/{course_id}/announcements")
+def list_announcements(
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> list[dict]:
+    _require_role(db, course_id, user)
+    rows = db.scalars(
+        select(SageAnnouncement).where(SageAnnouncement.course_id == course_id)
+        .order_by(SageAnnouncement.created_at.desc())
+    ).all()
+    out = []
+    for a in rows:
+        author = db.get(User, a.author_id) if a.author_id else None
+        out.append({"id": a.id, "title": a.title, "body": a.body,
+                    "author": author.full_name if author else "Instructor",
+                    "created_at": a.created_at})
+    return out
+
+
+@router.post("/courses/{course_id}/announcements", status_code=201)
+def create_announcement(
+    course_id: int, payload: AnnouncementCreate,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    _course, role = _require_role(db, course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    a = SageAnnouncement(course_id=course_id, author_id=user.id,
+                         title=payload.title.strip(), body=payload.body.strip())
+    db.add(a)
+    db.commit()
+    db.refresh(a)
+    return {"id": a.id, "title": a.title, "body": a.body,
+            "author": user.full_name, "created_at": a.created_at}
+
+
+@router.delete("/announcements/{announcement_id}", status_code=204)
+def delete_announcement(
+    announcement_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> None:
+    a = db.get(SageAnnouncement, announcement_id)
+    if not a:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    _course, role = _require_role(db, a.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    db.delete(a)
+    db.commit()
 
 
 @router.get("/courses/{course_id}/quizzes")
@@ -448,7 +514,8 @@ def list_quizzes(
     out = []
     for a in quizzes:
         qn = db.scalar(select(func.count(Question.id)).where(Question.assessment_id == a.id)) or 0
-        item = {"id": a.id, "title": a.title, "question_count": qn}
+        item = {"id": a.id, "title": a.title, "question_count": qn,
+                "due_at": a.due_at.isoformat() if a.due_at else None}
         if role == "instructor":
             item["submission_count"] = db.scalar(select(func.count(AssessmentResult.id)).where(
                 AssessmentResult.assessment_id == a.id)) or 0

@@ -5,7 +5,7 @@ import {
   type SageAuth, type SageCourseSummary, type SageCourseDetail, type SageQuizListItem,
   type SageTakeQuiz, type SageSubmitResult, type SageStudent,
   type SageGrades, type SageQuestionDraft, type SageMaterial, type SageProfile,
-  type SageQType, type SageAnswerIn,
+  type SageQType, type SageAnswerIn, type SageAnnouncement,
 } from "../api/client";
 import type { RemediationModule } from "../types";
 import { renderMarkdown, highlightCode } from "../lib/richtext";
@@ -36,6 +36,15 @@ function persist(a: SageAuth) {
 }
 function initials(name: string) {
   return name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("") || "?";
+}
+function fmtDateTime(iso?: string | null) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+}
+function toLocalInput(iso?: string | null) {
+  if (!iso) return "";
+  const d = new Date(iso); const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 // --- tiny inline icon set (no external dependency) ---
@@ -331,6 +340,55 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "da
   );
 }
 
+function Announcements({ course, instr }: { course: SageCourseSummary; instr: boolean }) {
+  const [items, setItems] = useState<SageAnnouncement[]>([]);
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState(""); const [body, setBody] = useState("");
+  const [busy, setBusy] = useState(false);
+  const load = () => sageApi.announcements(course.id).then(setItems).catch(() => setItems([]));
+  useEffect(() => { load(); }, [course.id]);
+  async function post() {
+    if (!title.trim()) return; setBusy(true);
+    try { await sageApi.createAnnouncement(course.id, title.trim(), body); setTitle(""); setBody(""); setOpen(false); load(); }
+    finally { setBusy(false); }
+  }
+  return (
+    <Card>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+        <h3 style={{ marginTop: 0, marginBottom: 0, fontSize: 17 }}>Announcements</h3>
+        {instr && <GhostBtn onClick={() => setOpen((o) => !o)}>
+          <Icon name="plus" size={15} /> {open ? "Cancel" : "Post"}</GhostBtn>}
+      </div>
+      {open && (
+        <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+          <input style={inputStyle} placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          <textarea style={{ ...inputStyle, minHeight: 70, resize: "vertical" }} placeholder="Message (Markdown supported)"
+            value={body} onChange={(e) => setBody(e.target.value)} />
+          <div><PrimaryBtn onClick={post} disabled={busy}>{busy ? "Posting…" : "Post announcement"}</PrimaryBtn></div>
+        </div>
+      )}
+      <div style={{ marginTop: 12 }}>
+        {items.length === 0 && <p style={{ color: C.muted, margin: 0 }}>No announcements yet.</p>}
+        {items.map((a) => (
+          <div key={a.id} style={{ padding: "10px 0", borderTop: `1px solid ${C.line}` }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+              <b style={{ fontSize: 14.5 }}>{a.title}</b>
+              <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <span style={{ color: C.muted, fontSize: 12 }}>{fmtDateTime(a.created_at)}</span>
+                {instr && <button onClick={() => sageApi.deleteAnnouncement(a.id).then(load)} title="Delete"
+                  style={{ background: "none", border: "none", color: C.danger, cursor: "pointer" }}>
+                  <Icon name="trash" size={14} /></button>}
+              </span>
+            </div>
+            {a.body && <div className="sage-md" style={{ fontSize: 13.5, marginTop: 4 }}
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(a.body) }} />}
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 function Home({ course, instr, detail }:
   { course: SageCourseSummary; instr: boolean; detail: SageCourseDetail | null }) {
   const ins = detail?.instructor;
@@ -342,6 +400,7 @@ function Home({ course, instr, detail }:
           <Stat label="Quizzes" value={course.quiz_count} />
         </div>
       )}
+      <Announcements course={course} instr={instr} />
       {ins && (ins.title || ins.bio || ins.full_name) && (
         <Card style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
           <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.accentBg, color: C.accentInk,
@@ -379,14 +438,16 @@ function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
   const [quizzes, setQuizzes] = useState<SageQuizListItem[]>([]);
   const [build, setBuild] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [initial, setInitial] = useState<{ title: string; questions: SageQuestionDraft[] } | null>(null);
+  const [initial, setInitial] = useState<
+    { title: string; questions: SageQuestionDraft[]; due_at?: string | null } | null>(null);
   const load = () => sageApi.quizzes(course.id).then(setQuizzes).catch(() => setQuizzes([]));
   useEffect(() => { load(); }, [course.id]);
 
   function startNew() { setInitial(null); setEditId(null); setBuild(true); }
   async function startEdit(id: number) {
     const q = await sageApi.quizForEdit(id);
-    setInitial({ title: q.title, questions: q.questions }); setEditId(id); setBuild(true);
+    setInitial({ title: q.title, questions: q.questions, due_at: q.due_at });
+    setEditId(id); setBuild(true);
   }
   async function dup(id: number) { await sageApi.duplicateQuiz(id); load(); }
   async function del(id: number) {
@@ -416,7 +477,8 @@ function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
               <div>
                 <b style={{ fontSize: 15 }}>{q.title}</b>
                 <div style={{ color: C.muted, fontSize: 13 }}>
-                  {q.question_count} questions · {q.submission_count ?? 0} submitted</div>
+                  {q.question_count} questions · {q.submission_count ?? 0} submitted
+                  {q.due_at && <> · due {fmtDateTime(q.due_at)}</>}</div>
               </div>
               <div style={{ display: "flex", gap: 6 }}>
                 <GhostBtn onClick={() => startEdit(q.id)}><Icon name="edit" size={15} /> Edit</GhostBtn>
@@ -444,12 +506,13 @@ const QTYPE_LABELS: { value: SageQType; label: string }[] = [
 
 function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
   courseId: number; editId: number | null;
-  initial: { title: string; questions: SageQuestionDraft[] } | null;
+  initial: { title: string; questions: SageQuestionDraft[]; due_at?: string | null } | null;
   onDone: () => void; onCancel: () => void;
 }) {
   const blank = (): SageQuestionDraft =>
     ({ prompt: "", qtype: "mcq", choices: ["", ""], correct: [], concept: "" });
   const [title, setTitle] = useState(initial?.title || "");
+  const [dueAt, setDueAt] = useState(toLocalInput(initial?.due_at));
   const [qs, setQs] = useState<SageQuestionDraft[]>(
     initial?.questions?.length ? initial.questions : [blank()]);
   const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
@@ -502,17 +565,24 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
       }
       payload.push({ ...q, choices, correct });
     }
+    const due = dueAt ? new Date(dueAt).toISOString() : null;
     setBusy(true);
     try {
-      if (editId != null) await sageApi.updateQuiz(editId, title, payload);
-      else await sageApi.createQuiz(courseId, title, payload);
+      if (editId != null) await sageApi.updateQuiz(editId, title, payload, due);
+      else await sageApi.createQuiz(courseId, title, payload, due);
       onDone();
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   }
   return (
     <Card style={{ background: C.soft, border: `1px solid ${C.line}` }}>
-      <input style={{ ...inputStyle, marginBottom: 14, fontWeight: 600 }} placeholder="Quiz title (e.g. Binary basics)"
+      <input style={{ ...inputStyle, marginBottom: 10, fontWeight: 600 }} placeholder="Quiz title (e.g. Binary basics)"
         value={title} onChange={(e) => setTitle(e.target.value)} />
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
+        <label style={{ fontSize: 13, color: C.muted }}>Due date (optional)</label>
+        <input type="datetime-local" style={{ ...inputStyle, width: "auto" }} value={dueAt}
+          onChange={(e) => setDueAt(e.target.value)} />
+        {dueAt && <GhostBtn onClick={() => setDueAt("")}>Clear</GhostBtn>}
+      </div>
       {qs.map((q, i) => (
         <div key={i} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "center" }}>
@@ -689,6 +759,11 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
                 <div style={{ color: C.muted, fontSize: 13 }}>
                   {q.question_count} questions
                   {taken && <> · your score <b style={{ color: C.success }}>{Math.round((q.my_score || 0) * 100)}%</b></>}
+                  {q.due_at && (() => {
+                    const overdue = new Date(q.due_at) < new Date();
+                    return <span style={{ color: overdue && !taken ? C.danger : C.muted }}>
+                      {" · "}{overdue ? "was due" : "due"} {fmtDateTime(q.due_at)}</span>;
+                  })()}
                 </div>
               </div>
             </div>

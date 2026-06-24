@@ -51,6 +51,12 @@ class QuizQuestionIn(BaseModel):
 class QuizCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     questions: list[QuizQuestionIn] = Field(..., min_length=1, max_length=50)
+    due_at: str | None = None  # ISO 8601 datetime, optional
+
+
+class AnnouncementCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    body: str = Field("", max_length=8000)
 
 
 class QuizAnswer(BaseModel):

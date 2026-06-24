@@ -20,6 +20,8 @@ class Assessment(Base, TimestampMixin):
     type: Mapped[AssessmentType] = mapped_column(SAEnum(AssessmentType))
     max_score: Mapped[float] = mapped_column(Float, default=100.0)
     available_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Optional due date (Sage quizzes). Soft — late submissions are still accepted.
+    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     # When False, this assessment's feedback is recorded but NOT used to update
     # mastery or trigger adaptive remediation (admin/instructor controlled).
     adaptive_enabled: Mapped[bool] = mapped_column(default=True, server_default=true())

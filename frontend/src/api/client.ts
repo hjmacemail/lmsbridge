@@ -280,8 +280,11 @@ export interface SageCourseSummary {
   student_count: number; quiz_count: number;
 }
 export interface SageQuizListItem {
-  id: number; title: string; question_count: number;
+  id: number; title: string; question_count: number; due_at?: string | null;
   submission_count?: number; my_score?: number | null;
+}
+export interface SageAnnouncement {
+  id: number; title: string; body: string; author: string; created_at: string;
 }
 export interface SageTakeQuestion { id: number; prompt: string; qtype: SageQType; choices: string[]; }
 export interface SageTakeQuiz { id: number; title: string; questions: SageTakeQuestion[]; }
@@ -304,7 +307,9 @@ export type SageQType = "mcq" | "true_false" | "multi" | "short";
 export interface SageQuestionDraft {
   prompt: string; qtype: SageQType; choices: string[]; correct: string[]; concept: string;
 }
-export interface SageQuizForEdit { id: number; title: string; questions: SageQuestionDraft[]; }
+export interface SageQuizForEdit {
+  id: number; title: string; due_at?: string | null; questions: SageQuestionDraft[];
+}
 export interface SageAnswerIn { question_id: number; choice?: string; choices?: string[]; }
 export interface SageInstructor { full_name: string; title: string | null; bio: string | null; }
 export interface SageCourseDetail extends SageCourseSummary {
@@ -359,13 +364,21 @@ export const sageApi = {
       body: JSON.stringify({ join_code }) }),
   students: (courseId: number) => request<SageStudent[]>(`/sage/courses/${courseId}/students`),
   quizzes: (courseId: number) => request<SageQuizListItem[]>(`/sage/courses/${courseId}/quizzes`),
-  createQuiz: (courseId: number, title: string, questions: SageQuestionDraft[]) =>
+  createQuiz: (courseId: number, title: string, questions: SageQuestionDraft[], due_at?: string | null) =>
     request<{ id: number; title: string; question_count: number }>(
       `/sage/courses/${courseId}/quizzes`,
-      { method: "POST", body: JSON.stringify({ title, questions }) }),
-  updateQuiz: (quizId: number, title: string, questions: SageQuestionDraft[]) =>
+      { method: "POST", body: JSON.stringify({ title, questions, due_at: due_at || null }) }),
+  updateQuiz: (quizId: number, title: string, questions: SageQuestionDraft[], due_at?: string | null) =>
     request<{ id: number; title: string; question_count: number }>(
-      `/sage/quizzes/${quizId}`, { method: "PUT", body: JSON.stringify({ title, questions }) }),
+      `/sage/quizzes/${quizId}`,
+      { method: "PUT", body: JSON.stringify({ title, questions, due_at: due_at || null }) }),
+  announcements: (courseId: number) =>
+    request<SageAnnouncement[]>(`/sage/courses/${courseId}/announcements`),
+  createAnnouncement: (courseId: number, title: string, body: string) =>
+    request<SageAnnouncement>(`/sage/courses/${courseId}/announcements`,
+      { method: "POST", body: JSON.stringify({ title, body }) }),
+  deleteAnnouncement: (id: number) =>
+    request<void>(`/sage/announcements/${id}`, { method: "DELETE" }),
   deleteQuiz: (quizId: number) => request<void>(`/sage/quizzes/${quizId}`, { method: "DELETE" }),
   duplicateQuiz: (quizId: number) =>
     request<{ id: number; title: string; question_count: number }>(

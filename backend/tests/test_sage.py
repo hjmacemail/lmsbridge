@@ -161,6 +161,35 @@ def test_sage_question_types_and_quiz_management(client):
     assert client.delete(f"/api/v1/sage/quizzes/{dup.json()['id']}", headers=ih).status_code == 204
 
 
+def test_sage_announcements_and_due_dates(client):
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr A", "email": "a2@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "Course"}).json()["id"]
+
+    ann = client.post(f"/api/v1/sage/courses/{cid}/announcements", headers=ih,
+                      json={"title": "Welcome", "body": "Read chapter 1"})
+    assert ann.status_code == 201
+
+    qz = client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih, json={
+        "title": "Q1", "due_at": "2026-12-01T23:59:00Z",
+        "questions": [{"prompt": "x?", "qtype": "mcq", "choices": ["a", "b"], "correct": "a",
+                       "concept": "C"}]})
+    assert qz.status_code == 201
+    lst = client.get(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih).json()
+    assert lst[0]["due_at"] is not None
+
+    sh = _auth(client.post("/api/v1/sage/guest", json={
+        "join_code": client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"],
+        "full_name": "Stu"}).json())
+    anns = client.get(f"/api/v1/sage/courses/{cid}/announcements", headers=sh).json()
+    assert len(anns) == 1 and anns[0]["title"] == "Welcome"
+    # Students can't post or delete announcements.
+    assert client.post(f"/api/v1/sage/courses/{cid}/announcements", headers=sh,
+                       json={"title": "x", "body": ""}).status_code == 403
+    assert client.delete(f"/api/v1/sage/announcements/{ann.json()['id']}",
+                         headers=ih).status_code == 204
+
+
 def test_sage_join_requires_valid_code(client):
     client.post("/api/v1/sage/signup", json={
         "full_name": "X", "email": "x@uni.edu", "password": "secret123"})
