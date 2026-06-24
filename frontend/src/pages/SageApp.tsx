@@ -803,37 +803,83 @@ function Students({ course }: { course: SageCourseSummary }) {
 }
 
 // --------------------------------------------------------------- Grades
+function StudentDrill({ course, studentId, onClose }:
+  { course: SageCourseSummary; studentId: number; onClose: () => void }) {
+  const [d, setD] = useState<import("../api/client").SageStudentDetail | null>(null);
+  const nav = useNavigate();
+  useEffect(() => { sageApi.studentDetail(course.id, studentId).then(setD).catch(() => setD(null)); }, [course.id, studentId]);
+  if (!d) return <Card><p style={{ color: C.muted, margin: 0 }}>Loading…</p></Card>;
+  const open = d.remediation.filter((m) => m.status !== "completed");
+  return (
+    <Card style={{ borderColor: "#c9c2f0" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div><b style={{ fontSize: 16 }}>{d.full_name}</b>
+          <div style={{ color: C.muted, fontSize: 13 }}>{d.email}</div></div>
+        <GhostBtn onClick={onClose}>Close</GhostBtn>
+      </div>
+      <h4 style={{ margin: "14px 0 6px", fontSize: 14 }}>Quiz attempts</h4>
+      {d.quizzes.length === 0 && <p style={{ color: C.muted }}>No quizzes.</p>}
+      {d.quizzes.map((q) => (
+        <div key={q.id} style={{ display: "flex", justifyContent: "space-between",
+          padding: "7px 0", borderTop: `1px solid ${C.line}`, fontSize: 14 }}>
+          <span>{q.title} <span style={{ color: C.muted, fontSize: 12 }}>· {q.attempts} attempt(s)</span></span>
+          <b>{q.best_score == null ? "—" : `${Math.round(q.best_score * 100)}%`}</b>
+        </div>
+      ))}
+      <h4 style={{ margin: "14px 0 6px", fontSize: 14 }}>Needs review ({open.length})</h4>
+      {open.length === 0 && <p style={{ color: C.muted, margin: 0 }}>None open.</p>}
+      {open.map((m) => (
+        <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "7px 0", borderTop: `1px solid ${C.line}` }}>
+          <span style={{ fontSize: 14 }}>{m.concept || m.title}</span>
+          <GhostBtn onClick={() => nav(`/modules/${m.id}`)}>View session</GhostBtn>
+        </div>
+      ))}
+    </Card>
+  );
+}
+
 function GradesTab({ course }: { course: SageCourseSummary }) {
   const [g, setG] = useState<SageGrades | null>(null);
+  const [drill, setDrill] = useState<number | null>(null);
   useEffect(() => { sageApi.grades(course.id).then(setG).catch(() => setG(null)); }, [course.id]);
   if (!g) return <p style={{ color: C.muted }}>Loading…</p>;
   const pct = (v?: number) => v == null ? "—" : `${Math.round(v * 100)}%`;
   if (g.is_instructor) {
     return (
-      <Card>
-        <h3 style={{ marginTop: 0, fontSize: 17 }}>Grades</h3>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", fontSize: 13.5, borderCollapse: "collapse", minWidth: 360 }}>
-            <thead><tr style={{ textAlign: "left", color: C.muted }}>
-              <th style={{ padding: "6px 8px" }}>Student</th>
-              {g.quizzes.map((q) => <th key={q.id} style={{ padding: "6px 8px" }}>{q.title}</th>)}
-              <th style={{ padding: "6px 8px" }}>Needs review</th>
-            </tr></thead>
-            <tbody>
-              {(g.rows || []).map((r) => (
-                <tr key={r.student_id} style={{ borderTop: `1px solid ${C.line}` }}>
-                  <td style={{ padding: "8px", fontWeight: 600 }}>{r.full_name}</td>
-                  {g.quizzes.map((q) => <td key={q.id} style={{ padding: "8px" }}>{pct(r.scores[String(q.id)])}</td>)}
-                  <td style={{ padding: "8px" }}>{r.open_remediation > 0
-                    ? <span style={{ background: C.dangerBg, color: C.danger, padding: "2px 9px",
-                      borderRadius: 999, fontWeight: 600 }}>{r.open_remediation}</span> : "0"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {(g.rows || []).length === 0 && <p style={{ color: C.muted }}>No students yet.</p>}
-      </Card>
+      <div style={{ display: "grid", gap: 12 }}>
+        {drill != null && <StudentDrill course={course} studentId={drill} onClose={() => setDrill(null)} />}
+        <Card>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+            <h3 style={{ marginTop: 0, marginBottom: 0, fontSize: 17 }}>Grades</h3>
+            <GhostBtn onClick={() => api.authedDownload(`/sage/courses/${course.id}/grades.csv`, "sage-grades.csv")}>
+              <Icon name="download" size={15} /> Download CSV</GhostBtn>
+          </div>
+          <p style={{ color: C.muted, fontSize: 12.5, margin: "4px 0 10px" }}>Click a student to drill in.</p>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", fontSize: 13.5, borderCollapse: "collapse", minWidth: 360 }}>
+              <thead><tr style={{ textAlign: "left", color: C.muted }}>
+                <th style={{ padding: "6px 8px" }}>Student</th>
+                {g.quizzes.map((q) => <th key={q.id} style={{ padding: "6px 8px" }}>{q.title}</th>)}
+                <th style={{ padding: "6px 8px" }}>Needs review</th>
+              </tr></thead>
+              <tbody>
+                {(g.rows || []).map((r) => (
+                  <tr key={r.student_id} style={{ borderTop: `1px solid ${C.line}`, cursor: "pointer" }}
+                    onClick={() => setDrill(r.student_id)}>
+                    <td style={{ padding: "8px", fontWeight: 600, color: C.accentInk }}>{r.full_name}</td>
+                    {g.quizzes.map((q) => <td key={q.id} style={{ padding: "8px" }}>{pct(r.scores[String(q.id)])}</td>)}
+                    <td style={{ padding: "8px" }}>{r.open_remediation > 0
+                      ? <span style={{ background: C.dangerBg, color: C.danger, padding: "2px 9px",
+                        borderRadius: 999, fontWeight: 600 }}>{r.open_remediation}</span> : "0"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {(g.rows || []).length === 0 && <p style={{ color: C.muted }}>No students yet.</p>}
+        </Card>
+      </div>
     );
   }
   return (

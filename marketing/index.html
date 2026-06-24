@@ -374,6 +374,10 @@
     <div>Redirect URL: <span id="u_redirect">…</span></div>
     <div>Public JWKS&nbsp;: <span id="u_jwks">…</span></div>
   </div>
+  <div class="cta" style="margin-top:14px">
+    <a class="btn" id="connectBtn" href="#" target="_blank" rel="noopener">Open the interactive setup helper</a>
+    <span class="mini" style="align-self:center">Copy-ready URLs + per-LMS steps, right in the app.</span>
+  </div>
   <div class="steps" style="margin-top:20px">
     <div class="step"><div class="n">1</div><div><h4>Add the tool</h4>
       <p>In your LMS admin (Blackboard/Brightspace/Canvas/Moodle) add a new LTI 1.3 / LTI Advantage
@@ -552,6 +556,8 @@
     if (sage) sage.href = app + '/sage';
     var bsage = document.getElementById('bringSage');
     if (bsage) bsage.href = app + '/sage';
+    var conn = document.getElementById('connectBtn');
+    if (conn) conn.href = app + '/connect';
 
     // Faculty -> IT-admin advocacy: a pre-written email + a copy-to-share link.
     var siteUrl = window.location.origin + '/';

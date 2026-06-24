@@ -286,6 +286,12 @@ export interface SageQuizListItem {
 export interface SageAnnouncement {
   id: number; title: string; body: string; author: string; created_at: string;
 }
+export interface SageStudentDetail {
+  student_id: number; full_name: string; email: string;
+  quizzes: { id: number; title: string; attempts: number;
+    best_score: number | null; last_score: number | null }[];
+  remediation: { id: number; title: string; status: string; concept: string | null }[];
+}
 export interface SageTakeQuestion { id: number; prompt: string; qtype: SageQType; choices: string[]; }
 export interface SageTakeQuiz { id: number; title: string; questions: SageTakeQuestion[]; }
 export interface SageReviewItem {
@@ -379,6 +385,8 @@ export const sageApi = {
       { method: "POST", body: JSON.stringify({ title, body }) }),
   deleteAnnouncement: (id: number) =>
     request<void>(`/sage/announcements/${id}`, { method: "DELETE" }),
+  studentDetail: (courseId: number, studentId: number) =>
+    request<SageStudentDetail>(`/sage/courses/${courseId}/students/${studentId}`),
   deleteQuiz: (quizId: number) => request<void>(`/sage/quizzes/${quizId}`, { method: "DELETE" }),
   duplicateQuiz: (quizId: number) =>
     request<{ id: number; title: string; question_count: number }>(

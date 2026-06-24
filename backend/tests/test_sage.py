@@ -190,6 +190,44 @@ def test_sage_announcements_and_due_dates(client):
                          headers=ih).status_code == 204
 
 
+def test_sage_student_drilldown_and_csv(client):
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr D", "email": "d@uni.edu", "password": "secret123"}).json())
+    course = client.post("/api/v1/sage/courses", headers=ih, json={"name": "C"}).json()
+    cid, code = course["id"], course["join_code"]
+    quiz = client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih,
+                       json=_quiz_payload()).json()
+    g = client.post("/api/v1/sage/guest", json={"join_code": code, "full_name": "Sam"}).json()
+    sh = _auth(g)
+    sid = g["user_id"]
+    take = client.get(f"/api/v1/sage/quizzes/{quiz['id']}/take", headers=sh).json()
+    qids = [q["id"] for q in take["questions"]]
+    client.post(f"/api/v1/sage/quizzes/{quiz['id']}/submit", headers=sh, json={
+        "answers": [{"question_id": qids[0], "choice": "9"},
+                    {"question_id": qids[1], "choice": "2"}]})
+
+    drill = client.get(f"/api/v1/sage/courses/{cid}/students/{sid}", headers=ih)
+    assert drill.status_code == 200, drill.text
+    body = drill.json()
+    assert body["full_name"] == "Sam" and body["quizzes"][0]["attempts"] >= 1
+    assert len(body["remediation"]) >= 1  # failed -> remediation listed
+
+    csv = client.get(f"/api/v1/sage/courses/{cid}/grades.csv", headers=ih)
+    assert csv.status_code == 200 and "text/csv" in csv.headers["content-type"]
+    assert "Student" in csv.text and "Sam" in csv.text
+
+    # Students cannot drill into others or export grades.
+    assert client.get(f"/api/v1/sage/courses/{cid}/grades.csv", headers=sh).status_code == 403
+    assert client.get(f"/api/v1/sage/courses/{cid}/students/{sid}", headers=sh).status_code == 403
+
+
+def test_email_is_noop_when_unconfigured():
+    from app.services.email_service import email_configured, send_bulk, send_email
+    assert email_configured() is False
+    assert send_email("x@example.com", "s", "b") is False
+    assert send_bulk(["x@example.com", "y@sage.local"], "s", "b") == 0
+
+
 def test_sage_join_requires_valid_code(client):
     client.post("/api/v1/sage/signup", json={
         "full_name": "X", "email": "x@uni.edu", "password": "secret123"})

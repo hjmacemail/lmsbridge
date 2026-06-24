@@ -9,6 +9,7 @@ import InstructorDashboard from "./pages/InstructorDashboard";
 import LtiLanding from "./pages/LtiLanding";
 import DemoPage from "./pages/DemoPage";
 import SageApp from "./pages/SageApp";
+import LmsSetupWizard from "./pages/LmsSetupWizard";
 import SiteFooter from "./components/SiteFooter";
 import type { ReactNode } from "react";
 
@@ -17,8 +18,9 @@ function TopBar() {
   const nav = useNavigate();
   const loc = useLocation();
   const { t } = useTranslation();
-  // The demo and Sage routes render their own chrome — hide the app top bar there.
-  if (!auth || loc.pathname.startsWith("/demo") || loc.pathname.startsWith("/sage")) return null;
+  // The demo, Sage, and connect routes render their own chrome — hide the app top bar there.
+  if (!auth || loc.pathname.startsWith("/demo") || loc.pathname.startsWith("/sage")
+    || loc.pathname.startsWith("/connect")) return null;
   const home = auth.role === "student" ? "/dashboard" : "/instructor";
   return (
     <div className="topbar">
@@ -48,12 +50,13 @@ function Protected({ children, roles }: { children: ReactNode; roles?: string[] 
 export default function App() {
   const { auth } = useAuth();
   const loc = useLocation();
-  const isSage = loc.pathname.startsWith("/sage");
+  const isSage = loc.pathname.startsWith("/sage") || loc.pathname.startsWith("/connect");
   return (
     <div className="app-shell">
       <TopBar />
       <Routes>
         <Route path="/sage" element={<SageApp />} />
+        <Route path="/connect" element={<LmsSetupWizard />} />
         <Route path="/lti" element={<LtiLanding />} />
         <Route path="/demo" element={<DemoPage />} />
         <Route path="/login" element={auth ? <Navigate to="/" replace /> : <Login />} />

@@ -98,6 +98,16 @@ class Settings(BaseSettings):
     # Bypass all license gating (local dev / demos). Never set true in production.
     license_enforcement_disabled: bool = False
 
+    # Optional SMTP for email notifications (e.g. Sage announcements). If smtp_host is unset,
+    # email is a no-op — the app works fine without it.
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str | None = None       # e.g. "Sage <noreply@your-school.edu>"
+    smtp_starttls: bool = True
+    smtp_ssl: bool = False             # use SMTPS (implicit TLS) instead of STARTTLS
+
     @property
     def cors_origins(self) -> list[str]:
         return [o.strip() for o in self.cors_origins_raw.split(",") if o.strip()]

@@ -8,6 +8,7 @@ Reuses the platform Course / Enrollment / Concept / Assessment / Question / resu
 """
 from __future__ import annotations
 
+import csv
 import io
 import json
 import re
@@ -484,6 +485,19 @@ def create_announcement(
     db.add(a)
     db.commit()
     db.refresh(a)
+
+    # Best-effort email notification to enrolled students with a real address (no-op if SMTP
+    # is unconfigured). Sent on a background thread so it never delays the response.
+    from app.services.email_service import email_configured, send_bulk
+    if email_configured():
+        emails = db.scalars(
+            select(User.email).join(Enrollment, Enrollment.user_id == User.id).where(
+                Enrollment.course_id == course_id, Enrollment.role == UserRole.student)).all()
+        subject = f"[{_course.title}] {a.title}"
+        body = f"{a.body}\n\n— Posted in {_course.title} on Sage by {user.full_name}"
+        import threading
+        threading.Thread(target=send_bulk, args=(list(emails), subject, body), daemon=True).start()
+
     return {"id": a.id, "title": a.title, "body": a.body,
             "author": user.full_name, "created_at": a.created_at}
 
@@ -634,6 +648,82 @@ def grades(
         "open_remediation": open_remediation(user.id),
         "is_instructor": False,
     }
+
+
+@router.get("/courses/{course_id}/students/{student_id}")
+def student_detail(
+    course_id: int, student_id: int,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    """Instructor drill-down into one student's quiz performance and remediation."""
+    _course, role = _require_role(db, course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    student = db.get(User, student_id)
+    enrolled = db.scalar(select(Enrollment).where(
+        Enrollment.user_id == student_id, Enrollment.course_id == course_id))
+    if not student or not enrolled:
+        raise HTTPException(status_code=404, detail="Student not in this course")
+    quizzes = db.scalars(
+        select(Assessment).where(Assessment.course_id == course_id)
+        .order_by(Assessment.created_at)).all()
+    quiz_rows = []
+    for a in quizzes:
+        results = db.scalars(
+            select(AssessmentResult).where(
+                AssessmentResult.assessment_id == a.id,
+                AssessmentResult.student_id == student_id)
+            .order_by(AssessmentResult.created_at.desc())).all()
+        best = max((r.score for r in results), default=None)
+        quiz_rows.append({
+            "id": a.id, "title": a.title, "attempts": len(results),
+            "best_score": round(best, 2) if best is not None else None,
+            "last_score": round(results[0].score, 2) if results else None,
+        })
+    mods = db.scalars(select(RemediationModule).where(
+        RemediationModule.student_id == student_id,
+        RemediationModule.course_id == course_id)).all()
+    remediation = [{
+        "id": m.id, "title": m.title, "status": m.status.value,
+        "concept": (db.get(Concept, m.concept_id).name if m.concept_id else None),
+    } for m in mods]
+    return {"student_id": student.id, "full_name": student.full_name, "email": student.email,
+            "quizzes": quiz_rows, "remediation": remediation}
+
+
+@router.get("/courses/{course_id}/grades.csv")
+def grades_csv(
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> StreamingResponse:
+    _course, role = _require_role(db, course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    quizzes = db.scalars(
+        select(Assessment).where(Assessment.course_id == course_id)
+        .order_by(Assessment.created_at)).all()
+    students = db.execute(
+        select(User).join(Enrollment, Enrollment.user_id == User.id)
+        .where(Enrollment.course_id == course_id, Enrollment.role == UserRole.student)
+        .order_by(User.full_name)).scalars().all()
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["Student", "Email", *[a.title for a in quizzes], "Needs review"])
+    for s in students:
+        row: list = [s.full_name, s.email]
+        for a in quizzes:
+            best = db.scalar(select(func.max(AssessmentResult.score)).where(
+                AssessmentResult.assessment_id == a.id, AssessmentResult.student_id == s.id))
+            row.append(f"{round(best * 100)}%" if best is not None else "")
+        nr = db.scalar(select(func.count(RemediationModule.id)).where(
+            RemediationModule.student_id == s.id, RemediationModule.course_id == course_id,
+            RemediationModule.status.in_(
+                [RemediationStatus.pending, RemediationStatus.in_progress]))) or 0
+        row.append(nr)
+        w.writerow(row)
+    buf.seek(0)
+    return StreamingResponse(
+        iter([buf.getvalue()]), media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="sage-grades.csv"'})
 
 
 # ------------------------------------------------------------- materials (notes / code / files)
