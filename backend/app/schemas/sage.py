@@ -40,8 +40,11 @@ class JoinByCode(BaseModel):
 
 class QuizQuestionIn(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=2000)
-    choices: list[str] = Field(..., min_length=2, max_length=8)
-    correct: str = Field(..., min_length=1)
+    qtype: str = Field("mcq", description="mcq | true_false | multi | short")
+    choices: list[str] = Field(default_factory=list, max_length=10)
+    # Correct option(s) for mcq/true_false/multi, or accepted answer(s) for short.
+    # Accepts a single string or a list.
+    correct: list[str] | str = Field(...)
     concept: str = Field(..., min_length=1, max_length=120)
 
 
@@ -52,7 +55,8 @@ class QuizCreate(BaseModel):
 
 class QuizAnswer(BaseModel):
     question_id: int
-    choice: str
+    choice: str | None = None          # mcq / true_false / short
+    choices: list[str] | None = None   # multi-select
 
 
 class QuizSubmit(BaseModel):

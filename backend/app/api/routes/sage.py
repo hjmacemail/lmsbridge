@@ -9,6 +9,7 @@ Reuses the platform Course / Enrollment / Concept / Assessment / Question / resu
 from __future__ import annotations
 
 import io
+import json
 import re
 import secrets
 
@@ -279,6 +280,61 @@ def _get_or_create_concept(db: Session, course_id: int, name: str) -> Concept:
     return c
 
 
+_QTYPES = {"mcq", "true_false", "multi", "short"}
+
+
+def _build_question(db: Session, assessment_id: int, course_id: int, q) -> Question:
+    qtype = q.qtype if q.qtype in _QTYPES else "mcq"
+    correct = q.correct if isinstance(q.correct, list) else [q.correct]
+    correct = [c.strip() for c in correct if c and c.strip()]
+    if not correct:
+        raise HTTPException(status_code=400, detail=f"Question needs a correct answer: {q.prompt}")
+    choices = [c.strip() for c in (q.choices or []) if c and c.strip()]
+    if qtype == "true_false":
+        choices = ["True", "False"]
+    if qtype in ("mcq", "true_false", "multi"):
+        if len(choices) < 2:
+            raise HTTPException(status_code=400, detail=f"Question needs 2+ choices: {q.prompt}")
+        if not all(c in choices for c in correct):
+            raise HTTPException(status_code=400,
+                                detail=f"Correct answer must be one of the choices: {q.prompt}")
+        if qtype in ("mcq", "true_false") and len(correct) != 1:
+            raise HTTPException(status_code=400,
+                                detail=f"This type needs exactly one correct answer: {q.prompt}")
+    else:  # short answer
+        choices = []
+    concept = _get_or_create_concept(db, course_id, q.concept)
+    correct_answer = json.dumps(correct) if qtype in ("multi", "short") else correct[0]
+    return Question(
+        assessment_id=assessment_id, concept_id=concept.id, prompt=q.prompt.strip(),
+        max_points=1.0, qtype=qtype, choices=choices or None, correct_answer=correct_answer)
+
+
+def _correct_list(q: Question) -> list[str]:
+    if (q.qtype or "mcq") in ("multi", "short"):
+        try:
+            v = json.loads(q.correct_answer or "[]")
+            return [str(x) for x in v] if isinstance(v, list) else [str(v)]
+        except Exception:  # noqa: BLE001
+            return [q.correct_answer] if q.correct_answer else []
+    return [q.correct_answer] if q.correct_answer else []
+
+
+def _grade(q: Question, ans) -> tuple[bool, str]:
+    """Return (is_correct, selected_display) for one answered question."""
+    qtype = q.qtype or "mcq"
+    if qtype == "multi":
+        selected = set(ans.choices or ([ans.choice] if ans.choice else []))
+        correct = set(_correct_list(q))
+        return (bool(correct) and selected == correct, ", ".join(sorted(selected)))
+    if qtype == "short":
+        sel = (ans.choice or "").strip()
+        accepted = {a.strip().lower() for a in _correct_list(q)}
+        return (bool(accepted) and sel.lower() in accepted, sel)
+    sel = ans.choice
+    return (sel is not None and sel == q.correct_answer, sel or "")
+
+
 @router.post("/courses/{course_id}/quizzes", status_code=201)
 def create_quiz(
     course_id: int, payload: QuizCreate,
@@ -292,15 +348,92 @@ def create_quiz(
     db.add(quiz)
     db.flush()
     for q in payload.questions:
-        if q.correct not in q.choices:
-            raise HTTPException(status_code=400,
-                                detail=f"Correct answer must be one of the choices for: {q.prompt}")
-        concept = _get_or_create_concept(db, course_id, q.concept)
-        db.add(Question(assessment_id=quiz.id, concept_id=concept.id, prompt=q.prompt,
-                        max_points=1.0, choices=q.choices, correct_answer=q.correct))
+        db.add(_build_question(db, quiz.id, course_id, q))
     db.commit()
     db.refresh(quiz)
     return {"id": quiz.id, "title": quiz.title, "question_count": len(payload.questions)}
+
+
+@router.put("/quizzes/{quiz_id}")
+def update_quiz(
+    quiz_id: int, payload: QuizCreate,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    quiz = db.get(Assessment, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    _course, role = _require_role(db, quiz.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    quiz.title = payload.title.strip()
+    quiz.max_score = float(len(payload.questions))
+    for old in db.scalars(select(Question).where(Question.assessment_id == quiz.id)).all():
+        db.delete(old)
+    db.flush()
+    for q in payload.questions:
+        db.add(_build_question(db, quiz.id, quiz.course_id, q))
+    db.commit()
+    return {"id": quiz.id, "title": quiz.title, "question_count": len(payload.questions)}
+
+
+@router.delete("/quizzes/{quiz_id}", status_code=204)
+def delete_quiz(
+    quiz_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> None:
+    quiz = db.get(Assessment, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    _course, role = _require_role(db, quiz.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    db.delete(quiz)
+    db.commit()
+
+
+@router.post("/quizzes/{quiz_id}/duplicate", status_code=201)
+def duplicate_quiz(
+    quiz_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> dict:
+    quiz = db.get(Assessment, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    _course, role = _require_role(db, quiz.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    questions = db.scalars(select(Question).where(Question.assessment_id == quiz.id)).all()
+    copy = Assessment(course_id=quiz.course_id, title=f"{quiz.title} (copy)",
+                      type=AssessmentType.quiz, max_score=quiz.max_score)
+    db.add(copy)
+    db.flush()
+    for q in questions:
+        db.add(Question(assessment_id=copy.id, concept_id=q.concept_id, prompt=q.prompt,
+                        max_points=q.max_points, qtype=q.qtype, choices=q.choices,
+                        correct_answer=q.correct_answer))
+    db.commit()
+    db.refresh(copy)
+    return {"id": copy.id, "title": copy.title, "question_count": len(questions)}
+
+
+@router.get("/quizzes/{quiz_id}/edit")
+def quiz_for_edit(
+    quiz_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> dict:
+    """Full quiz (with correct answers) for the instructor's edit form."""
+    quiz = db.get(Assessment, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    _course, role = _require_role(db, quiz.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    questions = db.scalars(select(Question).where(Question.assessment_id == quiz.id)).all()
+    return {
+        "id": quiz.id, "title": quiz.title,
+        "questions": [{
+            "prompt": q.prompt, "qtype": q.qtype or "mcq", "choices": q.choices or [],
+            "correct": _correct_list(q),
+            "concept": (db.get(Concept, q.concept_id).name if q.concept_id else ""),
+        } for q in questions],
+    }
 
 
 @router.get("/courses/{course_id}/quizzes")
@@ -341,8 +474,8 @@ def take_quiz(
     questions = db.scalars(select(Question).where(Question.assessment_id == quiz_id)).all()
     return {
         "id": quiz.id, "title": quiz.title,
-        "questions": [{"id": q.id, "prompt": q.prompt, "choices": q.choices or []}
-                      for q in questions],
+        "questions": [{"id": q.id, "prompt": q.prompt, "qtype": q.qtype or "mcq",
+                       "choices": q.choices or []} for q in questions],
     }
 
 
@@ -356,25 +489,26 @@ def submit_quiz(
         raise HTTPException(status_code=404, detail="Quiz not found")
     _require_role(db, quiz.course_id, user)
     questions = db.scalars(select(Question).where(Question.assessment_id == quiz_id)).all()
-    chosen = {a.question_id: a.choice for a in payload.answers}
+    answers = {a.question_id: a for a in payload.answers}
 
     item_scores: list[dict] = []
     review: list[dict] = []
     correct_n = 0
     for q in questions:
-        sel = chosen.get(q.id)
-        is_correct = sel is not None and sel == q.correct_answer
+        ans = answers.get(q.id)
+        is_correct, selected = _grade(q, ans) if ans else (False, "")
         if is_correct:
             correct_n += 1
         concept = db.get(Concept, q.concept_id) if q.concept_id else None
+        correct_disp = ", ".join(_correct_list(q))
         item_scores.append({
             "question_id": q.id, "concept_key": concept.key if concept else None,
             "earned": 1.0 if is_correct else 0.0, "max": 1.0,
             "question": q.prompt, "choices": q.choices or [],
-            "selected": sel, "correct": q.correct_answer, "is_correct": is_correct,
+            "selected": selected, "correct": correct_disp, "is_correct": is_correct,
         })
         review.append({"question_id": q.id, "is_correct": is_correct,
-                       "correct": q.correct_answer, "selected": sel})
+                       "correct": correct_disp, "selected": selected})
 
     total = len(questions) or 1
     score = correct_n / total

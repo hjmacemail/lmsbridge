@@ -109,6 +109,58 @@ def test_sage_profile_syllabus_and_materials(client):
         "kind": "note", "title": "x", "body": "y"}).status_code == 403
 
 
+def test_sage_question_types_and_quiz_management(client):
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr Q", "email": "q@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "Types"}).json()["id"]
+
+    # A quiz mixing all four question types.
+    q = client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih, json={
+        "title": "Mixed", "questions": [
+            {"prompt": "Pick one", "qtype": "mcq", "choices": ["a", "b", "c"], "correct": "b",
+             "concept": "C1"},
+            {"prompt": "2+2=4?", "qtype": "true_false", "correct": "True", "concept": "C2"},
+            {"prompt": "Pick all evens", "qtype": "multi", "choices": ["1", "2", "3", "4"],
+             "correct": ["2", "4"], "concept": "C3"},
+            {"prompt": "Capital of France?", "qtype": "short", "correct": ["Paris", "paris"],
+             "concept": "C4"},
+        ]})
+    assert q.status_code == 201, q.text
+    quiz_id = q.json()["id"]
+
+    sh = _auth(client.post("/api/v1/sage/guest", json={
+        "join_code": client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"],
+        "full_name": "Stu"}).json())
+    take = client.get(f"/api/v1/sage/quizzes/{quiz_id}/take", headers=sh).json()
+    qs = {x["prompt"]: x for x in take["questions"]}
+    assert qs["2+2=4?"]["choices"] == ["True", "False"]
+    assert qs["Capital of France?"]["choices"] == []  # short answer: no choices leaked
+
+    # Answer all correctly (multi via `choices`, short via `choice`, case-insensitive).
+    ans = []
+    for x in take["questions"]:
+        if x["qtype"] == "multi":
+            ans.append({"question_id": x["id"], "choices": ["4", "2"]})
+        elif x["prompt"].startswith("Capital"):
+            ans.append({"question_id": x["id"], "choice": "PARIS"})
+        elif x["prompt"].startswith("2+2"):
+            ans.append({"question_id": x["id"], "choice": "True"})
+        else:
+            ans.append({"question_id": x["id"], "choice": "b"})
+    res = client.post(f"/api/v1/sage/quizzes/{quiz_id}/submit", headers=sh, json={"answers": ans})
+    assert res.json()["correct"] == 4 and res.json()["total"] == 4
+
+    # Edit, duplicate, delete (instructor only).
+    ed = client.put(f"/api/v1/sage/quizzes/{quiz_id}", headers=ih, json={
+        "title": "Mixed v2", "questions": [
+            {"prompt": "T or F?", "qtype": "true_false", "correct": "False", "concept": "C2"}]})
+    assert ed.status_code == 200 and ed.json()["question_count"] == 1
+    dup = client.post(f"/api/v1/sage/quizzes/{quiz_id}/duplicate", headers=ih)
+    assert dup.status_code == 201 and dup.json()["title"].endswith("(copy)")
+    assert client.post(f"/api/v1/sage/quizzes/{quiz_id}/duplicate", headers=sh).status_code == 403
+    assert client.delete(f"/api/v1/sage/quizzes/{dup.json()['id']}", headers=ih).status_code == 204
+
+
 def test_sage_join_requires_valid_code(client):
     client.post("/api/v1/sage/signup", json={
         "full_name": "X", "email": "x@uni.edu", "password": "secret123"})

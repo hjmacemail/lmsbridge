@@ -5,6 +5,7 @@ import {
   type SageAuth, type SageCourseSummary, type SageCourseDetail, type SageQuizListItem,
   type SageTakeQuiz, type SageSubmitResult, type SageStudent,
   type SageGrades, type SageQuestionDraft, type SageMaterial, type SageProfile,
+  type SageQType, type SageAnswerIn,
 } from "../api/client";
 import type { RemediationModule } from "../types";
 import { renderMarkdown, highlightCode } from "../lib/richtext";
@@ -377,31 +378,52 @@ function Home({ course, instr, detail }:
 function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
   const [quizzes, setQuizzes] = useState<SageQuizListItem[]>([]);
   const [build, setBuild] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [initial, setInitial] = useState<{ title: string; questions: SageQuestionDraft[] } | null>(null);
   const load = () => sageApi.quizzes(course.id).then(setQuizzes).catch(() => setQuizzes([]));
   useEffect(() => { load(); }, [course.id]);
+
+  function startNew() { setInitial(null); setEditId(null); setBuild(true); }
+  async function startEdit(id: number) {
+    const q = await sageApi.quizForEdit(id);
+    setInitial({ title: q.title, questions: q.questions }); setEditId(id); setBuild(true);
+  }
+  async function dup(id: number) { await sageApi.duplicateQuiz(id); load(); }
+  async function del(id: number) {
+    if (!window.confirm("Delete this quiz? Student results for it will also be removed.")) return;
+    await sageApi.deleteQuiz(id); load();
+  }
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h3 style={{ margin: 0, fontSize: 17 }}>Quizzes</h3>
-        <PrimaryBtn onClick={() => setBuild((b) => !b)}>
-          <Icon name="plus" size={16} /> {build ? "Cancel" : "New quiz"}</PrimaryBtn>
+        {!build && <PrimaryBtn onClick={startNew}><Icon name="plus" size={16} /> New quiz</PrimaryBtn>}
       </div>
-      {build && <QuizBuilder courseId={course.id} onDone={() => { setBuild(false); load(); }} />}
+      {build && <QuizBuilder courseId={course.id} editId={editId} initial={initial}
+        onCancel={() => setBuild(false)} onDone={() => { setBuild(false); load(); }} />}
       {quizzes.length === 0 && !build && (
         <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
-          No quizzes yet. Click <b>New quiz</b> to build your first one — add questions, mark the correct
-          answer, and tag each with a concept.
+          No quizzes yet. Click <b>New quiz</b> to build one — multiple choice, true/false, multiple
+          answers, or short answer.
         </Card>
       )}
-      {quizzes.map((q) => {
+      {!build && quizzes.map((q) => {
         const pct = q.submission_count != null && course.student_count
           ? Math.round((q.submission_count / course.student_count) * 100) : 0;
         return (
           <Card key={q.id}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
-              <b style={{ fontSize: 15 }}>{q.title}</b>
-              <span style={{ color: C.muted, fontSize: 13 }}>
-                {q.question_count} questions · {q.submission_count ?? 0} submitted</span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <div>
+                <b style={{ fontSize: 15 }}>{q.title}</b>
+                <div style={{ color: C.muted, fontSize: 13 }}>
+                  {q.question_count} questions · {q.submission_count ?? 0} submitted</div>
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <GhostBtn onClick={() => startEdit(q.id)}><Icon name="edit" size={15} /> Edit</GhostBtn>
+                <GhostBtn onClick={() => dup(q.id)}><Icon name="copy" size={15} /> Duplicate</GhostBtn>
+                <button onClick={() => del(q.id)} title="Delete" style={{ background: "none", border: "none",
+                  cursor: "pointer", color: C.danger, padding: 6 }}><Icon name="trash" size={16} /></button>
+              </div>
             </div>
             <div style={{ height: 7, borderRadius: 999, background: C.soft, marginTop: 10, overflow: "hidden" }}>
               <div style={{ width: `${pct}%`, height: "100%", background: C.primary }} />
@@ -413,32 +435,77 @@ function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
   );
 }
 
-function QuizBuilder({ courseId, onDone }: { courseId: number; onDone: () => void }) {
-  const blank = (): SageQuestionDraft => ({ prompt: "", choices: ["", ""], correct: "", concept: "" });
-  const [title, setTitle] = useState("");
-  const [qs, setQs] = useState<SageQuestionDraft[]>([blank()]);
+const QTYPE_LABELS: { value: SageQType; label: string }[] = [
+  { value: "mcq", label: "Multiple choice" },
+  { value: "true_false", label: "True / False" },
+  { value: "multi", label: "Multiple answers" },
+  { value: "short", label: "Short answer" },
+];
+
+function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
+  courseId: number; editId: number | null;
+  initial: { title: string; questions: SageQuestionDraft[] } | null;
+  onDone: () => void; onCancel: () => void;
+}) {
+  const blank = (): SageQuestionDraft =>
+    ({ prompt: "", qtype: "mcq", choices: ["", ""], correct: [], concept: "" });
+  const [title, setTitle] = useState(initial?.title || "");
+  const [qs, setQs] = useState<SageQuestionDraft[]>(
+    initial?.questions?.length ? initial.questions : [blank()]);
   const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
 
   function upd(i: number, patch: Partial<SageQuestionDraft>) {
     setQs((arr) => arr.map((q, j) => j === i ? { ...q, ...patch } : q));
   }
-  function setChoice(i: number, c: number, v: string) {
-    setQs((arr) => arr.map((q, j) => j === i
-      ? { ...q, choices: q.choices.map((x, k) => k === c ? v : x) } : q));
+  function setType(i: number, qtype: SageQType) {
+    setQs((arr) => arr.map((q, j) => {
+      if (j !== i) return q;
+      if (qtype === "true_false") return { ...q, qtype, choices: ["True", "False"], correct: [] };
+      if (qtype === "short") return { ...q, qtype, choices: [], correct: q.correct };
+      return { ...q, qtype, choices: q.choices.length >= 2 ? q.choices : ["", ""], correct: [] };
+    }));
+  }
+  function setChoice(i: number, ci: number, v: string) {
+    setQs((arr) => arr.map((q, j) => {
+      if (j !== i) return q;
+      const old = q.choices[ci];
+      const choices = q.choices.map((x, k) => k === ci ? v : x);
+      const correct = q.correct.map((c) => c === old ? v : c);
+      return { ...q, choices, correct };
+    }));
+  }
+  function toggleCorrect(i: number, choice: string, single: boolean) {
+    setQs((arr) => arr.map((q, j) => {
+      if (j !== i) return q;
+      if (single) return { ...q, correct: [choice] };
+      const has = q.correct.includes(choice);
+      return { ...q, correct: has ? q.correct.filter((c) => c !== choice) : [...q.correct, choice] };
+    }));
   }
   async function save() {
     setErr(null);
     if (!title.trim()) { setErr("Add a quiz title."); return; }
+    const payload: SageQuestionDraft[] = [];
     for (const q of qs) {
-      const choices = q.choices.map((c) => c.trim()).filter(Boolean);
-      if (!q.prompt.trim() || choices.length < 2 || !q.correct || !q.concept.trim()) {
-        setErr("Each question needs a prompt, 2+ choices, a correct answer (the dot), and a concept."); return;
+      if (!q.prompt.trim() || !q.concept.trim()) { setErr("Each question needs a prompt and a concept."); return; }
+      let choices = q.choices.map((c) => c.trim()).filter(Boolean);
+      let correct = q.correct.map((c) => c.trim()).filter(Boolean);
+      if (q.qtype === "true_false") choices = ["True", "False"];
+      if (q.qtype === "short") { choices = []; if (!correct.length) { setErr(`Add accepted answer(s) for: ${q.prompt}`); return; } }
+      else {
+        if (choices.length < 2) { setErr(`Add at least 2 choices for: ${q.prompt}`); return; }
+        correct = correct.filter((c) => choices.includes(c));
+        if ((q.qtype === "mcq" || q.qtype === "true_false") && correct.length !== 1) {
+          setErr(`Mark exactly one correct answer for: ${q.prompt}`); return;
+        }
+        if (q.qtype === "multi" && correct.length < 1) { setErr(`Mark the correct answers for: ${q.prompt}`); return; }
       }
+      payload.push({ ...q, choices, correct });
     }
     setBusy(true);
     try {
-      await sageApi.createQuiz(courseId, title, qs.map((q) => ({
-        ...q, choices: q.choices.map((c) => c.trim()).filter(Boolean) })));
+      if (editId != null) await sageApi.updateQuiz(editId, title, payload);
+      else await sageApi.createQuiz(courseId, title, payload);
       onDone();
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   }
@@ -447,29 +514,53 @@ function QuizBuilder({ courseId, onDone }: { courseId: number; onDone: () => voi
       <input style={{ ...inputStyle, marginBottom: 14, fontWeight: 600 }} placeholder="Quiz title (e.g. Binary basics)"
         value={title} onChange={(e) => setTitle(e.target.value)} />
       {qs.map((q, i) => (
-        <div key={i} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12,
-          padding: 14, marginBottom: 10 }}>
-          <input style={{ ...inputStyle, marginBottom: 8 }} placeholder={`Question ${i + 1}`}
-            value={q.prompt} onChange={(e) => upd(i, { prompt: e.target.value })} />
-          <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>Tap the dot to mark the correct answer.</div>
-          {q.choices.map((c, ci) => (
-            <div key={ci} style={{ display: "flex", gap: 9, alignItems: "center", marginBottom: 6 }}>
-              <input type="radio" name={`correct-${i}`} checked={q.correct === c && !!c}
-                onChange={() => upd(i, { correct: c })} title="Mark correct" style={{ accentColor: C.primary }} />
-              <input style={inputStyle} placeholder={`Choice ${ci + 1}`} value={c}
-                onChange={(e) => setChoice(i, ci, e.target.value)} />
-            </div>
-          ))}
-          <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-            <GhostBtn onClick={() => upd(i, { choices: [...q.choices, ""] })}>+ choice</GhostBtn>
-            <input style={{ ...inputStyle, flex: 1, minWidth: 160 }} placeholder="Concept (e.g. Binary arithmetic)"
-              value={q.concept} onChange={(e) => upd(i, { concept: e.target.value })} />
+        <div key={i} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "center" }}>
+            <span style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>Q{i + 1}</span>
+            <select value={q.qtype} onChange={(e) => setType(i, e.target.value as SageQType)}
+              style={{ ...inputStyle, width: "auto", padding: "7px 10px" }}>
+              {QTYPE_LABELS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+            {qs.length > 1 && <button onClick={() => setQs((a) => a.filter((_, j) => j !== i))}
+              title="Remove question" style={{ marginLeft: "auto", background: "none", border: "none",
+                color: C.danger, cursor: "pointer" }}><Icon name="trash" size={15} /></button>}
           </div>
+          <input style={{ ...inputStyle, marginBottom: 8 }} placeholder="Question prompt"
+            value={q.prompt} onChange={(e) => upd(i, { prompt: e.target.value })} />
+
+          {q.qtype === "short" ? (
+            <input style={inputStyle} placeholder="Accepted answer(s), comma-separated"
+              value={q.correct.join(", ")}
+              onChange={(e) => upd(i, { correct: e.target.value.split(",").map((s) => s.trim()) })} />
+          ) : (
+            <>
+              <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>
+                {q.qtype === "multi" ? "Check every correct answer." : "Select the one correct answer."}</div>
+              {(q.qtype === "true_false" ? ["True", "False"] : q.choices).map((c, ci) => (
+                <div key={ci} style={{ display: "flex", gap: 9, alignItems: "center", marginBottom: 6 }}>
+                  <input type={q.qtype === "multi" ? "checkbox" : "radio"} name={`correct-${i}`}
+                    checked={q.correct.includes(c) && !!c}
+                    onChange={() => toggleCorrect(i, c, q.qtype !== "multi")}
+                    style={{ accentColor: C.primary }} title="Mark correct" />
+                  {q.qtype === "true_false"
+                    ? <span style={{ fontSize: 14 }}>{c}</span>
+                    : <input style={inputStyle} placeholder={`Choice ${ci + 1}`} value={c}
+                        onChange={(e) => setChoice(i, ci, e.target.value)} />}
+                </div>
+              ))}
+              {q.qtype !== "true_false" && (
+                <GhostBtn onClick={() => upd(i, { choices: [...q.choices, ""] })}>+ choice</GhostBtn>
+              )}
+            </>
+          )}
+          <input style={{ ...inputStyle, marginTop: 8 }} placeholder="Concept (e.g. Binary arithmetic)"
+            value={q.concept} onChange={(e) => upd(i, { concept: e.target.value })} />
         </div>
       ))}
       <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
         <GhostBtn onClick={() => setQs((a) => [...a, blank()])}><Icon name="plus" size={15} /> Add question</GhostBtn>
-        <PrimaryBtn onClick={save} disabled={busy}>{busy ? "Saving…" : "Save quiz"}</PrimaryBtn>
+        <PrimaryBtn onClick={save} disabled={busy}>{busy ? "Saving…" : editId != null ? "Save changes" : "Save quiz"}</PrimaryBtn>
+        <GhostBtn onClick={onCancel}>Cancel</GhostBtn>
       </div>
       {err && <div style={{ color: C.danger, fontSize: 13, marginTop: 8 }}>{err}</div>}
     </Card>
@@ -481,14 +572,26 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
   const [quizzes, setQuizzes] = useState<SageQuizListItem[]>([]);
   const [taking, setTaking] = useState<SageTakeQuiz | null>(null);
   const [result, setResult] = useState<SageSubmitResult | null>(null);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [answers, setAnswers] = useState<Record<number, { choice?: string; choices?: string[] }>>({});
   const load = () => sageApi.quizzes(course.id).then(setQuizzes).catch(() => setQuizzes([]));
   useEffect(() => { load(); }, [course.id]);
 
   async function open(id: number) { setResult(null); setAnswers({}); setTaking(await sageApi.takeQuiz(id)); }
+  function setChoice(qid: number, choice: string) { setAnswers((a) => ({ ...a, [qid]: { choice } })); }
+  function toggleMulti(qid: number, choice: string) {
+    setAnswers((a) => {
+      const cur = a[qid]?.choices || [];
+      const has = cur.includes(choice);
+      return { ...a, [qid]: { choices: has ? cur.filter((c) => c !== choice) : [...cur, choice] } };
+    });
+  }
+  function isAnswered(qid: number) {
+    const v = answers[qid];
+    return !!v && (!!v.choice?.trim() || (v.choices && v.choices.length > 0));
+  }
   async function submit() {
     if (!taking) return;
-    const payload = taking.questions.map((q) => ({ question_id: q.id, choice: answers[q.id] || "" }));
+    const payload: SageAnswerIn[] = taking.questions.map((q) => ({ question_id: q.id, ...answers[q.id] }));
     setResult(await sageApi.submitQuiz(taking.id, payload)); load();
   }
 
@@ -532,25 +635,33 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
     );
   }
   if (taking) {
-    const answered = taking.questions.filter((q) => answers[q.id]).length;
+    const answered = taking.questions.filter((q) => isAnswered(q.id)).length;
     return (
       <Card>
         <h3 style={{ marginTop: 0, fontSize: 17 }}>{taking.title}</h3>
         <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>{answered} of {taking.questions.length} answered</div>
         {taking.questions.map((q, i) => (
           <div key={q.id} style={{ padding: "12px 0", borderTop: `1px solid ${C.line}` }}>
-            <div style={{ fontWeight: 600, fontSize: 14.5, marginBottom: 8 }}>{i + 1}. {q.prompt}</div>
-            {q.choices.map((c) => {
-              const sel = answers[q.id] === c;
+            <div style={{ fontWeight: 600, fontSize: 14.5, marginBottom: 8 }}>
+              {i + 1}. {q.prompt}
+              {q.qtype === "multi" && <span style={{ color: C.muted, fontWeight: 400, fontSize: 12 }}> (select all that apply)</span>}
+            </div>
+            {q.qtype === "short" ? (
+              <input style={inputStyle} placeholder="Type your answer" value={answers[q.id]?.choice || ""}
+                onChange={(e) => setChoice(q.id, e.target.value)} />
+            ) : (q.choices.map((c) => {
+              const multi = q.qtype === "multi";
+              const sel = multi ? !!answers[q.id]?.choices?.includes(c) : answers[q.id]?.choice === c;
               return (
                 <label key={c} style={{ display: "flex", gap: 9, alignItems: "center", fontSize: 14,
                   padding: "9px 12px", marginBottom: 6, borderRadius: 10, cursor: "pointer",
                   border: `1px solid ${sel ? C.primary : C.line}`, background: sel ? C.soft : "#fff" }}>
-                  <input type="radio" name={`q-${q.id}`} checked={sel}
-                    onChange={() => setAnswers((a) => ({ ...a, [q.id]: c }))} style={{ accentColor: C.primary }} />{c}
+                  <input type={multi ? "checkbox" : "radio"} name={`q-${q.id}`} checked={sel}
+                    onChange={() => multi ? toggleMulti(q.id, c) : setChoice(q.id, c)}
+                    style={{ accentColor: C.primary }} />{c}
                 </label>
               );
-            })}
+            }))}
           </div>
         ))}
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
