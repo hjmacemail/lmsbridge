@@ -7,9 +7,20 @@
 : "${SHOW_BRANDING:=true}"
 # LMS Bridge marketing homepage (the "by LMS Bridge" link in Sage points here).
 : "${HOME_URL:=https://www.lmsbridge.app}"
+# Optional white-label branding for the Sage app (e.g. run an instance as "TWAS Learning").
+# Set any of BRAND_NAME / BRAND_TAGLINE / BRAND_ACCENT (hex) / BRAND_LOGO_URL / BRAND_ATTRIBUTION.
+# The AGPL "source" link always remains.
+BRAND_JS="{"
+[ -n "${BRAND_NAME}" ] && BRAND_JS="${BRAND_JS}\"name\":\"${BRAND_NAME}\","
+[ -n "${BRAND_TAGLINE}" ] && BRAND_JS="${BRAND_JS}\"tagline\":\"${BRAND_TAGLINE}\","
+[ -n "${BRAND_ACCENT}" ] && BRAND_JS="${BRAND_JS}\"accent\":\"${BRAND_ACCENT}\","
+[ -n "${BRAND_LOGO_URL}" ] && BRAND_JS="${BRAND_JS}\"logoUrl\":\"${BRAND_LOGO_URL}\","
+[ -n "${BRAND_ATTRIBUTION}" ] && BRAND_JS="${BRAND_JS}\"attribution\":\"${BRAND_ATTRIBUTION}\","
+BRAND_JS="${BRAND_JS%,}}"
 cat > /usr/share/nginx/html/config.js <<CFG
 window.__LMSBRIDGE_API__ = "${API_BASE_URL}";
 window.__LMSBRIDGE_SOURCE__ = "${SOURCE_URL}";
 window.__LMSBRIDGE_BRANDING__ = ${SHOW_BRANDING};
 window.__LMSBRIDGE_HOME__ = "${HOME_URL}";
+window.__LMSBRIDGE_BRAND__ = ${BRAND_JS};
 CFG

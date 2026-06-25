@@ -9,6 +9,9 @@ import {
 } from "../api/client";
 import type { RemediationModule } from "../types";
 import { renderMarkdown, highlightCode } from "../lib/richtext";
+import { resolveBrand } from "../lib/brand";
+
+const BRAND = resolveBrand();
 
 const USER_KEY = "sage_user";
 
@@ -107,17 +110,19 @@ export default function SageApp() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.pageBg, color: C.ink }}>
-      <header style={{ background: C.brand, color: "#fff", padding: "14px 0" }}>
+      <header style={{ background: BRAND.accent || C.brand, color: "#fff", padding: "14px 0" }}>
         <div style={{ maxWidth: 940, margin: "0 auto", padding: "0 16px", display: "flex",
           justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <div style={{ cursor: "pointer", fontWeight: 800, fontSize: 19, display: "flex", alignItems: "center", gap: 9 }}
-              onClick={() => setView(user ? "courses" : "auth")} title="Sage home">
-              <Icon name="school" size={22} /> Sage
+              onClick={() => setView(user ? "courses" : "auth")} title={`${BRAND.name} home`}>
+              {BRAND.logoUrl
+                ? <img src={BRAND.logoUrl} alt={BRAND.name} style={{ height: 24, width: "auto" }} />
+                : <Icon name="school" size={22} />} {BRAND.name}
             </div>
             <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer" title="Go to the LMS Bridge website"
               style={{ opacity: 0.7, fontWeight: 400, fontSize: 12.5, color: "#fff",
-                textDecoration: "underline", textUnderlineOffset: 3 }}>· by LMS Bridge</a>
+                textDecoration: "underline", textUnderlineOffset: 3 }}>· {BRAND.attribution}</a>
           </div>
           {user && (
             <div style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 13.5 }}>
@@ -180,10 +185,10 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
   );
   return (
     <div style={{ maxWidth: 440, margin: "16px auto" }}>
-      <h1 style={{ textAlign: "center", color: C.brand, marginBottom: 6, fontSize: 28 }}>Welcome to Sage</h1>
+      <h1 style={{ textAlign: "center", color: BRAND.accent || C.brand, marginBottom: 6, fontSize: 28 }}>
+        Welcome to {BRAND.name}</h1>
       <p style={{ textAlign: "center", color: C.muted, marginTop: 0, fontSize: 14.5, lineHeight: 1.5 }}>
-        Your own mini class platform — create a course, add quizzes, and let LMS Bridge guide
-        students through what they miss. No LMS needed.
+        {BRAND.tagline}
       </p>
       <Card style={{ marginTop: 18 }}>
         <div style={{ display: "flex", gap: 6, marginBottom: 16, background: C.soft, padding: 5, borderRadius: 11 }}>
