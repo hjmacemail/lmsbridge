@@ -1,0 +1,9 @@
+# Railway config for the frontend (SPA) service.
+# Set this service's Root Directory to "frontend" in the Railway dashboard.
+# nginx binds $PORT via docker-entrypoint.sh.
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+restartPolicyType = "on_failure"

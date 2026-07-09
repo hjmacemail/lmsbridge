@@ -1,0 +1,9 @@
+# Railway config for the marketing site service.
+# Set this service's Root Directory to "marketing" in the Railway dashboard.
+# nginx binds $PORT via docker-entrypoint.sh.
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+restartPolicyType = "on_failure"

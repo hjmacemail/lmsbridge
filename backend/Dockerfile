@@ -23,7 +23,8 @@ RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000
+# PORT is injected by the platform (Railway, Render, etc.); fall back to API_PORT/8000 locally.
 HEALTHCHECK --interval=15s --timeout=3s --start-period=20s --retries=5 \
-  CMD curl -fsS http://localhost:8000/api/v1/health || exit 1
+  CMD curl -fsS http://localhost:${PORT:-${API_PORT:-8000}}/api/v1/health || exit 1
 
-CMD ["sh", "-c", "alembic upgrade head && python -m app.scripts.seed --if-empty && uvicorn app.main:app --host 0.0.0.0 --port ${API_PORT:-8000}"]
+CMD ["sh", "-c", "alembic upgrade head && python -m app.scripts.seed --if-empty && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-${API_PORT:-8000}}"]
