@@ -5,7 +5,10 @@ builder = "dockerfile"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "alembic upgrade head && python -m app.scripts.seed --if-empty && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+# PGOPTIONS makes migrations fail fast (with a clear error) instead of hanging forever if a
+# previous deploy still holds the alembic_version lock — otherwise the boot stalls and the
+# healthcheck times out with no error in the logs.
+startCommand = "sh -c \"export PGOPTIONS='-c lock_timeout=20000 -c statement_timeout=120000'; alembic upgrade head && python -m app.scripts.seed --if-empty && exec uvicorn app.main:app --host 0.0.0.0 --port $PORT\""
 healthcheckPath = "/api/v1/health"
-healthcheckTimeout = 120
+healthcheckTimeout = 300
 restartPolicyType = "on_failure"
