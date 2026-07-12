@@ -91,6 +91,47 @@ def _system_prompt(db: Session, module: RemediationModule, language: str | None 
     )
 
 
+def session_context(db: Session, module: RemediationModule) -> dict:
+    """Structured learning context for the tutoring UI: goal, plan, mastery, and the specific
+    wrong answer that triggered the session. Everything here is already known server-side; this
+    just surfaces it so the screen can show a real misconception card instead of only free text."""
+    concept = module.concept
+    objectives = [a.prompt for a in module.activities]
+    mastery = db.scalar(
+        select(ConceptMastery).where(
+            ConceptMastery.student_id == module.student_id,
+            ConceptMastery.concept_id == module.concept_id,
+        )
+    )
+    trigger = (
+        db.get(AssessmentResult, module.trigger_result_id)
+        if module.trigger_result_id else None
+    )
+    if not _has_wrong_mcq(trigger, concept.key):
+        trigger = _latest_wrong_answer_result(db, module.student_id, concept.key) or trigger
+    evidence = None
+    focus = None
+    if trigger:
+        for it in trigger.item_scores or []:
+            if it.get("concept_key") == concept.key and it.get("is_correct") is False:
+                evidence = {
+                    "question": it.get("question"),
+                    "chosen": it.get("selected"),
+                    "correct": it.get("correct"),
+                    "misconception": it.get("misconception"),
+                }
+                focus = it.get("misconception")
+                break
+    return {
+        "concept_name": concept.name,
+        "goal": concept.description,
+        "objectives": objectives,
+        "mastery_score": mastery.mastery_score if mastery else None,
+        "focus_misconception": focus,
+        "evidence": evidence,
+    }
+
+
 def _history(module: RemediationModule) -> list[LLMMessage]:
     out: list[LLMMessage] = []
     for m in module.messages:

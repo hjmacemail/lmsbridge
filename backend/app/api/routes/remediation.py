@@ -24,7 +24,11 @@ from app.schemas.remediation import (
     SubmitResponseRequest,
 )
 from app.services.remediation_engine import evaluate_response, generate_module
-from app.services.tutor_session_service import post_message, start_session
+from app.services.tutor_session_service import (
+    post_message,
+    session_context,
+    start_session,
+)
 
 router = APIRouter(prefix="/remediation", tags=["remediation"])
 
@@ -43,7 +47,8 @@ def _load_module(db: Session, module_id: int) -> RemediationModule:
     return module
 
 
-def _session_state(module: RemediationModule) -> SessionState:
+def _session_state(db: Session, module: RemediationModule) -> SessionState:
+    ctx = session_context(db, module)
     return SessionState(
         module_id=module.id,
         title=module.title,
@@ -52,6 +57,7 @@ def _session_state(module: RemediationModule) -> SessionState:
         rationale=module.rationale,
         grounded_on=module.grounded_on,
         messages=module.messages,  # type: ignore[arg-type]
+        **ctx,
     )
 
 
@@ -92,7 +98,7 @@ def get_session(
     """Fetch the current session transcript + status (does not create the opening turn)."""
     module = _load_module(db, module_id)
     _authorize(user, module)
-    return _session_state(module)
+    return _session_state(db, module)
 
 
 @router.post("/modules/{module_id}/session/start", response_model=SessionState)
@@ -104,7 +110,7 @@ def start_session_endpoint(
     module = _load_module(db, module_id)
     _authorize(user, module)
     module = start_session(db, module, language=lang)
-    return _session_state(module)
+    return _session_state(db, module)
 
 
 @router.post("/modules/{module_id}/session/message", response_model=SessionTurnOut)

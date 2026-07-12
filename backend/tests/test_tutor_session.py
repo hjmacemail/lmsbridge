@@ -30,6 +30,11 @@ def test_session_start_creates_opening_turn(client, db, seeded):
     assert state["status"] == "in_progress"
     assert len(state["messages"]) == 1
     assert state["messages"][0]["role"] == "tutor"
+    # Structured learning context for the tutoring UI.
+    assert state["concept_name"]
+    assert isinstance(state["objectives"], list)
+    assert "mastery_score" in state
+    assert "evidence" in state  # may be null when no MCQ trigger exists
 
 
 def test_session_completes_and_raises_mastery(client, db, seeded):

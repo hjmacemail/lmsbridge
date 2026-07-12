@@ -58,6 +58,14 @@ class TutorMessageOut(ORMModel):
     content: str
 
 
+class SessionEvidence(BaseModel):
+    """The specific wrong answer that triggered this session (drives the 'why you're here' card)."""
+    question: str | None = None
+    chosen: str | None = None
+    correct: str | None = None
+    misconception: str | None = None
+
+
 class SessionState(BaseModel):
     module_id: int
     title: str
@@ -66,6 +74,14 @@ class SessionState(BaseModel):
     rationale: str | None = None
     grounded_on: list[str] | None = None
     messages: list[TutorMessageOut] = []
+    # Structured learning context so the UI can show a real goal, plan, and misconception
+    # (not just the tutor's free-text opening).
+    concept_name: str | None = None
+    goal: str | None = None
+    objectives: list[str] = []
+    mastery_score: float | None = None
+    focus_misconception: str | None = None
+    evidence: SessionEvidence | None = None
 
 
 class SessionMessageRequest(BaseModel):

@@ -343,6 +343,13 @@ export interface TutorMessage {
   content: string;
 }
 
+export interface SessionEvidence {
+  question?: string | null;
+  chosen?: string | null;
+  correct?: string | null;
+  misconception?: string | null;
+}
+
 export interface SessionState {
   module_id: number;
   title: string;
@@ -351,6 +358,12 @@ export interface SessionState {
   rationale?: string | null;
   grounded_on?: string[] | null;
   messages: TutorMessage[];
+  concept_name?: string | null;
+  goal?: string | null;
+  objectives?: string[];
+  mastery_score?: number | null;
+  focus_misconception?: string | null;
+  evidence?: SessionEvidence | null;
 }
 
 export interface SessionTurn {
