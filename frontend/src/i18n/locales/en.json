@@ -101,6 +101,26 @@
     "student": "Student",
     "instructor": "Instructor",
     "loadingCourse": "Loading the demo course…",
-    "wakingUp": "The demo backend is waking up or unavailable. Try again in a moment."
+    "wakingUp": "The demo backend is waking up or unavailable. Try again in a moment.",
+    "brandTag": "Assessment intelligence",
+    "worksWith": "Works with",
+    "simBanner": "You're viewing a simulated {{lms}} course. Everything except the LMS Bridge content is a mock-up — the highlighted LMS Bridge part is the real, interactive tool.",
+    "liveActivity": "Live activity",
+    "flowLms": "Your LMS",
+    "flowBridge": "LMS Bridge",
+    "flowInsights": "Insights & remediation",
+    "actReadingGrades": "Reading grades",
+    "actReadingRubrics": "Reading rubrics",
+    "actMappingOutcomes": "Mapping outcomes",
+    "actDetecting": "Detecting misconceptions",
+    "actGenerating": "Generating remediation",
+    "actReady": "Ready",
+    "tryThese": "Try these",
+    "guideStudent1": "Open a flagged topic",
+    "guideStudent2": "Start the AI tutor session",
+    "guideStudent3": "Watch your mastery update",
+    "guideInstr1": "Open the class dashboard",
+    "guideInstr2": "Spot at-risk students",
+    "guideInstr3": "See auto-generated remediation"
   }
 }
