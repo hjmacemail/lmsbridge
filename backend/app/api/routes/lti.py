@@ -232,6 +232,26 @@ def sync_assessments_endpoint(
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     if not course.lti_lineitems_url:
+        # No live AGS link yet. If this course has a (mock/demo) Brightspace source, pull from that
+        # so the button still demonstrates the import; otherwise ask the instructor to launch once.
+        if course.brightspace_course_id:
+            from sqlalchemy import func
+
+            from app.models.assessment import Assessment
+            from app.services.sync_service import sync_course_results
+            summary = sync_course_results(
+                db, course_id=course.id, course_external_id=course.brightspace_course_id
+            )
+            db.commit()
+            total = db.scalar(
+                select(func.count(Assessment.id)).where(Assessment.course_id == course.id)
+            ) or 0
+            return {
+                "assessments": total,
+                "ingested": summary.get("results_ingested", 0),
+                "modules": summary.get("modules_triggered", 0),
+                "source": summary.get("adapter", "mock"),
+            }
         raise HTTPException(
             status_code=400,
             detail="No LMS gradebook link for this course yet — launch it once from the LMS "

@@ -102,3 +102,15 @@ def test_class_brief_trend_after_snapshots(client, db, seeded):
     r = client.get(f"/api/v1/analytics/courses/{cid}/brief", headers=h)
     assert r.status_code == 200, r.text
     assert "health_trend" in r.json()  # present (int) once a prior day exists
+
+
+def test_sync_from_lms_falls_back_to_mock_in_demo(client, db, seeded):
+    h = _login(client, seeded["instructor_email"])
+    cid = seeded["course_id"]
+    # Demo course has no AGS lineitems link -> endpoint should fall back to the mock source
+    # and report a real assessment count instead of erroring.
+    r = client.post(f"/api/v1/lti/courses/{cid}/sync-assessments", headers=h)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["assessments"] >= 1
+    assert body.get("source") == "mock"
