@@ -19,6 +19,22 @@ class _CapturingExternal(LLMProvider):
                            model=self.model, provider=self.name)
 
 
+class _FailingExternal(LLMProvider):
+    name = "anthropic"  # external
+
+    def __init__(self):
+        super().__init__("ext-model")
+
+    def complete(self, messages, *, json_mode=False):
+        raise RuntimeError("401 authentication_error: invalid api key")
+
+
+def test_provider_error_falls_back_to_mock_not_500():
+    g = GuardedProvider(_FailingExternal(), fallback=MockProvider("m"), external_allowed=True)
+    out = g.complete([LLMMessage("user", "Concept: Inheritance")], json_mode=True)
+    assert out.provider == "mock", "a provider runtime error must degrade to the local fallback"
+
+
 def test_external_blocked_falls_back_locally():
     ext = _CapturingExternal()
     g = GuardedProvider(ext, fallback=MockProvider("m"), external_allowed=False)

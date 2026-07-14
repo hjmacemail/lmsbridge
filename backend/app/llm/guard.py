@@ -52,4 +52,14 @@ class GuardedProvider(LLMProvider):
     def complete(self, messages: list[LLMMessage], *, json_mode: bool = False) -> LLMResponse:
         if self._pii:
             messages = [replace(m, content=redact_pii(m.content, self._names)) for m in messages]
-        return self._target().complete(messages, json_mode=json_mode)
+        target = self._target()
+        try:
+            return target.complete(messages, json_mode=json_mode)
+        except Exception as e:  # noqa: BLE001 — never 500 on a provider error; degrade gracefully.
+            if target is self._fallback:
+                raise
+            logger.error(
+                "LLM provider '%s' failed (%s); using local fallback. Check the API key, "
+                "model id, and account credit.", target.name, e,
+            )
+            return self._fallback.complete(messages, json_mode=json_mode)
