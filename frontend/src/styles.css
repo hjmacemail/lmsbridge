@@ -11,13 +11,6 @@
   --soft: #f8fafc;
   --text: #0f172a;
 }
-:root[data-theme="dark"] {
-  --surface: #1e293b;
-  --muted: #94a3b8;
-  --border: #334155;
-  --soft: #0b1220;
-  --text: #e5e7eb;
-}
 * { box-sizing: border-box; }
 body {
   margin: 0;
