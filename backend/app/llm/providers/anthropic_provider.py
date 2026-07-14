@@ -25,10 +25,13 @@ class AnthropicProvider(LLMProvider):
             if m.role in ("user", "assistant")
         ]
         if json_mode:
-            system += "\n\nRespond with a single valid JSON object and nothing else."
-            # Prefill the assistant turn with "{" so Claude is forced to continue as JSON —
-            # the reliable way to get structured output (avoids stray prose on short inputs).
-            chat = chat + [{"role": "assistant", "content": "{"}]
+            # NOTE: do NOT prefill the assistant turn with "{" — newer Claude models (Sonnet 4.x)
+            # reject assistant-message prefill ("conversation must end with a user message").
+            # A firm instruction + the tolerant extract_json parser is enough for reliable JSON.
+            system += (
+                "\n\nRespond with ONLY a single valid JSON object and nothing else — no prose, "
+                "no code fences. This applies on every turn, even for short or unclear messages."
+            )
         resp = self._client.messages.create(
             model=self.model,
             max_tokens=self.max_tokens,
@@ -37,6 +40,4 @@ class AnthropicProvider(LLMProvider):
             messages=chat,
         )
         text = "".join(block.text for block in resp.content if block.type == "text")
-        if json_mode:
-            text = "{" + text  # restore the brace we prefilled
         return LLMResponse(text=text, model=self.model, provider=self.name)
