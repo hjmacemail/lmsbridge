@@ -9,13 +9,21 @@
   --developing: #d97706;
   --mastered: #16a34a;
   --soft: #f8fafc;
+  --text: #0f172a;
+}
+:root[data-theme="dark"] {
+  --surface: #1e293b;
+  --muted: #94a3b8;
+  --border: #334155;
+  --soft: #0b1220;
+  --text: #e5e7eb;
 }
 * { box-sizing: border-box; }
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   background: var(--soft);
-  color: #0f172a;
+  color: var(--text);
 }
 a { color: var(--primary); text-decoration: none; }
 .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
@@ -31,7 +39,7 @@ a { color: var(--primary); text-decoration: none; }
   padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
 }
 .btn:hover { background: var(--primary-dark); }
-.btn.secondary { background: #fff; color: var(--primary); border: 1px solid var(--border); }
+.btn.secondary { background: var(--surface); color: var(--primary); border: 1px solid var(--border); }
 .btn.ghost { background: transparent; color: #cbd5e1; padding: 6px 10px; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .container { max-width: 1080px; margin: 0 auto; padding: 28px 24px; width: 100%; }
@@ -61,7 +69,7 @@ h3 { font-size: 15px; margin: 0 0 6px; }
 .pill.pending { background: #e0e7ff; color: var(--primary); }
 .pill.in_progress { background: #fef3c7; color: var(--developing); }
 .pill.completed { background: #dcfce7; color: var(--mastered); }
-.bar { height: 8px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+.bar { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
 .bar > span { display: block; height: 100%; border-radius: 999px; }
 .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
 .login-card { width: 380px; }
@@ -70,6 +78,7 @@ h3 { font-size: 15px; margin: 0 0 6px; }
 .field input, textarea, select {
   width: 100%; padding: 10px 12px; border: 1px solid var(--border);
   border-radius: 8px; font-size: 14px; font-family: inherit;
+  background: var(--surface); color: var(--text);
 }
 textarea { min-height: 110px; resize: vertical; }
 .error { color: var(--at-risk); font-size: 13px; margin-top: 8px; }
@@ -78,9 +87,9 @@ textarea { min-height: 110px; resize: vertical; }
   font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px;
   color: var(--primary); margin-bottom: 8px;
 }
-.feedback { background: #f1f5f9; border-left: 3px solid var(--primary); padding: 12px 14px;
+.feedback { background: var(--soft); border-left: 3px solid var(--primary); padding: 12px 14px;
   border-radius: 0 8px 8px 0; margin-top: 12px; font-size: 14px; }
-.feedback.good { border-color: var(--mastered); background: #f0fdf4; }
+.feedback.good { border-color: var(--mastered); }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
 th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
@@ -96,9 +105,9 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
   font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent;
   margin-bottom: -1px;
 }
-.tab:hover { color: #0f172a; }
+.tab:hover { color: var(--text); }
 .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-input[type="file"] { padding: 7px 10px; font-size: 13px; background: #fff; }
+input[type="file"] { padding: 7px 10px; font-size: 13px; background: var(--surface); color: var(--text); }
 
 /* Toggle switch */
 .switch { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
@@ -122,7 +131,7 @@ input[type="file"] { padding: 7px 10px; font-size: 13px; background: #fff; }
   flex-direction: column; gap: 12px; background: var(--soft);
 }
 .bubble { max-width: 78%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.5; }
-.bubble.tutor { align-self: flex-start; background: #fff; border: 1px solid var(--border);
+.bubble.tutor { align-self: flex-start; background: var(--surface); border: 1px solid var(--border);
   border-bottom-left-radius: 4px; }
 .bubble.student { align-self: flex-end; background: var(--primary); color: #fff;
   border-bottom-right-radius: 4px; }

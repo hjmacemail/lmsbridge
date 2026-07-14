@@ -11,7 +11,23 @@ import DemoPage from "./pages/DemoPage";
 import SageApp from "./pages/SageApp";
 import LmsSetupWizard from "./pages/LmsSetupWizard";
 import SiteFooter from "./components/SiteFooter";
-import type { ReactNode } from "react";
+import { setTheme, currentTheme, type Theme } from "./lib/theme";
+import { useState, type ReactNode } from "react";
+
+function ThemeToggle() {
+  const [theme, setThemeState] = useState<Theme>(currentTheme());
+  const flip = () => {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    setThemeState(next);
+  };
+  return (
+    <button className="btn ghost" onClick={flip} title="Toggle light / dark theme"
+      aria-label="Toggle dark mode" style={{ fontSize: 16, lineHeight: 1 }}>
+      {theme === "dark" ? "☀" : "☾"}
+    </button>
+  );
+}
 
 function TopBar() {
   const { auth, logout } = useAuth();
@@ -29,6 +45,7 @@ function TopBar() {
       </Link>
       <div className="user">
         <span>{auth.full_name} · {auth.role}</span>
+        <ThemeToggle />
         <LanguageSwitcher dark />
         <button className="btn ghost" onClick={() => { logout(); nav("/login"); }}>
           {t("common.signOut")}
