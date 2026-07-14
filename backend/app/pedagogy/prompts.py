@@ -175,11 +175,23 @@ FORMATTING (the "reply" text is rendered as Markdown for the student):
 - Put expressions and values in `inline code` (e.g. `A AND B`, `1011`) so they stand out.
 - Never a wall of text. Keep the whole reply skimmable.
 
+CHECKING UNDERSTANDING WITH MULTIPLE CHOICE:
+- Every couple of turns, and especially before you finish, verify understanding with a quick
+  multiple-choice question instead of an open one. Put the question in "reply" and 2–4 short
+  options in "choices". Exactly one should be correct.
+- On the next turn you'll see the option the student picked — react to it: confirm and explain
+  briefly if right, or ask a gentle follow-up if wrong. Omit "choices" for normal open questions.
+
 On EVERY turn, respond with ONLY a JSON object:
 {{
-  "reply": str,        // your next tutor turn, shown to the student
-  "complete": bool     // true only when the session's objectives are met
-}}"""
+  "reply": str,              // your next tutor turn, shown to the student
+  "complete": bool,          // true only when the session's objectives are met
+  "choices": [str, ...]      // OPTIONAL: 2–4 options for a multiple-choice check; omit otherwise
+}}
+
+Example of a multiple-choice check:
+{{"reply": "Quick check — in `1011`, what is the place value of the leftmost bit?",
+  "choices": ["1", "2", "8", "It has no place value"], "complete": false}}"""
 
 
 def build_tutor_opening_user_prompt() -> str:

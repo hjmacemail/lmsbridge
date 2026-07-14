@@ -6,6 +6,7 @@ learning checkpoints are met; completing a session raises the student's concept 
 """
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 
 from sqlalchemy import select
@@ -31,6 +32,17 @@ logger = get_logger("tutor")
 
 # Mastery credit awarded when a student completes a tutoring session for a concept.
 COMPLETION_MASTERY_SCORE = 0.85
+# After this many student turns, the tutor wraps up gracefully so sessions never run forever.
+MAX_STUDENT_TURNS = 10
+
+
+def _clean_choices(data: dict) -> list[str] | None:
+    """A tutor turn may include a short multiple-choice check. Keep 2–4 non-empty options."""
+    raw = data.get("choices")
+    if not isinstance(raw, list):
+        return None
+    opts = [str(c).strip() for c in raw if str(c).strip()]
+    return opts[:4] if len(opts) >= 2 else None
 
 
 def _has_wrong_mcq(result: AssessmentResult | None, concept_key: str) -> bool:
@@ -139,9 +151,13 @@ def _history(module: RemediationModule) -> list[LLMMessage]:
     return out
 
 
-def _add(db: Session, module: RemediationModule, role: str, content: str) -> TutorMessage:
+def _add(db: Session, module: RemediationModule, role: str, content: str,
+         choices: list[str] | None = None) -> TutorMessage:
     seq = len(module.messages)
-    msg = TutorMessage(module_id=module.id, sequence=seq, role=role, content=content)
+    msg = TutorMessage(
+        module_id=module.id, sequence=seq, role=role, content=content,
+        choices=json.dumps(choices) if choices else None,
+    )
     db.add(msg)
     db.flush()
     module.messages.append(msg)
@@ -162,12 +178,14 @@ def start_session(
         ],
         json_mode=True,
     )
+    choices = None
     try:
         data = extract_json(resp.text)
         reply = data.get("reply") or _fallback_opening(module)
+        choices = _clean_choices(data)
     except Exception:  # noqa: BLE001
         reply = _fallback_opening(module)
-    _add(db, module, "tutor", reply)
+    _add(db, module, "tutor", reply, choices)
     if module.status == RemediationStatus.pending:
         module.status = RemediationStatus.in_progress
     db.commit()
@@ -181,17 +199,30 @@ def post_message(
     """Append the student's message, get the tutor's reply, and detect completion."""
     _add(db, module, "student", student_text)
 
+    student_turns = sum(1 for m in module.messages if m.role == "student")
+    at_limit = student_turns >= MAX_STUDENT_TURNS
+
     llm = resolve_provider(db, course_id=module.course_id)
     messages = [LLMMessage("system", _system_prompt(db, module, language)), *_history(module)]
+    if at_limit:
+        messages.append(LLMMessage("system",
+            "SESSION LIMIT REACHED: this must be the FINAL turn. Give a brief, encouraging "
+            "wrap-up that summarizes the key idea. Do NOT ask another question or include "
+            "choices. Set \"complete\": true."))
     resp = llm.complete(messages, json_mode=True)
+    choices = None
     try:
         data = extract_json(resp.text)
         reply = data.get("reply") or "Keep going — tell me more about your reasoning."
         complete = bool(data.get("complete"))
+        choices = None if at_limit else _clean_choices(data)
     except Exception:  # noqa: BLE001
         reply, complete = "Keep going — walk me through your reasoning step by step.", False
 
-    _add(db, module, "tutor", reply)
+    if at_limit:
+        complete = True  # enforce the cap even if the model doesn't comply
+
+    _add(db, module, "tutor", reply, choices)
 
     if complete:
         module.status = RemediationStatus.completed
@@ -208,7 +239,8 @@ def post_message(
 
     db.commit()
     db.refresh(module)
-    return {"reply": reply, "complete": complete, "status": module.status.value}
+    return {"reply": reply, "complete": complete, "status": module.status.value,
+            "choices": choices}
 
 
 def _fallback_opening(module: RemediationModule) -> str:

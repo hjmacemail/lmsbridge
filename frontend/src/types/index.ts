@@ -341,6 +341,7 @@ export interface TutorMessage {
   sequence: number;
   role: "tutor" | "student";
   content: string;
+  choices?: string[] | null;
 }
 
 export interface SessionEvidence {
@@ -370,4 +371,5 @@ export interface SessionTurn {
   reply: string;
   complete: boolean;
   status: RemediationStatus;
+  choices?: string[] | null;
 }

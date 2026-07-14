@@ -90,7 +90,8 @@
     "stuckHint": "Give me a hint",
     "stuckDifferently": "Explain it differently",
     "stuckExample": "Show me an example",
-    "stuckLost": "I still don't get it"
+    "stuckLost": "I still don't get it",
+    "endSession": "End session"
   },
   "demo": {
     "title": "LMS Bridge demo",

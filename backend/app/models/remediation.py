@@ -78,6 +78,8 @@ class TutorMessage(Base, TimestampMixin):
     sequence: Mapped[int] = mapped_column(Integer, default=0)
     role: Mapped[str] = mapped_column(String(16))  # "tutor" | "student"
     content: Mapped[str] = mapped_column(Text)
+    # Optional multiple-choice options for a tutor turn (JSON array of strings); null for plain turns.
+    choices: Mapped[str | None] = mapped_column(Text)
 
     module: Mapped[RemediationModule] = relationship(back_populates="messages")
 

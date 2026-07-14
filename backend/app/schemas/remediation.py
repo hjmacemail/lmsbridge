@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from app.models.enums import ActivityType, MasteryStatus, PedagogyStrategy, RemediationStatus
 from app.schemas.common import ORMModel
@@ -56,6 +56,19 @@ class TutorMessageOut(ORMModel):
     sequence: int
     role: str  # "tutor" | "student"
     content: str
+    choices: list[str] | None = None
+
+    @field_validator("choices", mode="before")
+    @classmethod
+    def _parse_choices(cls, v):
+        if isinstance(v, str):
+            import json
+            try:
+                out = json.loads(v)
+                return out if isinstance(out, list) else None
+            except Exception:  # noqa: BLE001
+                return None
+        return v
 
 
 class SessionEvidence(BaseModel):
@@ -93,6 +106,7 @@ class SessionTurnOut(BaseModel):
     reply: str
     complete: bool
     status: RemediationStatus
+    choices: list[str] | None = None
 
 
 class MasteryOut(ORMModel):

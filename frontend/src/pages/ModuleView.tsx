@@ -52,13 +52,20 @@ export default function ModuleView(
     setMessages((m) => [...m, { id: -1, sequence: nextSeq, role: "student", content: val }]);
     try {
       const turn = await api.sendSessionMessage(moduleId, val, lang);
-      setMessages((m) => [...m, { id: -2, sequence: nextSeq + 1, role: "tutor", content: turn.reply }]);
+      setMessages((m) => [...m, { id: -2, sequence: nextSeq + 1, role: "tutor",
+        content: turn.reply, choices: turn.choices }]);
       if (turn.complete) setComplete(true);
     } catch (e) {
       setErr((e as Error).message);
     } finally {
       setBusy(false);
     }
+  }
+
+  async function endSession() {
+    if (busy || complete) return;
+    try { await api.completeModule(moduleId); setComplete(true); }
+    catch (e) { setErr((e as Error).message); }
   }
 
   if (err) return <div className="container"><div className="card error">{err}</div></div>;
@@ -88,17 +95,27 @@ export default function ModuleView(
 
       <div className="row" style={{ alignItems: "center" }}>
         <h1 style={{ fontSize: 22 }}>{session.title}</h1>
-        {complete ? (
-          <span className="pill completed">{t("tutor.completed")}</span>
-        ) : (
-          <span style={{
-            display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12.5, fontWeight: 600,
-            color: "#1E7A43", background: "#E5F5EC", padding: "3px 11px", borderRadius: 999,
-          }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2F9D5B" }} />
-            {t("tutor.activeStatus")}
-          </span>
-        )}
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+          {complete ? (
+            <span className="pill completed">{t("tutor.completed")}</span>
+          ) : (
+            <>
+              <span style={{
+                display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12.5, fontWeight: 600,
+                color: "#1E7A43", background: "#E5F5EC", padding: "3px 11px", borderRadius: 999,
+              }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2F9D5B" }} />
+                {t("tutor.activeStatus")}
+              </span>
+              <button onClick={endSession} disabled={busy}
+                style={{ border: "1px solid var(--line,#e2e2ea)", background: "#fff",
+                  color: "var(--muted,#666)", borderRadius: 8, padding: "4px 12px", fontSize: 12.5,
+                  cursor: busy ? "default" : "pointer" }}>
+                {t("tutor.endSession")}
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Persistent goal banner */}
@@ -168,6 +185,23 @@ export default function ModuleView(
                 : <div className="bubble-text">{m.content}</div>}
             </div>
           ))}
+          {(() => {
+            const last = messages[messages.length - 1];
+            if (complete || busy || last?.role !== "tutor" || !last.choices?.length) return null;
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, alignSelf: "flex-start",
+                maxWidth: "85%", margin: "2px 0 4px" }}>
+                {last.choices.map((c, k) => (
+                  <button key={k} onClick={() => submit(c)} disabled={busy}
+                    style={{ textAlign: "left", border: "1px solid var(--primary,#4f46e5)",
+                      background: "#fff", color: "var(--primary,#4f46e5)", borderRadius: 10,
+                      padding: "9px 13px", fontSize: 13.5, cursor: "pointer", fontWeight: 500 }}>
+                    {String.fromCharCode(65 + k)}. {c}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
           {busy && (
             <div className="bubble tutor">
               <div className="bubble-who">{t("tutor.aiTutor")}</div>

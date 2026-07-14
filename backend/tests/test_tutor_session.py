@@ -83,6 +83,44 @@ def test_session_completes_and_raises_mastery(client, db, seeded):
     assert after >= (before or 0), "completing the session should not lower mastery"
 
 
+def test_turn_response_includes_choices_key(client, db, seeded):
+    student, module = _student_with_module(db)
+    h = _login(client, student.email)
+    client.post(f"/api/v1/remediation/modules/{module.id}/session/start", headers=h)
+    r = client.post(f"/api/v1/remediation/modules/{module.id}/session/message",
+                    headers=h, json={"text": "not sure"})
+    assert r.status_code == 200, r.text
+    assert "choices" in r.json()  # null with the mock; a list when the model poses an MCQ
+
+
+def test_session_never_exceeds_turn_cap(client, db, seeded):
+    from app.services.tutor_session_service import MAX_STUDENT_TURNS
+    student, module = _student_with_module(db)
+    h = _login(client, student.email)
+    client.post(f"/api/v1/remediation/modules/{module.id}/session/start", headers=h)
+    completed = False
+    for _ in range(MAX_STUDENT_TURNS):
+        r = client.post(f"/api/v1/remediation/modules/{module.id}/session/message",
+                        headers=h, json={"text": "hmm"})
+        if r.status_code == 409:  # already completed earlier — fine
+            completed = True
+            break
+        if r.json()["complete"]:
+            completed = True
+            break
+    assert completed, "session must end by the turn cap, never run forever"
+
+
+def test_end_session_completes_module(client, db, seeded):
+    student, module = _student_with_module(db)
+    h = _login(client, student.email)
+    client.post(f"/api/v1/remediation/modules/{module.id}/session/start", headers=h)
+    r = client.post(f"/api/v1/remediation/modules/{module.id}/complete", headers=h)
+    assert r.status_code == 200, r.text
+    db.expire_all()
+    assert db.get(RemediationModule, module.id).status == RemediationStatus.completed
+
+
 def test_tutor_prompt_includes_language_instruction():
     from app.models.enums import PedagogyStrategy
     from app.pedagogy.prompts import build_tutor_session_system_prompt, language_name
