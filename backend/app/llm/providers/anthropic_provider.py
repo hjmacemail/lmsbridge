@@ -26,6 +26,9 @@ class AnthropicProvider(LLMProvider):
         ]
         if json_mode:
             system += "\n\nRespond with a single valid JSON object and nothing else."
+            # Prefill the assistant turn with "{" so Claude is forced to continue as JSON —
+            # the reliable way to get structured output (avoids stray prose on short inputs).
+            chat = chat + [{"role": "assistant", "content": "{"}]
         resp = self._client.messages.create(
             model=self.model,
             max_tokens=self.max_tokens,
@@ -34,4 +37,6 @@ class AnthropicProvider(LLMProvider):
             messages=chat,
         )
         text = "".join(block.text for block in resp.content if block.type == "text")
+        if json_mode:
+            text = "{" + text  # restore the brace we prefilled
         return LLMResponse(text=text, model=self.model, provider=self.name)
