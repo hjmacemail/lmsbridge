@@ -7,6 +7,7 @@ import type {
   InstitutionUsage,
   InstructorAnalytics,
   ClassBrief,
+  MisconceptionCluster,
   Lead,
   LicenseStatus,
   LtiRegistrationView,
@@ -148,6 +149,8 @@ export const api = {
     request<InstructorAnalytics>(`/analytics/courses/${courseId}`),
   classBrief: (courseId: number) =>
     request<ClassBrief>(`/analytics/courses/${courseId}/brief`),
+  misconceptionClusters: (courseId: number) =>
+    request<MisconceptionCluster[]>(`/analytics/courses/${courseId}/clusters`),
   syncCourse: (courseId: number) =>
     request<Record<string, unknown>>(`/assessments/sync?course_id=${courseId}`, {
       method: "POST",

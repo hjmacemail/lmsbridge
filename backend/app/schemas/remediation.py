@@ -87,6 +87,14 @@ class ClassBrief(BaseModel):
     recommendation: str
 
 
+class MisconceptionCluster(BaseModel):
+    """A group of students who share one specific wrong idea on a concept."""
+    concept: str
+    misconception: str
+    students: list[str]
+    size: int
+
+
 class SessionEvidence(BaseModel):
     """The specific wrong answer that triggered this session (drives the 'why you're here' card)."""
     question: str | None = None

@@ -33,8 +33,15 @@ from app.schemas.analytics import (
     StudentDetail,
     TranscriptTurn,
 )
-from app.schemas.remediation import ClassBrief, ConceptRisk, InstructorAnalytics, MasteryOut
+from app.schemas.remediation import (
+    ClassBrief,
+    ConceptRisk,
+    InstructorAnalytics,
+    MasteryOut,
+    MisconceptionCluster,
+)
 from app.services.class_brief_service import build_class_brief
+from app.services.misconception_service import build_misconception_clusters
 from app.services.course_access import require_course_instructor
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
@@ -202,6 +209,15 @@ def course_analytics(
         course_id=course.id, course_title=course.title, enrolled_students=enrolled,
         concept_risks=risks, modules_generated=generated, modules_completed=completed,
     )
+
+
+@router.get("/courses/{course_id}/clusters", response_model=list[MisconceptionCluster])
+def misconception_clusters(
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(require_instructor)
+) -> list[MisconceptionCluster]:
+    """Groups of students who share one specific misconception — so instructors can teach groups."""
+    require_course_instructor(db, course_id, user)
+    return [MisconceptionCluster(**c) for c in build_misconception_clusters(db, course_id)]
 
 
 @router.get("/courses/{course_id}/brief", response_model=ClassBrief)

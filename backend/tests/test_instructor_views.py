@@ -69,3 +69,16 @@ def test_class_brief(client, db, seeded):
     # Real numbers present, and a narrated brief + recommendation exist.
     assert "students_total" in b and "needs_attention" in b
     assert b["brief"] and b["recommendation"]
+
+
+def test_misconception_clusters(client, db, seeded):
+    h = _login(client, seeded["instructor_email"])
+    cid = seeded["course_id"]
+    r = client.get(f"/api/v1/analytics/courses/{cid}/clusters", headers=h)
+    assert r.status_code == 200, r.text
+    clusters = r.json()
+    assert isinstance(clusters, list)
+    # Seeded MCQ data produces wrong answers -> at least one cluster with real fields.
+    if clusters:
+        c = clusters[0]
+        assert c["concept"] and c["misconception"] and c["size"] == len(c["students"])

@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import type { ClassBrief, ConceptOut, Course, InstructorAnalytics } from "../types";
+import type { ClassBrief, ConceptOut, Course, InstructorAnalytics,
+  MisconceptionCluster } from "../types";
 import MaterialsPanel from "../components/MaterialsPanel";
 import StudentsPanel from "../components/StudentsPanel";
 import AssessmentsPanel from "../components/AssessmentsPanel";
@@ -105,6 +106,41 @@ function CopilotBrief({ courseId }: { courseId: number }) {
   );
 }
 
+function MisconceptionClusters({ courseId }: { courseId: number }) {
+  const [clusters, setClusters] = useState<MisconceptionCluster[] | null>(null);
+  const [open, setOpen] = useState<number | null>(null);
+  useEffect(() => {
+    api.misconceptionClusters(courseId).then(setClusters).catch(() => setClusters([]));
+  }, [courseId]);
+  if (!clusters || clusters.length === 0) return null;
+
+  return (
+    <>
+      <h2 style={{ marginTop: 26 }}>Misconception clusters — teach the group, not the individual</h2>
+      <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+        gap: 12 }}>
+        {clusters.map((c, i) => (
+          <div key={i} className="card" style={{ padding: "13px 15px", cursor: "pointer" }}
+            onClick={() => setOpen(open === i ? null : i)}>
+            <div className="row" style={{ alignItems: "baseline" }}>
+              <span style={{ fontSize: 26, fontWeight: 800, color: "#C0392B", lineHeight: 1 }}>
+                {c.size}</span>
+              <span className="muted" style={{ fontSize: 11.5 }}>students</span>
+            </div>
+            <div style={{ fontWeight: 600, fontSize: 13.5, margin: "6px 0 2px" }}>{c.concept}</div>
+            <div className="muted" style={{ fontSize: 13, lineHeight: 1.45 }}>{c.misconception}</div>
+            {open === i && (
+              <div style={{ marginTop: 8, fontSize: 12.5, color: "#444" }}>
+                {c.students.join(", ")}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
 function Overview({ courseId }: { courseId: number }) {
   const [analytics, setAnalytics] = useState<InstructorAnalytics | null>(null);
   useEffect(() => {
@@ -151,6 +187,7 @@ function Overview({ courseId }: { courseId: number }) {
           </tbody>
         </table>
       </div>
+      <MisconceptionClusters courseId={courseId} />
     </>
   );
 }

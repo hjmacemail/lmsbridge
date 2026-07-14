@@ -75,6 +75,13 @@ export interface ClassBrief {
   recommendation: string;
 }
 
+export interface MisconceptionCluster {
+  concept: string;
+  misconception: string;
+  students: string[];
+  size: number;
+}
+
 export interface ConceptRisk {
   concept_id: number;
   concept_key: string;
