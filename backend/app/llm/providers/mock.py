@@ -179,8 +179,19 @@ class MockProvider(LLMProvider):
 
 # Helper used by the engine to robustly parse JSON out of model text.
 def extract_json(text: str) -> dict:
+    """Parse a JSON object out of model output, tolerating the quirks real LLMs add that the
+    deterministic mock never did: markdown code fences, unescaped newlines inside string values
+    (json.loads is strict about control chars by default), smart quotes, and trailing commas."""
     text = text.strip()
     match = re.search(r"\{.*\}", text, re.DOTALL)
     if not match:
         raise ValueError("No JSON object found in model output")
-    return json.loads(match.group(0))
+    blob = match.group(0)
+    # strict=False allows literal control characters (e.g. newlines) inside strings.
+    try:
+        return json.loads(blob, strict=False)
+    except json.JSONDecodeError:
+        cleaned = (blob.replace("“", '"').replace("”", '"')
+                   .replace("‘", "'").replace("’", "'"))
+        cleaned = re.sub(r",\s*([}\]])", r"\1", cleaned)  # drop trailing commas
+        return json.loads(cleaned, strict=False)
