@@ -34,6 +34,7 @@ def _to_out(t: Tenant) -> TenantOut:
         id=t.id, name=t.name, slug=t.slug, ai_provider=t.ai_provider, ai_model=t.ai_model,
         ai_endpoint=t.ai_endpoint, ai_deployment=t.ai_deployment,
         external_ai_allowed=t.external_ai_allowed, pii_minimization=t.pii_minimization,
+        default_locale=t.default_locale,
         ai_key_set=bool(t.ai_api_key_encrypted),
         subscription_status=t.subscription_status, plan=t.plan,
         seat_limit=t.seat_limit, license_expires_at=t.license_expires_at,
@@ -117,14 +118,20 @@ def update_ai(
         key = data.pop("ai_api_key")
         t.ai_api_key_encrypted = encrypt_secret(key) if key else None
     for field in ("name", "ai_provider", "ai_model", "ai_endpoint", "ai_deployment",
-                  "external_ai_allowed", "pii_minimization"):
+                  "external_ai_allowed", "pii_minimization", "default_locale"):
         if field in data:
             value = data[field]
-            # Treat empty provider/model strings as "clear".
+            # Treat empty provider/model/locale strings as "clear".
             setattr(t, field, value if value != "" else None)
 
     if t.ai_provider and t.ai_provider not in ("anthropic", "openai", "azure_openai", "mock"):
         raise HTTPException(status_code=400, detail="Unsupported ai_provider")
+    from app.core.i18n import SUPPORTED_LANGS
+    if t.default_locale and t.default_locale not in SUPPORTED_LANGS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported default_locale; choose one of {', '.join(SUPPORTED_LANGS)}",
+        )
     db.commit()
     db.refresh(t)
     return _to_out(t)

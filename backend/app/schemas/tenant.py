@@ -17,6 +17,7 @@ class TenantOut(ORMModel):
     ai_deployment: str | None = None
     external_ai_allowed: bool = True
     pii_minimization: bool = True
+    default_locale: str | None = None
     # Never expose the key — only whether one is set.
     ai_key_set: bool = False
     # Licensing snapshot (read-only here; managed by the platform operator).
@@ -55,3 +56,4 @@ class TenantAiUpdate(BaseModel):
     ai_api_key: str | None = None         # write-only; "" clears it
     external_ai_allowed: bool | None = None
     pii_minimization: bool | None = None
+    default_locale: str | None = None    # "en"|"es"|"fr"|"ar"|"" (clear -> follow the LMS)

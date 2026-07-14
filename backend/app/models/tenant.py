@@ -41,6 +41,9 @@ class Tenant(Base, TimestampMixin):
     pii_minimization: Mapped[bool] = mapped_column(
         Boolean, default=True, server_default=true()
     )
+    # Institution-wide default UI/AI language (base code, e.g. "es"). Used when the LMS launch
+    # doesn't carry a locale. Null = follow the LMS/user, then browser, then English.
+    default_locale: Mapped[str | None] = mapped_column(String(8))
 
     # --- Licensing / subscription (enforced at LTI launch) ---
     # active | trial | expired | suspended | canceled

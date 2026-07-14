@@ -16,6 +16,7 @@ C_CONTEXT = f"{LTI}/context"
 C_CUSTOM = f"{LTI}/custom"
 C_AGS_ENDPOINT = f"{AGS}/endpoint"
 C_NRPS = f"{NRPS}/namesroleservice"
+C_LAUNCH_PRESENTATION = f"{LTI}/launch_presentation"  # carries the LMS user's locale
 C_DL_SETTINGS = f"{DL}/deep_linking_settings"
 C_DL_CONTENT_ITEMS = f"{DL}/content_items"
 C_DL_DATA = f"{DL}/data"

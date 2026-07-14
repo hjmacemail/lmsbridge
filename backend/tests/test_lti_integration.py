@@ -210,6 +210,18 @@ def test_valid_launch_redirects_with_session(client, db):
     assert out["role"] == "student" and out["course_id"]
 
 
+def test_launch_adopts_lms_locale(client, db):
+    pem = _setup(db)
+    state, nonce = _state_nonce(db, issuer=ISS, client_id=CID)
+    tok = _mint(pem, issuer=ISS, client_id=CID, deployment=DEP, nonce=nonce,
+                sub="loc", instructor=False, context_id="cL",
+                **{C.C_LAUNCH_PRESENTATION: {"locale": "es-419"}})
+    r = _launch(client, state, tok)
+    assert r.status_code == 302, r.text
+    q = parse_qs(urlparse(r.headers["location"]).query)
+    assert q["lang"][0] == "es", "the SPA redirect should carry the LMS locale as ?lang"
+
+
 def test_provisioning_is_idempotent(client, db):
     from app.models.course import Enrollment
     from app.models.user import User

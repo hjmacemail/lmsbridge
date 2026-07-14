@@ -322,6 +322,7 @@ export interface TenantSettings {
   ai_deployment?: string | null;
   external_ai_allowed: boolean;
   pii_minimization: boolean;
+  default_locale?: string | null;
   ai_key_set: boolean;
   subscription_status: string;
   plan: string;

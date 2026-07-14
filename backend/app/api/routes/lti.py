@@ -166,10 +166,21 @@ def launch(
                 _license_blocked_page(decision.detail), status_code=403
             )
 
+    # Operate in the LMS's language: use the launch's locale, else the institution's admin-set
+    # default, so the tool opens localized without the user changing anything.
+    from app.core.i18n import normalize_lang
+    from app.lti.claims import C_LAUNCH_PRESENTATION
+    launch_locale = (parsed.raw.get(C_LAUNCH_PRESENTATION) or {}).get("locale")
+    lang = normalize_lang(launch_locale) or (
+        normalize_lang(tenant.default_locale) if tenant else None
+    )
+
     fe = settings.frontend_base_url.rstrip("/")
     params = f"token={token}&role={user.role.value}"
     if course:
         params += f"&course_id={course.id}"
+    if lang:
+        params += f"&lang={lang}"
     return RedirectResponse(f"{fe}/lti?{params}", status_code=302)
 
 

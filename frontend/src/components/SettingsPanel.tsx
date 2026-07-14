@@ -36,6 +36,7 @@ export default function SettingsPanel() {
         ai_deployment: t.ai_deployment ?? "",
         external_ai_allowed: t.external_ai_allowed,
         pii_minimization: t.pii_minimization,
+        default_locale: t.default_locale ?? "",
       };
       if (key) payload.ai_api_key = key;
       const updated = await api.updateTenantAi(payload);
@@ -54,6 +55,26 @@ export default function SettingsPanel() {
 
   return (
     <div className="grid" style={{ gap: 16, maxWidth: 720 }}>
+      <div className="card">
+        <h3>Institution language</h3>
+        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+          Default language for the tool and the AI tutor across your institution. When a user
+          launches from your LMS, LMS Bridge follows the LMS's language automatically — this default
+          is used only when the LMS doesn't send one. Individual users can still switch languages.
+        </p>
+        <div className="field">
+          <label>Default language</label>
+          <select value={t.default_locale ?? ""}
+            onChange={(e) => set("default_locale", e.target.value || null)}>
+            <option value="">Follow the LMS (then browser, then English)</option>
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="ar">العربية</option>
+          </select>
+        </div>
+      </div>
+
       <div className="card">
         <h3>AI model — {t.name}</h3>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
