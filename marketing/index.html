@@ -117,7 +117,12 @@
   .hero p.sub{font-size:19px;color:#cbd5e1;max-width:640px;margin:0 0 28px}
   .hero .cta{display:flex;gap:14px;flex-wrap:wrap}
   .pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--accent);background:rgba(165,180,252,.12);border:1px solid rgba(165,180,252,.25);padding:6px 12px;border-radius:999px;margin-bottom:20px}
-  @media(max-width:760px){.hero h1{font-size:34px}}
+  .hero .tagline{font-size:18px;font-style:italic;font-weight:600;color:#a5b4fc;margin:-8px 0 20px}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
+  .hero-media{display:flex;justify-content:center}
+  .hero-media svg{width:100%;max-width:470px;height:auto}
+  @media(max-width:900px){.hero-grid{grid-template-columns:1fr} .hero-media{margin-top:26px}}
+  @media(max-width:760px){.hero h1{font-size:34px} .hero .tagline{font-size:16px}}
   /* Standards strip */
   .standards{background:#0f172a;color:#94a3b8;padding:18px 0;font-size:14px;text-align:center}
   .standards b{color:#e2e8f0}
@@ -188,9 +193,11 @@
   </div>
 </div></nav>
 
-<header class="hero"><div class="wrap">
+<header class="hero"><div class="wrap hero-grid">
+ <div class="hero-copy">
   <span class="pill">Open-source AI tutoring for your LMS</span>
   <h1>An AI teaching assistant that catches struggling students — inside your LMS.</h1>
+  <p class="tagline">Bridge early gaps before they widen.</p>
   <p class="sub">LMS Bridge turns the quiz and assignment results your LMS already collects into
   personalized, AI-guided tutoring. It pinpoints each student's specific misconception from their
   real answers and coaches them to fix it — before a shaky week-3 concept becomes a failed course in
@@ -214,6 +221,43 @@
     <a class="btn secondary" id="demo_moodle" href="#">Moodle</a>
     <a class="btn secondary" id="demo_brightspace" href="#">Brightspace</a>
   </div>
+ </div>
+ <div class="hero-media">
+  <svg viewBox="0 0 480 430" xmlns="http://www.w3.org/2000/svg" role="img"
+    aria-label="How LMS Bridge works: it reads quiz results from your LMS, pinpoints each student's misconception using your AI model, and returns a guided tutoring session — giving students a private tutor and instructors a view of who needs help.">
+    <defs>
+      <marker id="ah" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#64748b"/>
+      </marker>
+    </defs>
+    <!-- Your LMS -->
+    <rect x="70" y="14" width="340" height="76" rx="14" fill="#0f172a" stroke="#334155"/>
+    <text x="240" y="44" text-anchor="middle" fill="#e2e8f0" font-family="system-ui,Segoe UI,Arial" font-size="18" font-weight="700">Your LMS</text>
+    <text x="240" y="68" text-anchor="middle" fill="#94a3b8" font-family="system-ui,Segoe UI,Arial" font-size="12.5">Canvas · Moodle · Brightspace · Blackboard</text>
+    <!-- arrow down -->
+    <line x1="240" y1="90" x2="240" y2="150" stroke="#64748b" stroke-width="2" marker-end="url(#ah)"/>
+    <text x="252" y="126" fill="#94a3b8" font-family="system-ui,Segoe UI,Arial" font-size="12">quiz results &amp; wrong answers</text>
+    <!-- LMS Bridge (the layer) -->
+    <rect x="48" y="152" width="384" height="112" rx="16" fill="#4f46e5" stroke="#6366f1"/>
+    <rect x="300" y="164" width="120" height="26" rx="13" fill="#ffffff" fill-opacity="0.16"/>
+    <text x="360" y="182" text-anchor="middle" fill="#fff" font-family="system-ui,Segoe UI,Arial" font-size="11.5" font-weight="600">+ your AI model</text>
+    <text x="70" y="192" fill="#fff" font-family="system-ui,Segoe UI,Arial" font-size="21" font-weight="800">LMS Bridge</text>
+    <text x="70" y="222" fill="#e0e7ff" font-family="system-ui,Segoe UI,Arial" font-size="13">Pinpoints each student's misconception,</text>
+    <text x="70" y="242" fill="#e0e7ff" font-family="system-ui,Segoe UI,Arial" font-size="13">then runs a short, guided AI tutoring session.</text>
+    <!-- arrow down -->
+    <line x1="240" y1="264" x2="240" y2="316" stroke="#64748b" stroke-width="2" marker-end="url(#ah)"/>
+    <text x="252" y="294" fill="#94a3b8" font-family="system-ui,Segoe UI,Arial" font-size="12">guided tutoring, in the course</text>
+    <!-- outcomes -->
+    <rect x="48" y="318" width="185" height="96" rx="14" fill="#0f172a" stroke="#334155"/>
+    <text x="140" y="352" text-anchor="middle" fill="#e2e8f0" font-family="system-ui,Segoe UI,Arial" font-size="14.5" font-weight="700">Students recover</text>
+    <text x="140" y="374" text-anchor="middle" fill="#94a3b8" font-family="system-ui,Segoe UI,Arial" font-size="12">a private tutor that guides,</text>
+    <text x="140" y="390" text-anchor="middle" fill="#94a3b8" font-family="system-ui,Segoe UI,Arial" font-size="12">never hands over the answer</text>
+    <rect x="247" y="318" width="185" height="96" rx="14" fill="#0f172a" stroke="#334155"/>
+    <text x="339" y="352" text-anchor="middle" fill="#e2e8f0" font-family="system-ui,Segoe UI,Arial" font-size="14.5" font-weight="700">Instructors act</text>
+    <text x="339" y="374" text-anchor="middle" fill="#94a3b8" font-family="system-ui,Segoe UI,Arial" font-size="12">a live view of who</text>
+    <text x="339" y="390" text-anchor="middle" fill="#94a3b8" font-family="system-ui,Segoe UI,Arial" font-size="12">needs help, and why</text>
+  </svg>
+ </div>
 </div></header>
 
 <div class="standards"><div class="wrap">
