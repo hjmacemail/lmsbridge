@@ -22,13 +22,18 @@ function inline(text: string): string {
       `<a href="${safeUrl(u)}" target="_blank" rel="noreferrer">${t}</a>`);
 }
 
+const isRow = (l: string) => /^\s*\|.*\|\s*$/.test(l);
+const isSep = (l: string) => /^\s*\|(?:\s*:?-+:?\s*\|)+\s*$/.test(l);
+const cells = (l: string) =>
+  l.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+
 export function renderMarkdown(md: string): string {
   const src = escapeHtml(md || "").replace(/\r\n/g, "\n");
   const out: string[] = [];
   const lines = src.split("\n");
   let i = 0;
-  let inList = false;
-  const closeList = () => { if (inList) { out.push("</ul>"); inList = false; } };
+  let list: "ul" | "ol" | null = null;
+  const closeList = () => { if (list) { out.push(`</${list}>`); list = null; } };
 
   while (i < lines.length) {
     const line = lines[i];
@@ -41,11 +46,28 @@ export function renderMarkdown(md: string): string {
       out.push(`<pre class="md-pre"><code>${buf.join("\n")}</code></pre>`);
       continue;
     }
+    if (isRow(line) && i + 1 < lines.length && isSep(lines[i + 1])) {  // GFM table
+      closeList();
+      const head = cells(line);
+      i += 2;
+      const body: string[][] = [];
+      while (i < lines.length && isRow(lines[i]) && !isSep(lines[i])) { body.push(cells(lines[i])); i++; }
+      let tbl = '<table class="md-table"><thead><tr>'
+        + head.map((c) => `<th>${inline(c)}</th>`).join("") + "</tr></thead><tbody>";
+      for (const r of body) tbl += "<tr>" + r.map((c) => `<td>${inline(c)}</td>`).join("") + "</tr>";
+      out.push(tbl + "</tbody></table>");
+      continue;
+    }
     const h = /^(#{1,4})\s+(.*)$/.exec(line);
     if (h) { closeList(); const lvl = Math.min(6, h[1].length + 2); out.push(`<h${lvl}>${inline(h[2])}</h${lvl}>`); i++; continue; }
     if (/^\s*[-*]\s+/.test(line)) {
-      if (!inList) { out.push('<ul class="md-ul">'); inList = true; }
+      if (list !== "ul") { closeList(); out.push('<ul class="md-ul">'); list = "ul"; }
       out.push(`<li>${inline(line.replace(/^\s*[-*]\s+/, ""))}</li>`);
+      i++; continue;
+    }
+    if (/^\s*\d+\.\s+/.test(line)) {
+      if (list !== "ol") { closeList(); out.push('<ol class="md-ol">'); list = "ol"; }
+      out.push(`<li>${inline(line.replace(/^\s*\d+\.\s+/, ""))}</li>`);
       i++; continue;
     }
     if (line.trim() === "") { closeList(); i++; continue; }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
+import { renderMarkdown } from "../lib/richtext";
 import type { SessionState, TutorMessage } from "../types";
 
 function estMin(steps: number) { return Math.max(3, Math.round((steps || 4) * 1.5)); }
@@ -161,7 +162,10 @@ export default function ModuleView(
           {messages.map((m, i) => (
             <div key={i} className={`bubble ${m.role}`}>
               {m.role === "tutor" && <div className="bubble-who">{t("tutor.aiTutor")}</div>}
-              <div className="bubble-text">{m.content}</div>
+              {m.role === "tutor"
+                ? <div className="bubble-text chat-md"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }} />
+                : <div className="bubble-text">{m.content}</div>}
             </div>
           ))}
           {busy && (
