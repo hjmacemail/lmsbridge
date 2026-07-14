@@ -105,6 +105,10 @@ def sync_course_results(
         ingested += 1
         modules += len(mods)
 
+    # Record today's class-mastery snapshot so trends build up over the term.
+    from app.services.snapshot_service import record_snapshot
+    record_snapshot(db, course_id)
+
     summary = {"adapter": adapter.name, "results_ingested": ingested, "modules_triggered": modules}
     logger.info("Sync complete: %s", summary)
     return summary

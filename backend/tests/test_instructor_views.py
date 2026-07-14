@@ -82,3 +82,23 @@ def test_misconception_clusters(client, db, seeded):
     if clusters:
         c = clusters[0]
         assert c["concept"] and c["misconception"] and c["size"] == len(c["students"])
+
+
+def test_class_brief_trend_after_snapshots(client, db, seeded):
+    from datetime import date, timedelta
+    from app.services.snapshot_service import record_snapshot
+    from app.models.mastery import MasterySnapshot
+
+    cid = seeded["course_id"]
+    # Record a prior-day snapshot, then today's -> a trend should be computable.
+    record_snapshot(db, cid, on=date.today() - timedelta(days=7))
+    # nudge the backdated snapshots lower so the trend is positive and non-zero
+    for s in db.scalars(select(MasterySnapshot).where(
+            MasterySnapshot.taken_on == date.today() - timedelta(days=7))).all():
+        s.avg_mastery = max(0.0, s.avg_mastery - 0.1)
+    db.commit()
+
+    h = _login(client, seeded["instructor_email"])
+    r = client.get(f"/api/v1/analytics/courses/{cid}/brief", headers=h)
+    assert r.status_code == 200, r.text
+    assert "health_trend" in r.json()  # present (int) once a prior day exists

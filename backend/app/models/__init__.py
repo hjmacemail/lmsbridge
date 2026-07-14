@@ -17,7 +17,7 @@ from app.models.lti import (
     LtiRegistration,
     LtiToolKey,
 )
-from app.models.mastery import ConceptMastery
+from app.models.mastery import ConceptMastery, MasterySnapshot
 from app.models.material import CourseMaterial
 from app.models.remediation import (
     RemediationActivity,
@@ -31,7 +31,8 @@ from app.models.user import User
 
 __all__ = [
     "Assessment", "AssessmentResult", "Question", "Concept", "concept_prerequisites",
-    "Course", "Enrollment", "ConceptMastery", "CourseMaterial", "RemediationActivity",
+    "Course", "Enrollment", "ConceptMastery", "MasterySnapshot", "CourseMaterial",
+    "RemediationActivity",
     "RemediationModule", "StudentResponse", "TutorMessage", "User", "ActivityType",
     "AssessmentType", "MasteryStatus", "PedagogyStrategy", "RemediationStatus", "UserRole",
     "LtiRegistration", "LtiDeployment", "LtiNonce", "LtiToolKey", "Lead", "Tenant",

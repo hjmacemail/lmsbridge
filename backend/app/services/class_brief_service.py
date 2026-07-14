@@ -96,10 +96,15 @@ def build_class_brief(db: Session, course_id: int) -> dict:
         "remediation_not_started": not_started,
     }
 
+    from app.services.snapshot_service import health_trend_pct
+    trend = health_trend_pct(db, course_id, health)
+    facts["class_health_change_pts"] = trend
+
     brief, recommendation = _narrate(db, course_id, facts)
 
     return {
         "health_pct": health,
+        "health_trend": trend,
         "students_total": students_total,
         "needs_attention": needs_attention,
         "top_concept": top_name,

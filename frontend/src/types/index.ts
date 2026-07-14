@@ -62,6 +62,7 @@ export interface ResponseFeedback {
 
 export interface ClassBrief {
   health_pct?: number | null;
+  health_trend?: number | null;
   students_total: number;
   needs_attention: number;
   top_concept?: string | null;

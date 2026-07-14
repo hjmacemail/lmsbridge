@@ -74,6 +74,7 @@ class TutorMessageOut(ORMModel):
 class ClassBrief(BaseModel):
     """The AI Classroom Brief — real class numbers + a model-written summary and next action."""
     health_pct: int | None = None
+    health_trend: int | None = None  # change in pct points vs the last recorded day; null if none
     students_total: int
     needs_attention: int
     top_concept: str | None = None

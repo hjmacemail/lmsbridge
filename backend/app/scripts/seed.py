@@ -246,10 +246,30 @@ def seed(reset: bool = False, if_empty: bool = False) -> None:
             _seed_materials(db, course.id, instructor.id, key_to_concept, bs_id)
 
             # Run the Brightspace mock sync -> ingests results, builds mastery + remediation.
+            # (This also records today's mastery snapshot.)
             summary = sync_course_results(
                 db, course_id=course.id, course_external_id=bs_id
             )
             logger.info("Seeded %s: %s", code, summary)
+
+            # Backdated snapshots (~1 week ago, slightly lower) so the demo shows a real upward
+            # trend. Derived from today's snapshot — demo data, not a fabricated live number.
+            from datetime import date, timedelta
+
+            from app.models.mastery import MasterySnapshot
+            last_week = date.today() - timedelta(days=7)
+            for snap in db.scalars(
+                select(MasterySnapshot).where(
+                    MasterySnapshot.course_id == course.id,
+                    MasterySnapshot.taken_on == date.today(),
+                )
+            ).all():
+                db.add(MasterySnapshot(
+                    course_id=snap.course_id, concept_id=snap.concept_id,
+                    avg_mastery=round(max(0.0, snap.avg_mastery - 0.06), 4),
+                    at_risk_count=snap.at_risk_count, taken_on=last_week,
+                ))
+            db.commit()
 
         # Make one student login easy to remember.
         a_student = db.scalar(select(User).where(User.role == UserRole.student))

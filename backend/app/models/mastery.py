@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, UniqueConstraint
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -29,3 +29,20 @@ class ConceptMastery(Base, TimestampMixin):
     concept: Mapped[Concept] = relationship()  # noqa: F821
 
     __table_args__ = (UniqueConstraint("student_id", "concept_id", name="uq_mastery"),)
+
+
+class MasterySnapshot(Base, TimestampMixin):
+    """Daily class-average mastery per concept, so the dashboard can show real trends over time."""
+
+    __tablename__ = "mastery_snapshots"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    course_id: Mapped[int] = mapped_column(ForeignKey("courses.id", ondelete="CASCADE"))
+    concept_id: Mapped[int] = mapped_column(ForeignKey("concepts.id", ondelete="CASCADE"))
+    avg_mastery: Mapped[float] = mapped_column(Float, default=0.0)
+    at_risk_count: Mapped[int] = mapped_column(Integer, default=0)
+    taken_on: Mapped[date] = mapped_column(Date, index=True)
+
+    __table_args__ = (
+        UniqueConstraint("course_id", "concept_id", "taken_on", name="uq_snapshot_day"),
+    )

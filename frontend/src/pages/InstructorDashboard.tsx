@@ -72,9 +72,18 @@ function CopilotBrief({ courseId }: { courseId: number }) {
             marginBottom: 10 }}>
             {brief.health_pct != null && (
               <div>
-                <div style={{ fontSize: 30, fontWeight: 800, color: accent, lineHeight: 1 }}>
-                  {brief.health_pct}%</div>
-                <div className="muted" style={{ fontSize: 11.5 }}>class health</div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                  <span style={{ fontSize: 30, fontWeight: 800, color: accent, lineHeight: 1 }}>
+                    {brief.health_pct}%</span>
+                  {brief.health_trend != null && brief.health_trend !== 0 && (
+                    <span style={{ fontSize: 13, fontWeight: 700,
+                      color: brief.health_trend > 0 ? "#1E7A43" : "#C0392B" }}>
+                      {brief.health_trend > 0 ? "↑" : "↓"} {Math.abs(brief.health_trend)}%
+                    </span>
+                  )}
+                </div>
+                <div className="muted" style={{ fontSize: 11.5 }}>
+                  class health{brief.health_trend != null ? " · vs last week" : ""}</div>
               </div>
             )}
             <div>
