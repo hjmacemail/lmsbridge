@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import type { ConceptOut, Course, InstructorAnalytics } from "../types";
+import type { ClassBrief, ConceptOut, Course, InstructorAnalytics } from "../types";
 import MaterialsPanel from "../components/MaterialsPanel";
 import StudentsPanel from "../components/StudentsPanel";
 import AssessmentsPanel from "../components/AssessmentsPanel";
@@ -40,6 +40,71 @@ const TITLES: Record<Persona, string> = {
   platform: "Platform console",
 };
 
+function CopilotBrief({ courseId }: { courseId: number }) {
+  const [brief, setBrief] = useState<ClassBrief | null>(null);
+  const [loading, setLoading] = useState(true);
+  const load = () => {
+    setLoading(true);
+    api.classBrief(courseId).then(setBrief).catch(() => setBrief(null)).finally(() => setLoading(false));
+  };
+  useEffect(load, [courseId]);
+
+  const accent = "#3C3489";
+  return (
+    <div style={{ background: "#EEF0FB", border: "1px solid #D5DAF3", borderRadius: 14,
+      padding: "16px 18px", marginBottom: 22 }}>
+      <div className="row" style={{ alignItems: "center", marginBottom: 8 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: ".5px", textTransform: "uppercase",
+          color: accent }}>✨ AI Copilot — what to do before your next class</div>
+        <button onClick={load} disabled={loading}
+          style={{ border: "1px solid #C7CCEF", background: "#fff", color: accent, borderRadius: 8,
+            padding: "4px 12px", fontSize: 12.5, cursor: loading ? "default" : "pointer" }}>
+          {loading ? "…" : "↻ Refresh"}</button>
+      </div>
+      {loading && !brief ? (
+        <p className="muted" style={{ margin: 0 }}>Reading the class…</p>
+      ) : !brief ? (
+        <p className="muted" style={{ margin: 0 }}>Brief unavailable right now.</p>
+      ) : (
+        <>
+          <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "baseline",
+            marginBottom: 10 }}>
+            {brief.health_pct != null && (
+              <div>
+                <div style={{ fontSize: 30, fontWeight: 800, color: accent, lineHeight: 1 }}>
+                  {brief.health_pct}%</div>
+                <div className="muted" style={{ fontSize: 11.5 }}>class health</div>
+              </div>
+            )}
+            <div>
+              <div style={{ fontSize: 30, fontWeight: 800, color: "#C0392B", lineHeight: 1 }}>
+                {brief.needs_attention}</div>
+              <div className="muted" style={{ fontSize: 11.5 }}>of {brief.students_total} need attention</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 30, fontWeight: 800, color: "#1E7A43", lineHeight: 1 }}>
+                {brief.ai_completed}/{brief.ai_sessions}</div>
+              <div className="muted" style={{ fontSize: 11.5 }}>AI sessions completed</div>
+            </div>
+          </div>
+          <p style={{ margin: "0 0 10px", fontSize: 14.5, color: "#23264D", lineHeight: 1.55 }}>
+            {brief.brief}</p>
+          <div style={{ background: "#fff", border: "1px solid #D5DAF3", borderRadius: 10,
+            padding: "10px 13px", display: "flex", gap: 10, alignItems: "center" }}>
+            <span style={{ fontSize: 18 }}>🎯</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: accent }}>{brief.recommendation}</span>
+          </div>
+          {brief.top_misconception && (
+            <p className="muted" style={{ margin: "8px 0 0", fontSize: 12.5 }}>
+              Likely misconception on <strong>{brief.top_concept}</strong>: {brief.top_misconception}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function Overview({ courseId }: { courseId: number }) {
   const [analytics, setAnalytics] = useState<InstructorAnalytics | null>(null);
   useEffect(() => {
@@ -49,6 +114,7 @@ function Overview({ courseId }: { courseId: number }) {
 
   return (
     <>
+      <CopilotBrief courseId={courseId} />
       <div className="grid cols-3">
         <div className="card"><div className="muted">Enrolled students</div>
           <div className="kpi">{analytics.enrolled_students}</div></div>

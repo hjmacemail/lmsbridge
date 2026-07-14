@@ -58,3 +58,14 @@ def test_student_cannot_access_instructor_analytics(client, db, seeded):
     h = _login(client, student.email)
     r = client.get(f"/api/v1/analytics/courses/{seeded['course_id']}/roster", headers=h)
     assert r.status_code == 403
+
+
+def test_class_brief(client, db, seeded):
+    h = _login(client, seeded["instructor_email"])
+    cid = seeded["course_id"]
+    r = client.get(f"/api/v1/analytics/courses/{cid}/brief", headers=h)
+    assert r.status_code == 200, r.text
+    b = r.json()
+    # Real numbers present, and a narrated brief + recommendation exist.
+    assert "students_total" in b and "needs_attention" in b
+    assert b["brief"] and b["recommendation"]

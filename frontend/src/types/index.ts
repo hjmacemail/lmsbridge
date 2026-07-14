@@ -60,6 +60,21 @@ export interface ResponseFeedback {
   resolves_misconception?: boolean | null;
 }
 
+export interface ClassBrief {
+  health_pct?: number | null;
+  students_total: number;
+  needs_attention: number;
+  top_concept?: string | null;
+  top_concept_mastery?: number | null;
+  top_concept_affected?: number | null;
+  top_misconception?: string | null;
+  ai_sessions: number;
+  ai_completed: number;
+  not_started: number;
+  brief: string;
+  recommendation: string;
+}
+
 export interface ConceptRisk {
   concept_id: number;
   concept_key: string;

@@ -6,6 +6,7 @@ import type {
   CourseDetail,
   InstitutionUsage,
   InstructorAnalytics,
+  ClassBrief,
   Lead,
   LicenseStatus,
   LtiRegistrationView,
@@ -145,6 +146,8 @@ export const api = {
   }),
   analytics: (courseId: number) =>
     request<InstructorAnalytics>(`/analytics/courses/${courseId}`),
+  classBrief: (courseId: number) =>
+    request<ClassBrief>(`/analytics/courses/${courseId}/brief`),
   syncCourse: (courseId: number) =>
     request<Record<string, unknown>>(`/assessments/sync?course_id=${courseId}`, {
       method: "POST",

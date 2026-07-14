@@ -194,6 +194,23 @@ Example of a multiple-choice check:
   "choices": ["1", "2", "8", "It has no place value"], "complete": false}}"""
 
 
+def build_class_brief_prompt(facts: dict) -> tuple[str, str]:
+    """Narrate real class analytics into an instructor's daily brief. The model must NOT invent
+    numbers — it only phrases the figures it is given and names the highest-impact next action."""
+    import json
+    system = (
+        "You are an instructional co-pilot for a university instructor. Using ONLY the class data "
+        "provided (do not invent any numbers, students, or facts not present), write a short, warm "
+        "daily brief that answers: what should the instructor do before the next class? Be concrete "
+        "and encouraging; name the biggest-impact concept to review. Respond with ONLY a JSON "
+        "object: {\"brief\": str (2-3 sentences summarizing class health and the biggest issue), "
+        "\"recommendation\": str (one concrete action, e.g. 'Spend ~10 minutes reviewing X before "
+        "your next lecture')}."
+    )
+    user = "Class data:\n" + json.dumps(facts, indent=2)
+    return system, user
+
+
 def build_tutor_opening_user_prompt() -> str:
     return (
         "Open the tutoring session now: greet the student warmly, name the topic and why "

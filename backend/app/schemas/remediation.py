@@ -71,6 +71,22 @@ class TutorMessageOut(ORMModel):
         return v
 
 
+class ClassBrief(BaseModel):
+    """The AI Classroom Brief — real class numbers + a model-written summary and next action."""
+    health_pct: int | None = None
+    students_total: int
+    needs_attention: int
+    top_concept: str | None = None
+    top_concept_mastery: int | None = None
+    top_concept_affected: int | None = None
+    top_misconception: str | None = None
+    ai_sessions: int
+    ai_completed: int
+    not_started: int
+    brief: str
+    recommendation: str
+
+
 class SessionEvidence(BaseModel):
     """The specific wrong answer that triggered this session (drives the 'why you're here' card)."""
     question: str | None = None

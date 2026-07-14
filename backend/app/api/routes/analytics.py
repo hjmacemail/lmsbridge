@@ -33,7 +33,8 @@ from app.schemas.analytics import (
     StudentDetail,
     TranscriptTurn,
 )
-from app.schemas.remediation import ConceptRisk, InstructorAnalytics, MasteryOut
+from app.schemas.remediation import ClassBrief, ConceptRisk, InstructorAnalytics, MasteryOut
+from app.services.class_brief_service import build_class_brief
 from app.services.course_access import require_course_instructor
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
@@ -201,6 +202,15 @@ def course_analytics(
         course_id=course.id, course_title=course.title, enrolled_students=enrolled,
         concept_risks=risks, modules_generated=generated, modules_completed=completed,
     )
+
+
+@router.get("/courses/{course_id}/brief", response_model=ClassBrief)
+def class_brief(
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(require_instructor)
+) -> ClassBrief:
+    """AI Classroom Brief: 'what should I do before my next class?' — real numbers, AI narration."""
+    require_course_instructor(db, course_id, user)
+    return ClassBrief(**build_class_brief(db, course_id))
 
 
 def _require_course(db: Session, course_id: int) -> Course:
