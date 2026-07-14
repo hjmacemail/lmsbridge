@@ -18,6 +18,13 @@ logger = get_logger("llm.guard")
 # Providers that call an external, vendor-controlled endpoint.
 EXTERNAL_PROVIDERS = {"anthropic", "openai"}
 
+# Last external-provider runtime error (surfaced on /health so misconfig is visible in the browser).
+_last_error: dict[str, str | None] = {"message": None}
+
+
+def last_provider_error() -> str | None:
+    return _last_error["message"]
+
 
 class GuardedProvider(LLMProvider):
     """Decorates a provider with PII redaction and the external-AI policy."""
@@ -54,10 +61,14 @@ class GuardedProvider(LLMProvider):
             messages = [replace(m, content=redact_pii(m.content, self._names)) for m in messages]
         target = self._target()
         try:
-            return target.complete(messages, json_mode=json_mode)
+            resp = target.complete(messages, json_mode=json_mode)
+            if target.name in EXTERNAL_PROVIDERS:
+                _last_error["message"] = None  # a real external call just succeeded
+            return resp
         except Exception as e:  # noqa: BLE001 — never 500 on a provider error; degrade gracefully.
             if target is self._fallback:
                 raise
+            _last_error["message"] = f"{target.name}: {e}"
             logger.error(
                 "LLM provider '%s' failed (%s); using local fallback. Check the API key, "
                 "model id, and account credit.", target.name, e,
