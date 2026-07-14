@@ -296,7 +296,7 @@ matching credentials, then install the optional SDK:
 ```bash
 # Anthropic
 pip install -e ".[anthropic]"
-export LLM_PROVIDER=anthropic LLM_MODEL=claude-3-5-sonnet-latest ANTHROPIC_API_KEY=sk-...
+export LLM_PROVIDER=anthropic LLM_MODEL=claude-sonnet-4-6 ANTHROPIC_API_KEY=sk-...
 
 # OpenAI
 pip install -e ".[openai]"

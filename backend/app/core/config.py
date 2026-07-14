@@ -56,7 +56,7 @@ class Settings(BaseSettings):
 
     # LLM
     llm_provider: str = "mock"
-    llm_model: str = "claude-3-5-sonnet-latest"
+    llm_model: str = "claude-sonnet-4-6"
     llm_max_tokens: int = 1200
     llm_temperature: float = 0.3
     anthropic_api_key: str | None = None

@@ -73,7 +73,7 @@ export default function SettingsPanel() {
             <div className="field">
               <label>Model {t.ai_provider === "azure_openai" ? "/ deployment name" : ""}</label>
               <input value={t.ai_model ?? ""} onChange={(e) => set("ai_model", e.target.value)}
-                placeholder="e.g. gpt-4o or claude-3-5-sonnet-latest" />
+                placeholder="e.g. gpt-4o or claude-sonnet-4-6" />
             </div>
             {t.ai_provider === "azure_openai" && (
               <>
