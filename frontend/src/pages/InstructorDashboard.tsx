@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import type { ClassBrief, ConceptOut, Course, InstructorAnalytics,
@@ -42,11 +43,13 @@ const TITLES: Record<Persona, string> = {
 };
 
 function CopilotBrief({ courseId }: { courseId: number }) {
+  const { i18n } = useTranslation();
   const [brief, setBrief] = useState<ClassBrief | null>(null);
   const [loading, setLoading] = useState(true);
   const load = () => {
     setLoading(true);
-    api.classBrief(courseId).then(setBrief).catch(() => setBrief(null)).finally(() => setLoading(false));
+    api.classBrief(courseId, i18n.language).then(setBrief).catch(() => setBrief(null))
+      .finally(() => setLoading(false));
   };
   useEffect(load, [courseId]);
 

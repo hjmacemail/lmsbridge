@@ -25,7 +25,7 @@ from app.pedagogy.prompts import build_class_brief_prompt
 logger = get_logger("brief")
 
 
-def build_class_brief(db: Session, course_id: int) -> dict:
+def build_class_brief(db: Session, course_id: int, lang: str | None = None) -> dict:
     course = db.get(Course, course_id)
     concepts = db.scalars(
         select(Concept).where(Concept.course_id == course_id).order_by(Concept.sequence)
@@ -100,7 +100,7 @@ def build_class_brief(db: Session, course_id: int) -> dict:
     trend = health_trend_pct(db, course_id, health)
     facts["class_health_change_pts"] = trend
 
-    brief, recommendation = _narrate(db, course_id, facts)
+    brief, recommendation = _narrate(db, course_id, facts, lang)
 
     return {
         "health_pct": health,
@@ -119,10 +119,10 @@ def build_class_brief(db: Session, course_id: int) -> dict:
     }
 
 
-def _narrate(db: Session, course_id: int, facts: dict) -> tuple[str, str]:
+def _narrate(db: Session, course_id: int, facts: dict, lang: str | None = None) -> tuple[str, str]:
     """Ask the model to narrate the real numbers; fall back to a template if it can't."""
     try:
-        system, user = build_class_brief_prompt(facts)
+        system, user = build_class_brief_prompt(facts, lang)
         llm = resolve_provider(db, course_id=course_id)
         resp = llm.complete([LLMMessage("system", system), LLMMessage("user", user)], json_mode=True)
         data = extract_json(resp.text)

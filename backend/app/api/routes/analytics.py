@@ -222,11 +222,12 @@ def misconception_clusters(
 
 @router.get("/courses/{course_id}/brief", response_model=ClassBrief)
 def class_brief(
-    course_id: int, db: Session = Depends(get_db), user: User = Depends(require_instructor)
+    course_id: int, lang: str | None = None,
+    db: Session = Depends(get_db), user: User = Depends(require_instructor),
 ) -> ClassBrief:
     """AI Classroom Brief: 'what should I do before my next class?' — real numbers, AI narration."""
     require_course_instructor(db, course_id, user)
-    return ClassBrief(**build_class_brief(db, course_id))
+    return ClassBrief(**build_class_brief(db, course_id, lang))
 
 
 def _require_course(db: Session, course_id: int) -> Course:

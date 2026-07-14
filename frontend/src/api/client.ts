@@ -147,8 +147,9 @@ export const api = {
   }),
   analytics: (courseId: number) =>
     request<InstructorAnalytics>(`/analytics/courses/${courseId}`),
-  classBrief: (courseId: number) =>
-    request<ClassBrief>(`/analytics/courses/${courseId}/brief`),
+  classBrief: (courseId: number, lang?: string) =>
+    request<ClassBrief>(
+      `/analytics/courses/${courseId}/brief${lang ? `?lang=${encodeURIComponent(lang)}` : ""}`),
   misconceptionClusters: (courseId: number) =>
     request<MisconceptionCluster[]>(`/analytics/courses/${courseId}/clusters`),
   syncCourse: (courseId: number) =>
