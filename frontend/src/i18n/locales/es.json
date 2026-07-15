@@ -123,5 +123,47 @@
     "simBanner": "Estás viendo un curso simulado de {{lms}}. Todo excepto el contenido de LMS Bridge es una maqueta — la parte resaltada de LMS Bridge es la herramienta real e interactiva.",
     "tryThese": "Prueba esto",
     "worksWith": "Compatible con"
+  },
+  "instructor": {
+    "tab": {
+      "overview": "Resumen",
+      "students": "Estudiantes",
+      "assessments": "Evaluaciones y rúbricas",
+      "materials": "Material del curso",
+      "remediation": "Remediación",
+      "setup": "Configuración del curso",
+      "usage": "Uso",
+      "settings": "IA y privacidad",
+      "lms": "LMS (LTI)",
+      "licenses": "Licencias",
+      "messages": "Mensajes"
+    },
+    "copilot": {
+      "title": "Copiloto IA — qué hacer antes de tu próxima clase",
+      "refresh": "Actualizar",
+      "reading": "Leyendo la clase…",
+      "unavailable": "Resumen no disponible ahora.",
+      "classHealth": "salud de la clase",
+      "vsLastWeek": "frente a la semana pasada",
+      "needAttention": "de {{total}} estudiantes necesitan atención",
+      "sessionsCompleted": "sesiones de IA completadas",
+      "misconceptionLead": "Posible error conceptual en"
+    },
+    "overview": {
+      "enrolled": "Estudiantes matriculados",
+      "generated": "Módulos generados",
+      "completed": "Módulos completados",
+      "loading": "Cargando…",
+      "conceptsRanked": "Conceptos ordenados por riesgo de la clase",
+      "thConcept": "Concepto",
+      "thMastery": "Dominio medio",
+      "thAtRisk": "En riesgo",
+      "noData": "Aún no hay datos de dominio. Ejecuta una sincronización.",
+      "needsAttention": "necesita atención"
+    },
+    "clusters": {
+      "title": "Grupos de errores conceptuales — enseña al grupo, no al individuo",
+      "students": "estudiantes"
+    }
   }
 }

@@ -123,5 +123,47 @@
     "guideInstr1": "Open the class dashboard",
     "guideInstr2": "Spot at-risk students",
     "guideInstr3": "See auto-generated remediation"
+  },
+  "instructor": {
+    "tab": {
+      "overview": "Overview",
+      "students": "Students",
+      "assessments": "Assessments & Rubrics",
+      "materials": "Course Material",
+      "remediation": "Remediation",
+      "setup": "Course Setup",
+      "usage": "Usage",
+      "settings": "AI & Privacy",
+      "lms": "LMS (LTI)",
+      "licenses": "Licenses",
+      "messages": "Messages"
+    },
+    "copilot": {
+      "title": "AI Copilot — what to do before your next class",
+      "refresh": "Refresh",
+      "reading": "Reading the class…",
+      "unavailable": "Brief unavailable right now.",
+      "classHealth": "class health",
+      "vsLastWeek": "vs last week",
+      "needAttention": "of {{total}} students need attention",
+      "sessionsCompleted": "AI sessions completed",
+      "misconceptionLead": "Likely misconception on"
+    },
+    "overview": {
+      "enrolled": "Enrolled students",
+      "generated": "Modules generated",
+      "completed": "Modules completed",
+      "loading": "Loading…",
+      "conceptsRanked": "Concepts ranked by class risk",
+      "thConcept": "Concept",
+      "thMastery": "Avg mastery",
+      "thAtRisk": "At risk",
+      "noData": "No mastery data yet. Run a sync.",
+      "needsAttention": "needs attention"
+    },
+    "clusters": {
+      "title": "Misconception clusters — teach the group, not the individual",
+      "students": "students"
+    }
   }
 }

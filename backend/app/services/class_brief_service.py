@@ -132,24 +132,59 @@ def _narrate(db: Session, course_id: int, facts: dict, lang: str | None = None) 
             return brief, rec
     except Exception as e:  # noqa: BLE001
         logger.info("Class-brief narration fell back to template: %s", e)
-    return _template(facts)
+    return _template(facts, lang)
 
 
-def _template(f: dict) -> tuple[str, str]:
+# Localized templates for the offline/mock fallback (the LLM path localizes on its own).
+# {h}=class health %, {n}=needing attention, {tot}=total students, {gap}=biggest-gap concept,
+# {gm}=gap mastery %, {sess}=tutoring sessions, {done}=sessions completed, {at}=students at risk.
+_TEMPLATES = {
+    "en": {
+        "empty": ("No mastery data yet — run a sync or wait for the first assessments to come in.",
+                  "Import an assessment or connect your LMS to start seeing class insights."),
+        "brief": ("Class mastery is around {h}% across the tracked concepts. {n} of {tot} students "
+                  "need attention, and {gap} is the biggest gap at {gm}%. The AI tutor has run "
+                  "{sess} sessions ({done} completed)."),
+        "rec": ("Spend ~10 minutes reviewing {gap} before your next lecture — it's the "
+                "highest-impact fix, affecting {at} students."),
+    },
+    "es": {
+        "empty": ("Aún no hay datos de dominio — ejecuta una sincronización o espera a las primeras evaluaciones.",
+                  "Importa una evaluación o conecta tu LMS para empezar a ver información de la clase."),
+        "brief": ("El dominio de la clase ronda el {h}% en los conceptos seguidos. {n} de {tot} "
+                  "estudiantes necesitan atención, y {gap} es la mayor brecha con un {gm}%. El tutor "
+                  "de IA ha realizado {sess} sesiones ({done} completadas)."),
+        "rec": ("Dedica ~10 minutos a repasar {gap} antes de tu próxima clase — es la mejora de mayor "
+                "impacto, afecta a {at} estudiantes."),
+    },
+    "fr": {
+        "empty": ("Pas encore de données de maîtrise — lancez une synchronisation ou attendez les premières évaluations.",
+                  "Importez une évaluation ou connectez votre LMS pour commencer à voir les informations de la classe."),
+        "brief": ("La maîtrise de la classe est d'environ {h}% sur les concepts suivis. {n} étudiants "
+                  "sur {tot} ont besoin d'attention, et {gap} est le plus grand écart à {gm}%. Le tuteur "
+                  "IA a mené {sess} sessions ({done} terminées)."),
+        "rec": ("Consacrez ~10 minutes à revoir {gap} avant votre prochain cours — c'est la correction "
+                "la plus utile, elle concerne {at} étudiants."),
+    },
+    "ar": {
+        "empty": ("لا توجد بيانات إتقان بعد — شغّل مزامنة أو انتظر وصول أول التقييمات.",
+                  "استورد تقييمًا أو اربط نظامك التعليمي لتبدأ برؤية معلومات الصف."),
+        "brief": ("يبلغ إتقان الصف نحو {h}% عبر المفاهيم المتابَعة. {n} من {tot} طالبًا يحتاجون إلى "
+                  "انتباه، و{gap} هو أكبر فجوة عند {gm}%. أجرى مُعلّم الذكاء الاصطناعي {sess} جلسة "
+                  "({done} مكتملة)."),
+        "rec": ("خصّص نحو 10 دقائق لمراجعة {gap} قبل حصّتك القادمة — فهي الأعلى أثرًا، وتخصّ {at} طالبًا."),
+    },
+}
+
+
+def _template(f: dict, lang: str | None = None) -> tuple[str, str]:
+    tpl = _TEMPLATES.get((lang or "en")[:2], _TEMPLATES["en"])
     if not f["biggest_gap_concept"]:
-        return ("No mastery data yet — run a sync or wait for the first assessments to come in.",
-                "Import an assessment or connect your LMS to start seeing class insights.")
-    brief = (
-        f"Class mastery is around {f['class_health_pct']}% across the tracked concepts. "
-        f"{f['students_needing_attention']} of {f['students_total']} students need attention, and "
-        f"{f['biggest_gap_concept']} is the biggest gap at {f['biggest_gap_mastery_pct']}%"
-        + (f" — likely because they {f['likely_misconception'][0].lower()}{f['likely_misconception'][1:]}"
-           if f.get("likely_misconception") else "")
-        + f". The AI tutor has run {f['ai_tutoring_sessions']} sessions "
-        f"({f['ai_sessions_completed']} completed)."
+        return tpl["empty"]
+    vals = dict(
+        h=f["class_health_pct"], n=f["students_needing_attention"], tot=f["students_total"],
+        gap=f["biggest_gap_concept"], gm=f["biggest_gap_mastery_pct"],
+        sess=f["ai_tutoring_sessions"], done=f["ai_sessions_completed"],
+        at=f["biggest_gap_students_at_risk"],
     )
-    rec = (
-        f"Spend ~10 minutes reviewing {f['biggest_gap_concept']} before your next lecture — "
-        f"it's the highest-impact fix, affecting {f['biggest_gap_students_at_risk']} students."
-    )
-    return brief, rec
+    return tpl["brief"].format(**vals), tpl["rec"].format(**vals)

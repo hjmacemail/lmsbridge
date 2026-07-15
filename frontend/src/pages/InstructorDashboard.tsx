@@ -22,18 +22,19 @@ type Tab = "overview" | "students" | "assessments" | "materials"
 
 // `who` lists the personas that see a tab. `hideWhenLms` removes the manual course-setup
 // path once an LMS is connected (courses then arrive automatically from LTI launches).
+// `label` is an i18n key under the `instructor.tab` namespace, translated at render time.
 const TABS: { id: Tab; label: string; who: Persona[]; hideWhenLms?: boolean }[] = [
-  { id: "overview", label: "Overview", who: ["instructor"] },
-  { id: "students", label: "Students", who: ["instructor"] },
-  { id: "assessments", label: "Assessments & Rubrics", who: ["instructor"] },
-  { id: "materials", label: "Course Material", who: ["instructor"] },
-  { id: "remediation", label: "Remediation", who: ["instructor"] },
-  { id: "setup", label: "Course Setup", who: ["instructor"], hideWhenLms: true },
-  { id: "usage", label: "Usage", who: ["institution", "platform"] },
-  { id: "settings", label: "AI & Privacy", who: ["institution", "platform"] },
-  { id: "lms", label: "LMS (LTI)", who: ["platform"] },
-  { id: "licenses", label: "Licenses", who: ["platform"] },
-  { id: "leads", label: "Messages", who: ["platform"] },
+  { id: "overview", label: "instructor.tab.overview", who: ["instructor"] },
+  { id: "students", label: "instructor.tab.students", who: ["instructor"] },
+  { id: "assessments", label: "instructor.tab.assessments", who: ["instructor"] },
+  { id: "materials", label: "instructor.tab.materials", who: ["instructor"] },
+  { id: "remediation", label: "instructor.tab.remediation", who: ["instructor"] },
+  { id: "setup", label: "instructor.tab.setup", who: ["instructor"], hideWhenLms: true },
+  { id: "usage", label: "instructor.tab.usage", who: ["institution", "platform"] },
+  { id: "settings", label: "instructor.tab.settings", who: ["institution", "platform"] },
+  { id: "lms", label: "instructor.tab.lms", who: ["platform"] },
+  { id: "licenses", label: "instructor.tab.licenses", who: ["platform"] },
+  { id: "leads", label: "instructor.tab.messages", who: ["platform"] },
 ];
 
 const TITLES: Record<Persona, string> = {
@@ -43,7 +44,7 @@ const TITLES: Record<Persona, string> = {
 };
 
 function CopilotBrief({ courseId }: { courseId: number }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [brief, setBrief] = useState<ClassBrief | null>(null);
   const [loading, setLoading] = useState(true);
   const load = () => {
@@ -59,16 +60,16 @@ function CopilotBrief({ courseId }: { courseId: number }) {
       padding: "16px 18px", marginBottom: 22 }}>
       <div className="row" style={{ alignItems: "center", marginBottom: 8 }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: ".5px", textTransform: "uppercase",
-          color: accent }}>✨ AI Copilot — what to do before your next class</div>
+          color: accent }}>✨ {t("instructor.copilot.title")}</div>
         <button onClick={load} disabled={loading}
           style={{ border: "1px solid #C7CCEF", background: "#fff", color: accent, borderRadius: 8,
             padding: "4px 12px", fontSize: 12.5, cursor: loading ? "default" : "pointer" }}>
-          {loading ? "…" : "↻ Refresh"}</button>
+          {loading ? "…" : `↻ ${t("instructor.copilot.refresh")}`}</button>
       </div>
       {loading && !brief ? (
-        <p className="muted" style={{ margin: 0 }}>Reading the class…</p>
+        <p className="muted" style={{ margin: 0 }}>{t("instructor.copilot.reading")}</p>
       ) : !brief ? (
-        <p className="muted" style={{ margin: 0 }}>Brief unavailable right now.</p>
+        <p className="muted" style={{ margin: 0 }}>{t("instructor.copilot.unavailable")}</p>
       ) : (
         <>
           <div style={{ display: "flex", gap: 22, flexWrap: "wrap", alignItems: "baseline",
@@ -86,18 +87,20 @@ function CopilotBrief({ courseId }: { courseId: number }) {
                   )}
                 </div>
                 <div className="muted" style={{ fontSize: 11.5 }}>
-                  class health{brief.health_trend != null ? " · vs last week" : ""}</div>
+                  {t("instructor.copilot.classHealth")}
+                  {brief.health_trend != null ? ` · ${t("instructor.copilot.vsLastWeek")}` : ""}</div>
               </div>
             )}
             <div>
               <div style={{ fontSize: 30, fontWeight: 800, color: "#C0392B", lineHeight: 1 }}>
                 {brief.needs_attention}</div>
-              <div className="muted" style={{ fontSize: 11.5 }}>of {brief.students_total} need attention</div>
+              <div className="muted" style={{ fontSize: 11.5 }}>
+                {t("instructor.copilot.needAttention", { total: brief.students_total })}</div>
             </div>
             <div>
               <div style={{ fontSize: 30, fontWeight: 800, color: "#1E7A43", lineHeight: 1 }}>
                 {brief.ai_completed}/{brief.ai_sessions}</div>
-              <div className="muted" style={{ fontSize: 11.5 }}>AI sessions completed</div>
+              <div className="muted" style={{ fontSize: 11.5 }}>{t("instructor.copilot.sessionsCompleted")}</div>
             </div>
           </div>
           <p style={{ margin: "0 0 10px", fontSize: 14.5, color: "#23264D", lineHeight: 1.55 }}>
@@ -109,7 +112,7 @@ function CopilotBrief({ courseId }: { courseId: number }) {
           </div>
           {brief.top_misconception && (
             <p className="muted" style={{ margin: "8px 0 0", fontSize: 12.5 }}>
-              Likely misconception on <strong>{brief.top_concept}</strong>: {brief.top_misconception}
+              {t("instructor.copilot.misconceptionLead")} <strong>{brief.top_concept}</strong>: {brief.top_misconception}
             </p>
           )}
         </>
@@ -119,6 +122,7 @@ function CopilotBrief({ courseId }: { courseId: number }) {
 }
 
 function MisconceptionClusters({ courseId }: { courseId: number }) {
+  const { t } = useTranslation();
   const [clusters, setClusters] = useState<MisconceptionCluster[] | null>(null);
   const [open, setOpen] = useState<number | null>(null);
   useEffect(() => {
@@ -128,7 +132,7 @@ function MisconceptionClusters({ courseId }: { courseId: number }) {
 
   return (
     <>
-      <h2 style={{ marginTop: 26 }}>Misconception clusters — teach the group, not the individual</h2>
+      <h2 style={{ marginTop: 26 }}>{t("instructor.clusters.title")}</h2>
       <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
         gap: 12 }}>
         {clusters.map((c, i) => (
@@ -137,7 +141,7 @@ function MisconceptionClusters({ courseId }: { courseId: number }) {
             <div className="row" style={{ alignItems: "baseline" }}>
               <span style={{ fontSize: 26, fontWeight: 800, color: "#C0392B", lineHeight: 1 }}>
                 {c.size}</span>
-              <span className="muted" style={{ fontSize: 11.5 }}>students</span>
+              <span className="muted" style={{ fontSize: 11.5 }}>{t("instructor.clusters.students")}</span>
             </div>
             <div style={{ fontWeight: 600, fontSize: 13.5, margin: "6px 0 2px" }}>{c.concept}</div>
             <div className="muted" style={{ fontSize: 13, lineHeight: 1.45 }}>{c.misconception}</div>
@@ -154,30 +158,31 @@ function MisconceptionClusters({ courseId }: { courseId: number }) {
 }
 
 function Overview({ courseId }: { courseId: number }) {
+  const { t } = useTranslation();
   const [analytics, setAnalytics] = useState<InstructorAnalytics | null>(null);
   useEffect(() => {
     api.analytics(courseId).then(setAnalytics).catch(() => setAnalytics(null));
   }, [courseId]);
-  if (!analytics) return <p className="muted">Loading…</p>;
+  if (!analytics) return <p className="muted">{t("instructor.overview.loading")}</p>;
 
   return (
     <>
       <CopilotBrief courseId={courseId} />
       <div className="grid cols-3">
-        <div className="card"><div className="muted">Enrolled students</div>
+        <div className="card"><div className="muted">{t("instructor.overview.enrolled")}</div>
           <div className="kpi">{analytics.enrolled_students}</div></div>
-        <div className="card"><div className="muted">Modules generated</div>
+        <div className="card"><div className="muted">{t("instructor.overview.generated")}</div>
           <div className="kpi">{analytics.modules_generated}</div></div>
-        <div className="card"><div className="muted">Modules completed</div>
+        <div className="card"><div className="muted">{t("instructor.overview.completed")}</div>
           <div className="kpi">{analytics.modules_completed}</div></div>
       </div>
-      <h2 style={{ marginTop: 26 }}>Concepts ranked by class risk</h2>
+      <h2 style={{ marginTop: 26 }}>{t("instructor.overview.conceptsRanked")}</h2>
       <div className="card">
         <table>
-          <thead><tr><th>Concept</th><th>Avg mastery</th><th>At risk</th><th></th></tr></thead>
+          <thead><tr><th>{t("instructor.overview.thConcept")}</th><th>{t("instructor.overview.thMastery")}</th><th>{t("instructor.overview.thAtRisk")}</th><th></th></tr></thead>
           <tbody>
             {analytics.concept_risks.length === 0 &&
-              <tr><td colSpan={4} className="muted">No mastery data yet. Run a sync.</td></tr>}
+              <tr><td colSpan={4} className="muted">{t("instructor.overview.noData")}</td></tr>}
             {analytics.concept_risks.map((r) => (
               <tr key={r.concept_id}>
                 <td style={{ fontWeight: 600 }}>{r.concept_name}</td>
@@ -193,7 +198,7 @@ function Overview({ courseId }: { courseId: number }) {
                 </td>
                 <td>{r.at_risk_count} / {r.total_students}</td>
                 <td>{r.avg_mastery <= 0.7 &&
-                  <span className="pill at_risk">needs attention</span>}</td>
+                  <span className="pill at_risk">{t("instructor.overview.needsAttention")}</span>}</td>
               </tr>
             ))}
           </tbody>
@@ -213,6 +218,7 @@ export default function InstructorDashboard({ scoped = false }: { scoped?: boole
   const [err, setErr] = useState<string | null>(null);
   const [lmsConnected, setLmsConnected] = useState(false);
   const [community, setCommunity] = useState(true); // default to self-hosted community mode
+  const { t } = useTranslation();
   const { auth } = useAuth();
   const [params] = useSearchParams();
   // When the tool is launched LMS-wide via LTI, the instructor arrives in ONE course's
@@ -403,9 +409,9 @@ export default function InstructorDashboard({ scoped = false }: { scoped?: boole
       )}
 
       <div className="tabs" style={{ margin: "18px 0 22px" }}>
-        {tabs.map((t) => (
-          <button key={t.id} className={`tab ${tab === t.id ? "active" : ""}`}
-            onClick={() => setTab(t.id)}>{t.label}</button>
+        {tabs.map((tb) => (
+          <button key={tb.id} className={`tab ${tab === tb.id ? "active" : ""}`}
+            onClick={() => setTab(tb.id)}>{t(tb.label)}</button>
         ))}
       </div>
 

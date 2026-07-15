@@ -123,5 +123,47 @@
     "simBanner": "Vous consultez un cours {{lms}} simulé. Tout sauf le contenu LMS Bridge est une maquette — la partie LMS Bridge en surbrillance est le véritable outil interactif.",
     "tryThese": "Essayez ceci",
     "worksWith": "Compatible avec"
+  },
+  "instructor": {
+    "tab": {
+      "overview": "Aperçu",
+      "students": "Étudiants",
+      "assessments": "Évaluations et grilles",
+      "materials": "Support de cours",
+      "remediation": "Remédiation",
+      "setup": "Configuration du cours",
+      "usage": "Utilisation",
+      "settings": "IA et confidentialité",
+      "lms": "LMS (LTI)",
+      "licenses": "Licences",
+      "messages": "Messages"
+    },
+    "copilot": {
+      "title": "Copilote IA — que faire avant votre prochain cours",
+      "refresh": "Actualiser",
+      "reading": "Lecture de la classe…",
+      "unavailable": "Synthèse indisponible pour le moment.",
+      "classHealth": "santé de la classe",
+      "vsLastWeek": "vs semaine dernière",
+      "needAttention": "sur {{total}} étudiants ont besoin d’attention",
+      "sessionsCompleted": "sessions d’IA terminées",
+      "misconceptionLead": "Erreur de compréhension probable sur"
+    },
+    "overview": {
+      "enrolled": "Étudiants inscrits",
+      "generated": "Modules générés",
+      "completed": "Modules terminés",
+      "loading": "Chargement…",
+      "conceptsRanked": "Concepts classés par risque de la classe",
+      "thConcept": "Concept",
+      "thMastery": "Maîtrise moyenne",
+      "thAtRisk": "À risque",
+      "noData": "Pas encore de données de maîtrise. Lancez une synchronisation.",
+      "needsAttention": "à surveiller"
+    },
+    "clusters": {
+      "title": "Groupes d’erreurs de compréhension — enseignez au groupe, pas à l’individu",
+      "students": "étudiants"
+    }
   }
 }
