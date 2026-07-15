@@ -741,7 +741,7 @@
 <section class="closing-cta"><div class="wrap">
   <h2>Ready to stop discovering struggling students too late?</h2>
   <div class="cta" style="justify-content:center;margin-top:20px">
-    <a class="btn" href="#install">Try the live demo</a>
+    <a class="btn" id="tryDemoBtn2" href="#install">Try the live demo</a>
     <a class="btn secondary" href="#install">Install in your LMS</a>
     <a class="btn secondary" href="https://github.com/hjmacemail/lmsbridge" target="_blank" rel="noopener">View on GitHub</a>
   </div>
@@ -773,7 +773,10 @@
   (function(){
     var app = window.LMSBRIDGE_APP.replace(/\/$/, '');
     var home = '&home=' + encodeURIComponent(window.location.origin);
-    document.getElementById('tryDemoBtn').href = app + '/demo?home=' + encodeURIComponent(window.location.origin);
+    var demoUrl = app + '/demo?home=' + encodeURIComponent(window.location.origin);
+    ['tryDemoBtn','tryDemoBtn2'].forEach(function(id){
+      var el = document.getElementById(id); if (el) el.href = demoUrl;
+    });
     ['canvas','blackboard','moodle','brightspace'].forEach(function(id){
       var el = document.getElementById('demo_' + id);
       if (el) el.href = app + '/demo?lms=' + id + home;
