@@ -126,51 +126,122 @@ function Donut({ v, size = 92 }: { v: number; size?: number }) {
   );
 }
 
+function SideLink({ icon, label, active, onClick }:
+  { icon: string; label: string; active?: boolean; onClick: () => void }) {
+  return (
+    <button onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 11, width: "100%",
+      textAlign: "left", cursor: "pointer", padding: "9px 11px", fontSize: 14, borderRadius: 9,
+      border: "none", fontWeight: active ? 700 : 500, color: active ? C.primary : C.muted,
+      background: active ? C.accentBg : "transparent" }}>
+      <Icon name={icon} size={18} color={active ? C.primary : C.muted} /> {label}
+    </button>
+  );
+}
+
 export default function SageApp() {
   const [user, setUser] = useState<SageAuth | null>(loadUser());
   const [view, setView] = useState<"auth" | "courses" | "course" | "profile">(
     loadToken() && loadUser() ? "courses" : "auth");
   const [course, setCourse] = useState<SageCourseSummary | null>(null);
+  const [courseTab, setCourseTab] = useState("Home");
+  const [detail, setDetail] = useState<SageCourseDetail | null>(null);
 
   function onAuth(a: SageAuth) { persist(a); setUser(a); setView("courses"); }
   function signOut() { clearToken(); sessionStorage.removeItem(USER_KEY); setUser(null); setView("auth"); }
+  function openCourse(c: SageCourseSummary) {
+    setCourse(c); setCourseTab("Home"); setDetail(null);
+    sageApi.courseDetail(c.id).then(setDetail).catch(() => setDetail(null));
+    setView("course");
+  }
 
-  return (
-    <div style={{ minHeight: "100vh", background: C.pageBg, color: C.ink }}>
-      <header style={{ background: BRAND.accent || C.brand, color: "#fff", padding: "14px 0" }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 16px", display: "flex",
-          justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <div style={{ cursor: "pointer", fontWeight: 800, fontSize: 19, display: "flex", alignItems: "center", gap: 9 }}
-              onClick={() => setView(user ? "courses" : "auth")} title={`${BRAND.name} home`}>
-              {BRAND.logoUrl
-                ? <img src={BRAND.logoUrl} alt={BRAND.name} style={{ height: 24, width: "auto" }} />
-                : <Icon name="school" size={22} />} {BRAND.name}
-            </div>
-            <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer" title="Go to the LMS Bridge website"
-              style={{ opacity: 0.7, fontWeight: 400, fontSize: 12.5, color: "#fff",
+  // Auth screens: no app sidebar — a slim brand bar over centered content.
+  if (view === "auth" || !user) {
+    return (
+      <div style={{ minHeight: "100vh", background: C.pageBg, color: C.ink }}>
+        <header style={{ background: BRAND.accent || C.brand, color: "#fff", padding: "13px 0" }}>
+          <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 20px", display: "flex",
+            alignItems: "center", gap: 9 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 18 }}>
+              {BRAND.logoUrl ? <img src={BRAND.logoUrl} alt={BRAND.name} style={{ height: 22 }} />
+                : <Icon name="school" size={20} />} {BRAND.name}</span>
+            <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer"
+              style={{ opacity: 0.75, fontWeight: 400, fontSize: 12.5, color: "#fff",
                 textDecoration: "underline", textUnderlineOffset: 3 }}>· {BRAND.attribution}</a>
           </div>
-          {user && (
-            <div style={{ display: "flex", gap: 12, alignItems: "center", fontSize: 13.5 }}>
-              <div onClick={() => setView("profile")} title="Your profile"
-                style={{ width: 30, height: 30, borderRadius: "50%", background: "#7F77DD", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600 }}>
-                {initials(user.full_name)}</div>
-              <button onClick={signOut} style={{ background: "rgba(255,255,255,.14)", color: "#fff",
-                border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", display: "inline-flex",
-                alignItems: "center", gap: 6 }}><Icon name="logout" size={15} /> Sign out</button>
-            </div>
-          )}
+        </header>
+        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "24px 16px 56px" }}>
+          <Auth onAuth={onAuth} />
         </div>
-      </header>
-      <div style={{ maxWidth: 1120, margin: "0 auto", padding: "24px 16px 56px" }}>
-        {view === "auth" && <Auth onAuth={onAuth} />}
+      </div>
+    );
+  }
+
+  const inCourse = view === "course" && course;
+  const courseTabs = course && course.role === "instructor"
+    ? ["Home", "Syllabus", "Materials", "Quizzes", "Students", "Grades"]
+    : ["Home", "Syllabus", "Materials", "Quizzes", "Grades", "Needs review"];
+
+  return (
+    <div style={{ minHeight: "100vh", background: C.pageBg, color: C.ink, display: "flex" }}>
+      {/* persistent app sidebar */}
+      <aside style={{ width: 232, flexShrink: 0, background: C.sidebar, borderRight: `1px solid ${C.line}`,
+        display: "flex", flexDirection: "column", padding: "16px 12px", position: "sticky", top: 0,
+        height: "100vh", boxSizing: "border-box" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "4px 8px 14px",
+          borderBottom: `1px solid ${C.line}`, marginBottom: 10 }}>
+          <span style={{ width: 30, height: 30, borderRadius: 9, background: C.primary, color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            {BRAND.logoUrl ? <img src={BRAND.logoUrl} alt="" style={{ height: 18 }} /> : <Icon name="school" size={18} color="#fff" />}
+          </span>
+          <div style={{ lineHeight: 1.15 }}>
+            <div style={{ fontWeight: 800, fontSize: 16, color: C.ink }}>{BRAND.name}</div>
+            <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer"
+              style={{ fontSize: 10.5, color: C.muted, textDecoration: "none" }}>· {BRAND.attribution}</a>
+          </div>
+        </div>
+
+        <nav style={{ display: "grid", gap: 2, flex: 1, alignContent: "start" }}>
+          {inCourse ? (
+            <>
+              <button onClick={() => setView("courses")} style={{ display: "flex", alignItems: "center", gap: 8,
+                background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: 12.5,
+                padding: "4px 11px 10px" }}><Icon name="back" size={14} /> All courses</button>
+              <div style={{ padding: "0 11px 10px", fontWeight: 700, fontSize: 13.5, color: C.ink,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{course!.name}</div>
+              {courseTabs.map((tName) => (
+                <SideLink key={tName} icon={TAB_ICON[tName] || "note"} label={tName}
+                  active={courseTab === tName} onClick={() => setCourseTab(tName)} />
+              ))}
+            </>
+          ) : (
+            <>
+              <SideLink icon="school" label="Courses" active={view === "courses"} onClick={() => setView("courses")} />
+              <SideLink icon="note" label="Profile" active={view === "profile"} onClick={() => setView("profile")} />
+            </>
+          )}
+        </nav>
+
+        <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 10, marginTop: 8 }}>
+          <button onClick={() => setView("profile")} style={{ display: "flex", alignItems: "center", gap: 9,
+            width: "100%", background: "none", border: "none", cursor: "pointer", padding: "6px 8px",
+            marginBottom: 4 }}>
+            <span style={{ width: 30, height: 30, borderRadius: "50%", background: C.accentBg, color: C.accentInk,
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700,
+              flexShrink: 0 }}>{initials(user.full_name)}</span>
+            <span style={{ fontSize: 13, color: C.ink, fontWeight: 600, overflow: "hidden",
+              textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.full_name}</span>
+          </button>
+          <SideLink icon="logout" label="Sign out" onClick={signOut} />
+        </div>
+      </aside>
+
+      {/* content */}
+      <div style={{ flex: 1, minWidth: 0, padding: "28px 32px 56px", maxWidth: 1120 }}>
         {view === "profile" && <Profile onName={(n) => user && setUser({ ...user, full_name: n })}
           onBack={() => setView("courses")} />}
-        {view === "courses" && <Courses onOpen={(c) => { setCourse(c); setView("course"); }} />}
-        {view === "course" && course &&
-          <CourseView course={course} onBack={() => setView("courses")} />}
+        {view === "courses" && <Courses userName={user.full_name} onOpen={openCourse} />}
+        {inCourse && <CourseView course={course!} tab={courseTab} detail={detail}
+          reloadDetail={() => sageApi.courseDetail(course!.id).then(setDetail).catch(() => setDetail(null))} />}
       </div>
     </div>
   );
@@ -297,12 +368,22 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
 }
 
 // --------------------------------------------------------------- Courses
-function Courses({ onOpen }: { onOpen: (c: SageCourseSummary) => void }) {
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+}
+
+function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void; userName: string }) {
   const [courses, setCourses] = useState<SageCourseSummary[]>([]);
   const [name, setName] = useState(""); const [subject, setSubject] = useState("");
   const [code, setCode] = useState(""); const [msg, setMsg] = useState<string | null>(null);
   const load = () => sageApi.courses().then(setCourses).catch(() => setCourses([]));
   useEffect(() => { load(); }, []);
+
+  const firstName = userName.trim().split(/\s+/)[0] || userName;
+  const teaching = courses.filter((c) => c.role === "instructor");
+  const totalStudents = teaching.reduce((s, c) => s + (c.student_count || 0), 0);
+  const totalQuizzes = teaching.reduce((s, c) => s + (c.quiz_count || 0), 0);
 
   async function create(e: React.FormEvent) {
     e.preventDefault(); if (!name) return;
@@ -316,7 +397,20 @@ function Courses({ onOpen }: { onOpen: (c: SageCourseSummary) => void }) {
   }
   return (
     <div>
-      <h2 style={{ color: C.brand, fontSize: 22 }}>Your courses</h2>
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ margin: 0, fontSize: 24, color: C.ink }}>{greeting()}, {firstName}</h1>
+        <p style={{ margin: "4px 0 0", color: C.muted, fontSize: 14.5 }}>
+          Here's what's happening in your courses.</p>
+      </div>
+      {teaching.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+          gap: 12, marginBottom: 20 }}>
+          <Stat label="Courses" value={teaching.length} />
+          <Stat label="Students" value={totalStudents} />
+          <Stat label="Quizzes" value={totalQuizzes} />
+        </div>
+      )}
+      <h2 style={{ color: C.ink, fontSize: 18, margin: "0 0 12px" }}>Your courses</h2>
       {courses.length === 0 && (
         <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
           No courses yet — create your first one below, or join one with a code.
@@ -382,60 +476,23 @@ const TAB_ICON: Record<string, string> = {
   Students: "school", Grades: "download", "Needs review": "alert",
 };
 
-function CourseView({ course, onBack }: { course: SageCourseSummary; onBack: () => void }) {
+function CourseView({ course, tab, detail, reloadDetail }:
+  { course: SageCourseSummary; tab: string; detail: SageCourseDetail | null; reloadDetail: () => void }) {
   const instr = course.role === "instructor";
-  const tabs = instr ? ["Home", "Syllabus", "Materials", "Quizzes", "Students", "Grades"]
-    : ["Home", "Syllabus", "Materials", "Quizzes", "Grades", "Needs review"];
-  const [tab, setTab] = useState("Home");
-  const [detail, setDetail] = useState<SageCourseDetail | null>(null);
-  const loadDetail = () => sageApi.courseDetail(course.id).then(setDetail).catch(() => setDetail(null));
-  useEffect(() => { loadDetail(); }, [course.id]);
-
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "216px 1fr", gap: 22, alignItems: "start" }}>
-      {/* left sidebar */}
-      <aside style={{ background: C.sidebar, border: `1px solid ${C.line}`, borderRadius: 16,
-        boxShadow: C.shadow, padding: 12, position: "sticky", top: 20 }}>
-        <button onClick={onBack} style={{ width: "100%", display: "flex", alignItems: "center", gap: 8,
-          background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: 13,
-          padding: "6px 10px", marginBottom: 6 }}>
-          <Icon name="back" size={15} /> All courses</button>
-        <div style={{ padding: "6px 10px 10px", borderBottom: `1px solid ${C.line}`, marginBottom: 8 }}>
-          <div style={{ fontWeight: 700, fontSize: 14.5, color: C.ink, lineHeight: 1.3 }}>{course.name}</div>
-          <div style={{ fontSize: 11.5, color: C.muted, marginTop: 3, textTransform: "capitalize" }}>{course.role}</div>
-        </div>
-        <nav style={{ display: "grid", gap: 2 }}>
-          {tabs.map((tName) => {
-            const on = tab === tName;
-            return (
-              <button key={tName} onClick={() => setTab(tName)} style={{ display: "flex", alignItems: "center",
-                gap: 10, width: "100%", textAlign: "left", cursor: "pointer", padding: "9px 11px",
-                fontSize: 13.5, borderRadius: 9, border: "none",
-                fontWeight: on ? 700 : 500, color: on ? C.primary : C.muted,
-                background: on ? C.accentBg : "transparent" }}>
-                <Icon name={TAB_ICON[tName] || "note"} size={17} color={on ? C.primary : C.muted} />
-                {tName}
-              </button>
-            );
-          })}
-        </nav>
-      </aside>
-
-      {/* content */}
-      <div style={{ minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-          flexWrap: "wrap", gap: 10, margin: "2px 0 16px" }}>
-          <h2 style={{ color: C.ink, margin: 0, fontSize: 23 }}>{tab === "Home" ? course.name : tab}</h2>
-          {instr && <CopyChip code={course.join_code} />}
-        </div>
-        {tab === "Home" && <Home course={course} instr={instr} detail={detail} />}
-        {tab === "Syllabus" && <Syllabus course={course} instr={instr} detail={detail} onSaved={loadDetail} />}
-        {tab === "Materials" && <Materials course={course} instr={instr} />}
-        {tab === "Quizzes" && (instr ? <QuizzesInstructor course={course} /> : <QuizzesStudent course={course} />)}
-        {tab === "Students" && <Students course={course} />}
-        {tab === "Grades" && <GradesTab course={course} />}
-        {tab === "Needs review" && <NeedsReview course={course} />}
+    <div style={{ minWidth: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+        flexWrap: "wrap", gap: 10, margin: "0 0 18px" }}>
+        <h1 style={{ color: C.ink, margin: 0, fontSize: 23 }}>{tab === "Home" ? course.name : tab}</h1>
+        {instr && <CopyChip code={course.join_code} />}
       </div>
+      {tab === "Home" && <Home course={course} instr={instr} detail={detail} />}
+      {tab === "Syllabus" && <Syllabus course={course} instr={instr} detail={detail} onSaved={reloadDetail} />}
+      {tab === "Materials" && <Materials course={course} instr={instr} />}
+      {tab === "Quizzes" && (instr ? <QuizzesInstructor course={course} /> : <QuizzesStudent course={course} />)}
+      {tab === "Students" && <Students course={course} />}
+      {tab === "Grades" && <GradesTab course={course} />}
+      {tab === "Needs review" && <NeedsReview course={course} />}
     </div>
   );
 }
