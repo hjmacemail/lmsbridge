@@ -126,6 +126,9 @@
   .hero .cta{display:flex;gap:14px;flex-wrap:wrap}
   .pill{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--accent);background:rgba(165,180,252,.12);border:1px solid rgba(165,180,252,.25);padding:6px 12px;border-radius:999px;margin-bottom:20px}
   .hero .tagline{font-size:18px;font-style:italic;font-weight:600;color:#a5b4fc;margin:-8px 0 20px}
+  .hero-checks{list-style:none;padding:0;margin:18px 0 26px;display:grid;gap:9px}
+  .hero-checks li{position:relative;padding-left:28px;color:#e2e8f0;font-size:15.5px;line-height:1.4}
+  .hero-checks li::before{content:"✓";position:absolute;left:0;top:0;color:#34d399;font-weight:800}
   .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center}
   .hero-media{display:flex;justify-content:center}
   .hero-media svg{width:100%;max-width:470px;height:auto}
@@ -167,6 +170,19 @@
   .compare td.no{color:var(--muted)}
   .compare td.yes{color:var(--green);font-weight:600}
   .compare tbody tr:last-child td{border-bottom:none}
+  /* Before/After + story + impact */
+  .card.feat{border:2px solid var(--primary)}
+  .quote{margin:12px 0;font-size:18px;line-height:1.4;font-style:italic;color:var(--ink)}
+  .ba{color:var(--muted);font-size:14px;line-height:1.6}
+  .statbig{font-size:34px;font-weight:800;color:var(--primary);line-height:1.1;margin:6px 0 6px}
+  .statlbl{font-size:16px;font-weight:700;margin:8px 0 6px}
+  .illus{display:inline-block;background:rgba(217,119,6,.12);color:#b45309;border:1px solid rgba(217,119,6,.3);border-radius:999px;padding:3px 12px;font-size:12.5px;font-weight:600}
+  .impact{display:flex;flex-wrap:wrap;gap:14px;margin-top:22px}
+  .impact>div{flex:1 1 150px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center}
+  .impact b{display:block;font-size:30px;color:var(--primary);line-height:1.1}
+  .impact span{color:var(--muted);font-size:13.5px}
+  .closing-cta{background:radial-gradient(1000px 400px at 50% 120%,#312e81 0,var(--bg) 60%);color:#fff;text-align:center}
+  .closing-cta h2{color:#fff;font-size:30px;max-width:720px;margin:0 auto}
   /* Steps */
   .steps{counter-reset:s}
   .step{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
@@ -244,15 +260,12 @@
   <span class="pill">Open-source AI tutoring for your LMS</span>
   <h1>Your LMS tells you who failed. LMS Bridge tells you why — and fixes it.</h1>
   <p class="tagline">Bridge early gaps before they widen.</p>
-  <p class="sub">LMS Bridge turns the quiz and assignment results your LMS already collects into
-  personalized, AI-guided tutoring. It pinpoints each student's specific misconception from their
-  real answers and coaches them to fix it — before a shaky week-3 concept becomes a failed course in
-  week 10. Installs into Canvas, Moodle, Brightspace, and Blackboard with one standard — or runs
-  standalone with no LMS at all. <b>Free and open source (AGPL-3.0).</b></p>
-  <p class="mini" style="color:#cbd5e1;margin:-6px 0 22px;font-size:14px;max-width:640px">
-    <b style="color:#fff">For instructors:</b> a live dashboard showing who needs help and exactly why.
-    &nbsp; <b style="color:#fff">For students:</b> a private tutor that guides them to the answer, never just hands it over.
-  </p>
+  <p class="sub">Turn every assessment into personalized recovery — automatically, inside your course.</p>
+  <ul class="hero-checks">
+    <li>Detects each student's misconception automatically</li>
+    <li>Generates personalized AI tutoring on the spot</li>
+    <li>Runs inside Canvas, Blackboard, Moodle &amp; Brightspace — free &amp; open source</li>
+  </ul>
   <div class="cta">
     <a class="btn" id="tryDemoBtn" href="#install">Try the live demo</a>
     <a class="btn ghost" href="#install">Install in your LMS</a>
@@ -336,7 +349,65 @@
   </div>
 </div></section>
 
-<section id="problem"><div class="wrap">
+<section id="why"><div class="wrap">
+  <h2>“Why can't we just use ChatGPT?”</h2>
+  <p class="lead">Because a general chatbot doesn't know your class — and isn't built to be trusted in a graded course.</p>
+  <div class="compare">
+    <table>
+      <thead><tr><th></th><th>A general AI chatbot</th><th>LMS Bridge</th></tr></thead>
+      <tbody>
+        <tr><td>Knows the student's actual answers</td><td class="no">✗ generic</td><td class="yes">✓ reads the specific wrong option</td></tr>
+        <tr><td>Targets the real misconception</td><td class="no">✗ one-size-fits-all</td><td class="yes">✓ concept-level diagnosis</td></tr>
+        <tr><td>Lives inside your LMS</td><td class="no">✗ separate tab</td><td class="yes">✓ native via LTI 1.3</td></tr>
+        <tr><td>Gives instructors class analytics</td><td class="no">✗ none</td><td class="yes">✓ live dashboard + AI brief</td></tr>
+        <tr><td>Measures who actually recovered</td><td class="no">✗ no tracking</td><td class="yes">✓ mastery + recovery over time</td></tr>
+        <tr><td>Won't just hand over the answer</td><td class="no">✗ does the homework</td><td class="yes">✓ Socratic, pedagogically constrained</td></tr>
+        <tr><td>Your data, your AI key, your rules</td><td class="no">✗ vendor cloud</td><td class="yes">✓ self-host, FERPA-aware, BYO key</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div></section>
+
+<section id="beforeafter" class="alt"><div class="wrap">
+  <h2>Why LMS Bridge exists</h2>
+  <p class="lead">Today you find out who's struggling too late to help them. LMS Bridge closes the gap while it still matters.</p>
+  <div class="grid cols-2" style="gap:18px">
+    <div class="card">
+      <div class="mini" style="text-transform:uppercase;letter-spacing:.5px;font-weight:700">Without LMS Bridge</div>
+      <blockquote class="quote">“I only find out students are confused during the final exam.”</blockquote>
+      <div class="ba">Quiz → grade → student quietly falls behind → office hours (if they come) → final exam → <b>too late</b>.</div>
+    </div>
+    <div class="card feat">
+      <div class="mini" style="text-transform:uppercase;letter-spacing:.5px;color:var(--primary);font-weight:700">With LMS Bridge</div>
+      <blockquote class="quote">“I know exactly who needs help — before the next lecture.”</blockquote>
+      <div class="ba">Quiz → misconception detected → AI tutoring generated → student recovers → instructor alerted → <b>student succeeds</b>.</div>
+    </div>
+  </div>
+</div></section>
+
+<section id="story"><div class="wrap">
+  <h2>One student, start to finish</h2>
+  <p class="lead"><span class="illus">Illustrative example from the demo course</span></p>
+  <div class="grid cols-4" style="gap:14px">
+    <div class="card"><div class="mini">The quiz</div><div class="statbig">52%</div>
+      <p>Ava misses the binary questions.</p></div>
+    <div class="card"><div class="mini">AI detects</div><div class="statlbl">Confuses overflow with the carry bit</div>
+      <p>From the exact wrong option she chose — not just the score.</p></div>
+    <div class="card"><div class="mini">Guided tutoring</div><div class="statbig">11 min</div>
+      <p>A Socratic dialogue — the tutor never hands over the answer.</p></div>
+    <div class="card feat"><div class="mini">Re-attempt</div><div class="statbig">52% → 89%</div>
+      <p>Ava recovers before the gap compounds.</p></div>
+  </div>
+  <div class="impact">
+    <div><b>17</b><span>students recovered</span></div>
+    <div><b>61</b><span>misconceptions fixed</span></div>
+    <div><b>9 hrs</b><span>instructor time saved</span></div>
+    <div><b>92%</b><span>tutoring completion</span></div>
+  </div>
+  <p class="mini" style="text-align:center;margin-top:10px">Illustrative outcomes from the demo course — not from a live deployment.</p>
+</div></section>
+
+<section id="problem" class="alt"><div class="wrap">
   <h2>Early misconceptions quietly compound</h2>
   <p class="lead">In cumulative STEM courses, a shaky grasp of binary arithmetic or conditional
   probability in week 3 turns into failure in week 10. Instructors have rich gradebook data but no
@@ -370,25 +441,6 @@
       <p>Enable or disable any assessment as an adaptive input, and recompute on demand.</p></div>
     <div class="card"><div class="ico">🔒</div><h3>Privacy by design</h3>
       <p>FERPA-aware, role-based access, and a bring-your-own-model option for full data governance.</p></div>
-  </div>
-</div></section>
-
-<section id="why"><div class="wrap">
-  <h2>“Why can't we just use ChatGPT?”</h2>
-  <p class="lead">Because a general chatbot doesn't know your class — and isn't built to be trusted in a graded course.</p>
-  <div class="compare">
-    <table>
-      <thead><tr><th></th><th>A general AI chatbot</th><th>LMS Bridge</th></tr></thead>
-      <tbody>
-        <tr><td>Knows the student's actual answers</td><td class="no">✗ generic</td><td class="yes">✓ reads the specific wrong option</td></tr>
-        <tr><td>Targets the real misconception</td><td class="no">✗ one-size-fits-all</td><td class="yes">✓ concept-level diagnosis</td></tr>
-        <tr><td>Lives inside your LMS</td><td class="no">✗ separate tab</td><td class="yes">✓ native via LTI 1.3</td></tr>
-        <tr><td>Gives instructors class analytics</td><td class="no">✗ none</td><td class="yes">✓ live dashboard + AI brief</td></tr>
-        <tr><td>Measures who actually recovered</td><td class="no">✗ no tracking</td><td class="yes">✓ mastery + recovery over time</td></tr>
-        <tr><td>Won't just hand over the answer</td><td class="no">✗ does the homework</td><td class="yes">✓ Socratic, pedagogically constrained</td></tr>
-        <tr><td>Your data, your AI key, your rules</td><td class="no">✗ vendor cloud</td><td class="yes">✓ self-host, FERPA-aware, BYO key</td></tr>
-      </tbody>
-    </table>
   </div>
 </div></section>
 
@@ -463,9 +515,16 @@
 </div></section>
 
 <section id="opensource"><div class="wrap">
-  <h2>Free and open source</h2>
-  <p class="lead">LMS Bridge is licensed under the GNU AGPL-3.0. Any institution can download it,
-  run it on its own infrastructure, and use it with <b>no per-student fee and no size limit</b>.</p>
+  <h2>Your institution stays in control</h2>
+  <p class="lead">Open source under AGPL-3.0 — free to run at any size, with nothing locked to a vendor.</p>
+  <div class="hero-checks" style="grid-template-columns:1fr 1fr;display:grid;gap:10px 28px;margin:0 0 30px">
+    <li style="color:var(--ink)">Your servers — self-host in your own environment</li>
+    <li style="color:var(--ink)">Your AI keys — bring your own provider (or a local model)</li>
+    <li style="color:var(--ink)">Your student data — never leaves your boundary; FERPA-aware</li>
+    <li style="color:var(--ink)">Your prompts — course-configurable, tune tone and approach</li>
+    <li style="color:var(--ink)">Audit every line — the full source is public</li>
+    <li style="color:var(--ink)">No vendor lock-in — no per-student fee, no size limit</li>
+  </div>
   <div class="grid cols-3">
     <div class="card"><div class="ico">⬇️</div><h3>Self-host it</h3>
       <p>Clone the repo and bring it up with one command (Docker). It runs inside your environment,
@@ -674,6 +733,15 @@
         <a href="mailto:info@lmsbridge.app">info@lmsbridge.app</a> ·
         <a id="ghMaintainer" href="https://github.com/hjmacemail/lmsbridge" target="_blank" rel="noopener">GitHub</a>.</p></div>
     </div>
+  </div>
+</div></section>
+
+<section class="closing-cta"><div class="wrap">
+  <h2>Ready to stop discovering struggling students too late?</h2>
+  <div class="cta" style="justify-content:center;margin-top:20px">
+    <a class="btn" href="#install">Try the live demo</a>
+    <a class="btn secondary" href="#install">Install in your LMS</a>
+    <a class="btn secondary" href="https://github.com/hjmacemail/lmsbridge" target="_blank" rel="noopener">View on GitHub</a>
   </div>
 </div></section>
 
