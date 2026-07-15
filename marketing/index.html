@@ -15,6 +15,10 @@
 <!-- Open Graph (link previews on social + some answer engines) -->
 <meta content="website" property="og:type"/>
 <meta content="LMS Bridge" property="og:site_name"/>
+<meta content="en_US" property="og:locale"/>
+<meta content="es_ES" property="og:locale:alternate"/>
+<meta content="fr_FR" property="og:locale:alternate"/>
+<meta content="ar_AR" property="og:locale:alternate"/>
 <meta content="LMS Bridge — open-source AI tutoring built into your LMS" property="og:title"/>
 <meta content="An AI teaching assistant that catches struggling students inside your LMS — turning quiz data into personalized, guided tutoring. Free and open source (AGPL-3.0), installs via LTI 1.3 into Canvas, Moodle, Brightspace, and Blackboard, or runs standalone." property="og:description"/>
 <meta content="https://www.lmsbridge.app/" property="og:url"/>
@@ -54,7 +58,20 @@
         "FERPA-aware, self-hosted"
       ],
       "author": { "@type": "Organization", "name": "LMS Bridge" },
-      "codeRepository": "https://github.com/hjmacemail/lmsbridge"
+      "codeRepository": "https://github.com/hjmacemail/lmsbridge",
+      "inLanguage": ["en", "es", "fr", "ar"],
+      "availableLanguage": ["English", "Spanish", "French", "Arabic"]
+    },
+    {
+      "@type": "HowTo",
+      "name": "How to install LMS Bridge in your LMS",
+      "description": "Install LMS Bridge as a standard LTI 1.3 / Advantage tool in Canvas, Moodle, Brightspace, or Blackboard.",
+      "totalTime": "PT15M",
+      "step": [
+        { "@type": "HowToStep", "name": "Add the tool", "text": "In your LMS admin (Blackboard, Brightspace, Canvas, or Moodle), add a new LTI 1.3 / Advantage tool using the registration URLs from GET /api/v1/lti/config.", "url": "https://www.lmsbridge.app/#install" },
+        { "@type": "HowToStep", "name": "Exchange keys", "text": "The LMS provides an Issuer, Client ID, Deployment ID, and its auth/token/JWKS URLs. Enter them in the admin console, or use one-click Dynamic Registration on Canvas and Moodle.", "url": "https://www.lmsbridge.app/#install" },
+        { "@type": "HowToStep", "name": "Place it in a course", "text": "Instructors add LMS Bridge to a module via Deep Linking and launch it; single sign-on does the rest.", "url": "https://www.lmsbridge.app/#install" }
+      ]
     },
     {
       "@type": "Organization",

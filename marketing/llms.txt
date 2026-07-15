@@ -43,9 +43,29 @@
 - FERPA-aware with role-based access. Runs on the institution's own infrastructure with its own AI
   key, so student data is not sent to a third-party SaaS operated by the project.
 
+## Self-hosting
+
+- Fully containerized; the production stack (backend, frontend, marketing, PostgreSQL) comes up ready
+  with automatic database migrations and an idempotent seed.
+- Fastest path: download docker-compose.prod.yml (prebuilt images from GitHub Container Registry) and
+  a .env file, then `docker compose -f docker-compose.prod.yml up -d`. Also deployable to Render,
+  Railway, Fly.io, or Kubernetes. Step-by-step guide: https://www.lmsbridge.app/selfhost.html
+
+## Languages
+
+- The marketing site and the app interface are available in English, Spanish, French, and Arabic
+  (with right-to-left layout for Arabic). The app can auto-adopt the LMS's language on LTI launch.
+
+## Initiative
+
+- LMS Bridge is a project of the Knowledge in Service of Society Initiative (founded 2014 by
+  Prof. Hasan Aljabbouli, New York University): https://www.lmsbridge.app/initiative.html
+
 ## Links
 
 - Homepage: https://www.lmsbridge.app/
 - Source code (GitHub, AGPL-3.0): https://github.com/hjmacemail/lmsbridge
 - Install guides (per LMS): https://www.lmsbridge.app/#install
-- Try the live demo: https://www.lmsbridge.app/#install
+- Self-hosting / deployment guide: https://www.lmsbridge.app/selfhost.html
+- Contact form: https://www.lmsbridge.app/#contact
+- Knowledge in Service of Society Initiative: https://www.lmsbridge.app/initiative.html

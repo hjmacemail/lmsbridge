@@ -6,8 +6,39 @@
 <title>Self-host LMS Bridge — deployment guide</title>
 <meta name="description" content="Step-by-step guide to self-hosting LMS Bridge: run the full stack with Docker Compose, configure your environment, put HTTPS in front, register it in your LMS, and keep it updated. Free and open source (AGPL-3.0)." />
 <meta name="theme-color" content="#0b1020" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
 <link rel="canonical" href="https://www.lmsbridge.app/selfhost.html" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="LMS Bridge" />
+<meta property="og:title" content="Self-host LMS Bridge — deployment guide" />
+<meta property="og:description" content="Run the whole LMS Bridge platform on your own infrastructure with Docker: quick start, environment config, HTTPS, LMS registration, AI model, updates and backups. Free and open source (AGPL-3.0)." />
+<meta property="og:url" content="https://www.lmsbridge.app/selfhost.html" />
+<meta property="og:image" content="https://www.lmsbridge.app/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Self-host LMS Bridge — deployment guide" />
+<meta name="twitter:description" content="Step-by-step: Docker Compose, env config, HTTPS, LMS registration, updates. Self-host the open-source AI tutoring layer for your LMS." />
+<meta name="twitter:image" content="https://www.lmsbridge.app/og-image.png" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Self-host LMS Bridge",
+  "description": "Run the full LMS Bridge stack on your own infrastructure using Docker, then register it in your LMS.",
+  "totalTime": "PT15M",
+  "inLanguage": "en",
+  "tool": [{ "@type": "HowToTool", "name": "Docker Engine + Compose" }, { "@type": "HowToTool", "name": "A public HTTPS domain (for LMS launch)" }],
+  "step": [
+    { "@type": "HowToStep", "name": "Quick start with Docker", "text": "Download docker-compose.prod.yml and .env.example, fill in .env, then run docker compose -f docker-compose.prod.yml up -d.", "url": "https://www.lmsbridge.app/selfhost.html#quickstart" },
+    { "@type": "HowToStep", "name": "Configure your environment", "text": "Set SECRET_KEY, APP_ENV=production, your public URLs, CORS_ORIGINS, and your AI provider and key.", "url": "https://www.lmsbridge.app/selfhost.html#configure" },
+    { "@type": "HowToStep", "name": "Put HTTPS in front", "text": "Terminate TLS with a reverse proxy such as Caddy, nginx, or a cloud load balancer in front of the frontend and backend.", "url": "https://www.lmsbridge.app/selfhost.html#https" },
+    { "@type": "HowToStep", "name": "Register it in your LMS", "text": "Fetch registration URLs from /api/v1/lti/config and add LMS Bridge as an LTI 1.3 tool in Canvas, Moodle, Brightspace, or Blackboard.", "url": "https://www.lmsbridge.app/selfhost.html#register" },
+    { "@type": "HowToStep", "name": "Updates and backups", "text": "Pull new images and restart to update (migrations run automatically); back up the Postgres volume with pg_dump.", "url": "https://www.lmsbridge.app/selfhost.html#update" }
+  ]
+}
+</script>
 <script>
   (function(){
     try{
