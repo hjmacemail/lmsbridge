@@ -257,6 +257,32 @@
   footer .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
   footer .fl{display:flex;gap:22px}
   footer a:hover{color:var(--ink)}
+
+  /* install / faq / contact */
+  .lead{color:var(--muted);font-size:16px;max-width:680px;margin:0 0 26px}
+  .mini{font-size:12.5px;color:var(--muted2)}
+  code{background:rgba(255,255,255,.07);padding:1px 6px;border-radius:5px;font-family:ui-monospace,Menlo,monospace;font-size:.88em}
+  .grid{display:grid;gap:16px}.cols-2{grid-template-columns:1fr 1fr}
+  @media(max-width:760px){.cols-2{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h3{font-size:15px;margin:0 0 6px}.card p{color:var(--muted);font-size:14px;margin:0}
+  .card a{color:var(--accent)}
+  .ltiurls{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:var(--nested);border:1px solid var(--line);border-radius:12px;padding:16px;line-height:1.95;overflow-x:auto}
+  .ltiurls span{color:var(--accent)}
+  .steps{display:grid;gap:0;margin-top:20px}
+  .step{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .step .n{flex:0 0 34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .step h4{margin:0 0 4px;font-size:15px}.step p{margin:0;color:var(--muted);font-size:14px}
+  details{border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px;background:var(--card)}
+  details summary{cursor:pointer;font-weight:600;font-size:15px}
+  details p{color:var(--muted);font-size:14px;margin:10px 0 0}
+  .form-card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+  .field input,.field textarea,.field select{width:100%;padding:10px 12px;border:1px solid var(--line2);border-radius:8px;background:var(--nested);color:var(--ink);font-size:14px;font-family:inherit}
+  .field textarea{min-height:100px;resize:vertical}
+  .ok{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#86efac;border-radius:10px;padding:12px;font-size:14px;margin-bottom:12px}
+  .err{color:#f87171;font-size:13px;margin-top:8px}
 </style>
 </head>
 <body>
@@ -266,9 +292,9 @@
   <div class="links">
     <a href="#why">Why LMS Bridge</a>
     <a href="#how">How it works</a>
-    <a href="#integrations">Integrations</a>
-    <a href="#selfhost">Self-host</a>
-    <a href="#how">Resources</a>
+    <a href="#install">Install</a>
+    <a href="#faq">FAQ</a>
+    <a href="#contact">Contact</a>
   </div>
   <div class="navbtns">
     <a class="btn dark sm" data-gh href="https://github.com/hjmacemail/lmsbridge">★ Star on GitHub</a>
@@ -420,6 +446,76 @@
   </div>
 </div></section>
 
+<section id="install" style="background:var(--bg2)"><div class="wrap">
+  <div class="sec-head"><h2>Install in your LMS</h2><p>LMS Bridge registers as a standard LTI 1.3 tool. Your admin needs four URLs from your instance.</p></div>
+  <div class="ltiurls" id="ltiUrls">
+    <div>Dynamic Registration (Canvas/Moodle — one click): <span id="u_dyn">…</span></div>
+    <div>OIDC login&nbsp;: <span id="u_login">…</span></div>
+    <div>Launch URL&nbsp;: <span id="u_launch">…</span></div>
+    <div>Redirect URL: <span id="u_redirect">…</span></div>
+    <div>Public JWKS&nbsp;: <span id="u_jwks">…</span></div>
+  </div>
+  <div class="hero-cta" style="margin-top:16px">
+    <a class="btn primary" id="connectBtn" href="#" target="_blank" rel="noopener">Open the interactive setup helper</a>
+    <span class="mini" style="align-self:center">Copy-ready URLs + per-LMS steps, right in the app.</span>
+  </div>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><div><h4>Add the tool</h4>
+      <p>In your LMS admin (Blackboard / Brightspace / Canvas / Moodle) add a new LTI 1.3 / Advantage tool using the URLs above, and enable AGS + NRPS + Deep Linking.</p></div></div>
+    <div class="step"><div class="n">2</div><div><h4>Exchange keys</h4>
+      <p>The LMS gives you an Issuer, Client ID, Deployment ID, and its auth/token/JWKS URLs. Enter them in your admin console (the <b>LMS (LTI)</b> tab) to complete registration — Canvas and Moodle do this in one click via Dynamic Registration.</p></div></div>
+    <div class="step"><div class="n">3</div><div><h4>Place it in a course</h4>
+      <p>Instructors add LMS Bridge to a module via Deep Linking and launch — single sign-on does the rest.</p></div></div>
+  </div>
+  <h3 style="margin:26px 0 12px;font-size:17px">One-page install guide for your LMS</h3>
+  <div class="grid cols-2">
+    <a class="card" href="/guides/install-canvas.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Canvas</b><br><span class="mini">install-canvas.pdf</span></span></a>
+    <a class="card" href="/guides/install-moodle.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Moodle</b><br><span class="mini">install-moodle.pdf</span></span></a>
+    <a class="card" href="/guides/install-brightspace.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Brightspace (D2L)</b><br><span class="mini">install-brightspace.pdf</span></span></a>
+    <a class="card" href="/guides/install-blackboard.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Blackboard (Anthology)</b><br><span class="mini">install-blackboard.pdf</span></span></a>
+  </div>
+  <p class="mini" style="margin-top:16px">Prefer to self-host? Bring it up with Docker and point it at your own AI key — the full runbook is in the repo (<code>docs/INSTALL_LTI.md</code>, <code>docs/DEPLOY_RAILWAY.md</code>). No student data leaves your environment.</p>
+</div></section>
+
+<section id="faq"><div class="wrap" style="max-width:820px">
+  <div class="sec-head"><h2>Frequently asked</h2></div>
+  <details><summary>Does this affect students' grades?</summary><p>No. Mastery indicators are a private learning aid. Grades are set solely by the instructor through official assessments; any LMS gradebook write-back is a non-graded column.</p></details>
+  <details><summary>Is it a "homework cheating" tool?</summary><p>The opposite. The tutor is pedagogically constrained: it diagnoses and guides with Socratic questions and never provides graded answers.</p></details>
+  <details><summary>Where does student data go?</summary><p>LMS Bridge is FERPA-aware with role-based access. For full governance, run the AI on your own approved infrastructure (e.g. your Azure OpenAI tenant) via bring-your-own-key — or self-host the whole thing so nothing leaves your boundary.</p></details>
+  <details><summary>Which AI models can we use — and can we run a local one?</summary><p>Bring your own key: Anthropic (Claude), OpenAI (GPT), and Azure OpenAI work out of the box, chosen per institution or course. A local/self-hosted model behind an OpenAI-compatible endpoint works too — so you can run entirely on-premise with no third-party API.</p></details>
+  <details><summary>How much does the AI cost?</summary><p>Only what your own provider charges for the tokens you use — there's no per-student LMS Bridge fee. A small, fast model keeps it low, and you can set a hard spend cap in your provider's console. The non-AI features cost nothing to run.</p></details>
+  <details><summary>Can instructors edit or customize the remediation?</summary><p>Yes. Instructors control course content, concepts, and which assessments feed the engine; tutoring is grounded in the instructor's own materials, and prompt templates are course-configurable.</p></details>
+  <details><summary>Does it work for large classes?</summary><p>Yes — that's the point: personalized, concept-level help at a scale where individual feedback is otherwise impossible. Roster and grades sync automatically via LTI Advantage (NRPS/AGS).</p></details>
+  <details><summary>Can we connect our grading rubric?</summary><p>Yes. LMS Bridge ingests rubric-level results from the LMS gradebook and uses that criterion-by-concept signal (alongside multiple-choice answers) to target remediation.</p></details>
+  <details><summary>How is it licensed? Is it really free?</summary><p>Open source under GNU AGPL-3.0 — free to self-host at any size, no per-student fee. You pay only for your own AI usage and hosting. Optional commercial support, managed hosting, and an OEM license are available. See <code>LICENSE</code> and <code>COMMERCIAL.md</code> in the repo.</p></details>
+</div></section>
+
+<section id="contact" style="background:var(--bg2)"><div class="wrap">
+  <div class="sec-head"><h2>Get in touch</h2><p>Questions, help installing, an efficacy-study collaboration, or commercial support. Self-hosting? You don't need us to start — just follow the guide above.</p></div>
+  <div class="grid cols-2">
+    <div class="form-card">
+      <div id="okmsg" class="ok" style="display:none">Thanks! Your request was received — we'll reach out shortly.</div>
+      <form id="leadForm">
+        <input type="hidden" name="kind" id="kind" value="contact" />
+        <div class="field"><label>Full name</label><input name="name" required /></div>
+        <div class="field"><label>Work email</label><input name="email" type="email" required /></div>
+        <div class="field"><label>Institution / organization</label><input name="organization" /></div>
+        <div class="field"><label>Your role</label>
+          <select name="role"><option value="">Select…</option><option>Instructor / Faculty</option><option>Department chair</option><option>Instructional designer</option><option>LMS administrator</option><option>Dean / Provost office</option><option>Other</option></select></div>
+        <div class="field"><label>What can we help with?</label><textarea name="message" placeholder="e.g. Installing in our intro CS course on Canvas, or commercial support"></textarea></div>
+        <button class="btn primary" type="submit" id="submitBtn">Send message</button>
+        <div id="errmsg" class="err" style="display:none"></div>
+      </form>
+    </div>
+    <div class="grid" style="gap:16px;align-content:start">
+      <div class="card"><h3>Prefer email?</h3><p>Write to <a href="mailto:info@lmsbridge.app">info@lmsbridge.app</a>.</p></div>
+      <div class="card"><h3>For developers</h3><p>Full source is on GitHub (AGPL-3.0), with an OpenAPI spec at <code>/docs</code>, the LTI provider, and deployment guides. Issues and PRs welcome.</p></div>
+      <div class="card"><h3>Security &amp; procurement</h3><p>Read the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/SECURITY.md" target="_blank" rel="noopener">Security policy</a>, the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/docs/COMPLIANCE.md" target="_blank" rel="noopener">compliance summary</a>, and the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/docs/PRIVACY_AND_SELF_HOSTING.md" target="_blank" rel="noopener">privacy &amp; self-hosting guide</a>. HECVAT, VPAT, and DPA available on request.</p></div>
+      <div class="card"><h3>Maintainer</h3><p>Built and maintained by <a href="https://cs.nyu.edu/~ha2285"><b>Hasan Aljabbouli</b>, New York University</a> · <a href="mailto:info@lmsbridge.app">info@lmsbridge.app</a>.</p></div>
+    </div>
+  </div>
+</div></section>
+
 <section id="selfhost" class="final"><div class="wrap final-grid">
   <div>
     <h2>Ready to help every student truly learn?</h2>
@@ -449,6 +545,7 @@
 
 <script src="/config.js"></script>
 <script>
+  window.LMSBRIDGE_API = window.LMSBRIDGE_API || "http://localhost:8000/api/v1";
   window.LMSBRIDGE_APP = window.LMSBRIDGE_APP || "http://localhost:8080";
   window.LMSBRIDGE_SOURCE = window.LMSBRIDGE_SOURCE || "https://github.com/hjmacemail/lmsbridge";
   (function(){
@@ -456,7 +553,48 @@
     var demo = app + "/demo?home=" + encodeURIComponent(window.location.origin);
     document.querySelectorAll("[data-demo]").forEach(function(a){ a.setAttribute("href", demo); });
     document.querySelectorAll("[data-gh]").forEach(function(a){ a.setAttribute("href", window.LMSBRIDGE_SOURCE); });
+    var connect = document.getElementById("connectBtn");
+    if (connect) connect.setAttribute("href", app + "/connect");
   })();
+
+  // Fill the real LTI registration URLs from the backend (no placeholders).
+  (async function loadLtiUrls(){
+    try{
+      var r = await fetch(window.LMSBRIDGE_API + "/lti/config");
+      if(!r.ok) return;
+      var c = await r.json();
+      var set = function(id,v){ var el=document.getElementById(id); if(el && v) el.textContent=v; };
+      set("u_dyn", c.dynamic_registration_url);
+      set("u_login", c.oidc_initiation_url);
+      set("u_launch", c.target_link_uri);
+      set("u_redirect", (c.redirect_uris && c.redirect_uris[0]) || c.target_link_uri);
+      set("u_jwks", c.public_jwks_url);
+    }catch(e){ /* leave placeholders */ }
+  })();
+
+  // Contact / lead form -> backend /leads.
+  var lf = document.getElementById("leadForm");
+  if (lf) lf.addEventListener("submit", async function(e){
+    e.preventDefault();
+    var btn = document.getElementById("submitBtn"), err = document.getElementById("errmsg");
+    err.style.display="none"; btn.disabled=true; btn.textContent="Sending…";
+    var body = Object.fromEntries(new FormData(e.target).entries());
+    var ctrl = new AbortController(); var timer = setTimeout(function(){ ctrl.abort(); }, 20000);
+    try{
+      var res = await fetch(window.LMSBRIDGE_API + "/leads", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(body), signal: ctrl.signal });
+      if(!res.ok) throw new Error("Request failed ("+res.status+")");
+      e.target.reset();
+      var ok = document.getElementById("okmsg"); ok.style.display="block";
+      ok.scrollIntoView({behavior:"smooth",block:"center"});
+    }catch(ex){
+      err.textContent = "Sorry — " + (ex.name==="AbortError"
+        ? "the server took too long (it may be waking up — try again shortly)."
+        : "couldn't reach the server. You can also email info@lmsbridge.app.");
+      err.style.display="block";
+    }finally{ clearTimeout(timer); btn.disabled=false; btn.textContent="Send message"; }
+  });
 </script>
 </body>
 </html>
