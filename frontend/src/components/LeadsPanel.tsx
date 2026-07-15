@@ -15,9 +15,9 @@ export default function LeadsPanel() {
   return (
     <div className="card">
       <div className="row">
-        <h3>Sales leads ({leads.length})</h3>
+        <h3>Messages ({leads.length})</h3>
         <span className="muted" style={{ fontSize: 13 }}>
-          Captured from the marketing site's demo/purchase form.
+          Contact, demo &amp; purchase requests submitted from the marketing site.
         </span>
       </div>
       <table>

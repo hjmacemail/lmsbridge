@@ -33,7 +33,7 @@ const TABS: { id: Tab; label: string; who: Persona[]; hideWhenLms?: boolean }[] 
   { id: "settings", label: "AI & Privacy", who: ["institution", "platform"] },
   { id: "lms", label: "LMS (LTI)", who: ["platform"] },
   { id: "licenses", label: "Licenses", who: ["platform"] },
-  { id: "leads", label: "Leads", who: ["platform"] },
+  { id: "leads", label: "Messages", who: ["platform"] },
 ];
 
 const TITLES: Record<Persona, string> = {
@@ -234,8 +234,10 @@ export default function InstructorDashboard({ scoped = false }: { scoped?: boole
       if (t.hideWhenLms && (lmsConnected || courseScoped)) return false;
       if (community) {
         // Single self-hosted institution: no sales/licensing surfaces; the admin manages
-        // their own LMS registration.
-        if (t.id === "licenses" || t.id === "leads") return false;
+        // their own LMS registration. The admin CAN still read contact-form messages
+        // submitted from the marketing site (the "Messages" tab).
+        if (t.id === "licenses") return false;
+        if (t.id === "leads") return isAdmin;
         if (t.id === "lms") return isAdmin;
         return t.who.includes(persona);
       }
