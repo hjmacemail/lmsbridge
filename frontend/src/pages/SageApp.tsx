@@ -7,7 +7,7 @@ import {
   type SageGrades, type SageQuestionDraft, type SageMaterial, type SageProfile,
   type SageQType, type SageAnswerIn, type SageAnnouncement,
 } from "../api/client";
-import type { RemediationModule } from "../types";
+import type { RemediationModule, InstructorAnalytics } from "../types";
 import { renderMarkdown, highlightCode } from "../lib/richtext";
 import { resolveBrand } from "../lib/brand";
 
@@ -73,6 +73,7 @@ function Icon({ name, size = 18, color = "currentColor" }: { name: string; size?
     file: "M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z",
     note: "M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm4 4h10V7H7v2zm0 4h10v-2H7v2zm0 4h7v-2H7v2z",
     code: "M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z",
+    chart: "M4 21V10h4v11H4zm6 0V3h4v18h-4zm6 0v-7h4v7h-4z",
   };
   const fillStroke = name === "back" ? { fill: "none", stroke: color, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const } : { fill: color };
   return (
@@ -178,8 +179,8 @@ export default function SageApp() {
 
   const inCourse = view === "course" && course;
   const courseTabs = course && course.role === "instructor"
-    ? ["Home", "Syllabus", "Materials", "Quizzes", "Students", "Grades"]
-    : ["Home", "Syllabus", "Materials", "Quizzes", "Grades", "Needs review"];
+    ? ["Home", "Quizzes", "Students", "Grades", "Analytics", "Materials", "Syllabus"]
+    : ["Home", "Quizzes", "Grades", "Needs review", "Materials", "Syllabus"];
 
   return (
     <div style={{ minHeight: "100vh", background: C.pageBg, color: C.ink, display: "flex" }}>
@@ -473,7 +474,7 @@ function CopyChip({ code }: { code: string | null }) {
 
 const TAB_ICON: Record<string, string> = {
   Home: "spark", Syllabus: "note", Materials: "file", Quizzes: "check",
-  Students: "school", Grades: "download", "Needs review": "alert",
+  Students: "school", Grades: "download", "Needs review": "alert", Analytics: "chart",
 };
 
 function CourseView({ course, tab, detail, reloadDetail }:
@@ -491,8 +492,74 @@ function CourseView({ course, tab, detail, reloadDetail }:
       {tab === "Materials" && <Materials course={course} instr={instr} />}
       {tab === "Quizzes" && (instr ? <QuizzesInstructor course={course} /> : <QuizzesStudent course={course} />)}
       {tab === "Students" && <Students course={course} />}
+      {tab === "Analytics" && <Analytics course={course} />}
       {tab === "Grades" && <GradesTab course={course} />}
       {tab === "Needs review" && <NeedsReview course={course} />}
+    </div>
+  );
+}
+
+// --------------------------------------------------------------- Analytics (real data)
+function Analytics({ course }: { course: SageCourseSummary }) {
+  const [a, setA] = useState<InstructorAnalytics | null>(null);
+  const [err, setErr] = useState(false);
+  useEffect(() => { setA(null); setErr(false);
+    api.analytics(course.id).then(setA).catch(() => setErr(true)); }, [course.id]);
+
+  if (err) return (
+    <Card><p style={{ margin: 0, color: C.muted }}>
+      Analytics will appear here once your students start submitting quizzes.</p></Card>
+  );
+  if (!a) return <p style={{ color: C.muted }}>Loading…</p>;
+
+  const risks = a.concept_risks;
+  const avg = risks.length ? risks.reduce((s, r) => s + r.avg_mastery, 0) / risks.length : 0;
+  const atRisk = risks.reduce((s, r) => Math.max(s, r.at_risk_count || 0), 0);
+  const recovery = a.modules_generated ? a.modules_completed / a.modules_generated : 0;
+  const pct = (v: number) => `${Math.round(v * 100)}%`;
+
+  const tile = (value: string | number, label: string, tone?: "danger") => (
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 14,
+      padding: "16px 18px", boxShadow: C.shadow }}>
+      <div style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.05,
+        color: tone === "danger" ? C.danger : C.ink }}>{value}</div>
+      <div style={{ fontSize: 12.5, marginTop: 5, color: C.muted }}>{label}</div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "grid", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
+        {tile(pct(avg), "Average mastery")}
+        {tile(a.enrolled_students, "Students")}
+        {tile(a.modules_generated, "Practice sessions")}
+        {tile(atRisk, "At-risk on a concept", atRisk > 0 ? "danger" : undefined)}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 14 }}>
+        <Card>
+          <h3 style={{ marginTop: 0, fontSize: 16 }}>Concept mastery</h3>
+          {risks.length === 0 && <p style={{ color: C.muted, margin: 0 }}>
+            No concept data yet. Add concepts to your quiz questions to see per-concept mastery.</p>}
+          {risks.map((r) => (
+            <div key={r.concept_id} style={{ display: "flex", alignItems: "center", gap: 12,
+              padding: "9px 0", borderTop: `1px solid ${C.line}` }}>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, whiteSpace: "nowrap",
+                overflow: "hidden", textOverflow: "ellipsis" }}>{r.concept_name}</span>
+              <Bar v={r.avg_mastery} width={150} />
+              <b style={{ minWidth: 40, textAlign: "right", fontSize: 13.5,
+                color: scoreColor(r.avg_mastery) }}>{pct(r.avg_mastery)}</b>
+            </div>
+          ))}
+        </Card>
+        <Card style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
+          <h3 style={{ margin: 0, fontSize: 16, alignSelf: "flex-start" }}>Practice impact</h3>
+          <Donut v={recovery} size={128} />
+          <div style={{ fontSize: 13, color: C.muted, textAlign: "center" }}>
+            {a.modules_completed} of {a.modules_generated} practice sessions completed
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
