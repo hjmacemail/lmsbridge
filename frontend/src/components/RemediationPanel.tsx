@@ -1,35 +1,37 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
 import type { ModuleWithStudent } from "../types";
 
 type GroupBy = "student" | "concept";
 
 function ModuleDetail({ m }: { m: ModuleWithStudent }) {
+  const { t } = useTranslation();
   return (
     <div style={{ padding: "8px 4px" }}>
       {m.rationale && <p className="muted" style={{ marginTop: 0 }}>{m.rationale}</p>}
       {m.grounded_on?.length ? (
-        <p style={{ fontSize: 12 }} className="muted">Grounded in: {m.grounded_on.join(", ")}</p>
+        <p style={{ fontSize: 12 }} className="muted">{t("instructor.remediation.groundedIn", { list: m.grounded_on.join(", ") })}</p>
       ) : null}
       {m.transcript && m.transcript.length > 0 ? (
         <div>
-          <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>Tutoring session transcript</div>
+          <div className="muted" style={{ fontSize: 12, marginBottom: 6 }}>{t("instructor.remediation.transcript")}</div>
           <div className="chat-log" style={{ borderRadius: 10, maxHeight: 360 }}>
-            {m.transcript.map((t, i) => (
-              <div key={i} className={`bubble ${t.role}`}>
-                {t.role === "tutor" && <div className="bubble-who">AI Tutor</div>}
-                <div className="bubble-text">{t.content}</div>
+            {m.transcript.map((msg, i) => (
+              <div key={i} className={`bubble ${msg.role}`}>
+                {msg.role === "tutor" && <div className="bubble-who">{t("tutor.aiTutor")}</div>}
+                <div className="bubble-text">{msg.content}</div>
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <p className="muted" style={{ fontSize: 13 }}>Session not started yet.</p>
+        <p className="muted" style={{ fontSize: 13 }}>{t("instructor.remediation.notStarted")}</p>
       )}
       {m.activities.length > 0 && (
         <details style={{ marginTop: 10 }}>
           <summary className="muted" style={{ fontSize: 12, cursor: "pointer" }}>
-            Session plan ({m.activities.length} checkpoints)
+            {t("instructor.remediation.sessionPlan", { count: m.activities.length })}
           </summary>
           {m.activities.map((a) => (
             <div key={a.id} style={{ fontSize: 13, padding: "4px 0" }}>
@@ -43,6 +45,7 @@ function ModuleDetail({ m }: { m: ModuleWithStudent }) {
 }
 
 export default function RemediationPanel({ courseId }: { courseId: number }) {
+  const { t } = useTranslation();
   const [modules, setModules] = useState<ModuleWithStudent[]>([]);
   const [groupBy, setGroupBy] = useState<GroupBy>("student");
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
@@ -73,18 +76,20 @@ export default function RemediationPanel({ courseId }: { courseId: number }) {
   const summary = (mods: ModuleWithStudent[]) => {
     const done = mods.filter((m) => m.status === "completed").length;
     const active = mods.filter((m) => m.status === "in_progress").length;
-    const parts = [`${mods.length} module${mods.length > 1 ? "s" : ""}`];
-    if (done) parts.push(`${done} completed`);
-    if (active) parts.push(`${active} in progress`);
+    const parts = [t("instructor.remediation.summaryModules", { count: mods.length })];
+    if (done) parts.push(t("instructor.remediation.summaryCompleted", { count: done }));
+    if (active) parts.push(t("instructor.remediation.summaryInProgress", { count: active }));
     return parts.join(" · ");
   };
 
-  const secondCol = groupBy === "student" ? "Concept" : "Student";
+  const groupWord = (g: GroupBy) =>
+    g === "student" ? t("instructor.remediation.groupStudent") : t("instructor.remediation.groupConcept");
+  const secondCol = groupBy === "student" ? t("instructor.remediation.thConcept") : t("instructor.remediation.thStudent");
 
   return (
     <div className="card">
       <div className="row" style={{ alignItems: "center", marginBottom: 6 }}>
-        <h3 style={{ margin: 0 }}>Remediation ({modules.length}) — grouped by {groupBy}</h3>
+        <h3 style={{ margin: 0 }}>{t("instructor.remediation.title", { count: modules.length, group: groupWord(groupBy) })}</h3>
         <div style={{ display: "inline-flex", border: "1px solid var(--border,#e2e2ea)",
           borderRadius: 8, overflow: "hidden" }}>
           {(["student", "concept"] as GroupBy[]).map((g) => (
@@ -92,21 +97,21 @@ export default function RemediationPanel({ courseId }: { courseId: number }) {
               style={{ border: "none", padding: "5px 13px", fontSize: 13, cursor: "pointer",
                 background: groupBy === g ? "var(--primary,#4f46e5)" : "#fff",
                 color: groupBy === g ? "#fff" : "var(--ink,#333)",
-                textTransform: "capitalize" }}>{g}</button>
+                textTransform: "capitalize" }}>{groupWord(g)}</button>
           ))}
         </div>
       </div>
       <p className="muted" style={{ fontSize: 12.5, marginTop: 0 }}>
-        Click a {groupBy} to expand, then a module to inspect its session.
+        {t("instructor.remediation.clickToExpand", { group: groupWord(groupBy) })}
       </p>
       <table>
         <thead>
-          <tr><th>{groupBy === "student" ? "Student" : "Concept"}</th><th>{secondCol}</th>
-            <th>Strategy</th><th>Status</th></tr>
+          <tr><th>{groupBy === "student" ? t("instructor.remediation.thStudent") : t("instructor.remediation.thConcept")}</th><th>{secondCol}</th>
+            <th>{t("instructor.remediation.thStrategy")}</th><th>{t("instructor.remediation.thStatus")}</th></tr>
         </thead>
         <tbody>
           {groups.length === 0 &&
-            <tr><td colSpan={4} className="muted">No modules generated yet.</td></tr>}
+            <tr><td colSpan={4} className="muted">{t("instructor.remediation.noModules")}</td></tr>}
           {groups.map(([key, mods]) => {
             const gOpen = openGroups.has(key);
             return (
@@ -123,8 +128,8 @@ export default function RemediationPanel({ courseId }: { courseId: number }) {
                         {openModule === m.id ? "▾ " : "▸ "}
                         {groupBy === "student" ? m.concept_name : m.student_name}</td>
                       <td className="muted">{groupBy === "student" ? m.student_name : m.concept_name}</td>
-                      <td className="muted">{m.strategy.replace(/_/g, " ")}</td>
-                      <td><span className={`pill ${m.status}`}>{m.status.replace("_", " ")}</span></td>
+                      <td className="muted">{t(`tutor.strategy.${m.strategy}`, { defaultValue: m.strategy.replace(/_/g, " ") })}</td>
+                      <td><span className={`pill ${m.status}`}>{t(`status.${m.status}`, { defaultValue: m.status.replace("_", " ") })}</span></td>
                     </tr>
                     {openModule === m.id && (
                       <tr><td colSpan={4} style={{ background: "var(--soft)" }}><ModuleDetail m={m} /></td></tr>

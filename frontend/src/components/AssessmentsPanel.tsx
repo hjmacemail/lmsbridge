@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
 import type { AssessmentBreakdown } from "../types";
 
 function pct(n: number) { return `${Math.round(n * 100)}%`; }
 
 export default function AssessmentsPanel({ courseId }: { courseId: number }) {
+  const { t } = useTranslation();
   const [data, setData] = useState<AssessmentBreakdown[]>([]);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -19,7 +21,7 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
       a.assessment_id === assessmentId ? { ...a, adaptive_enabled: enabled } : a));
     try {
       await api.setAdaptive(assessmentId, enabled);
-      setNote("Saved. Click “Recompute” to apply the change to mastery & remediation.");
+      setNote(t("instructor.assessments.savedRecompute"));
     } catch {
       load(); // revert on failure
     }
@@ -29,8 +31,7 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
     setBusy(true); setNote(null);
     try {
       const r = await api.recompute(courseId);
-      setNote(`Recomputed from enabled assessments — replayed ${r.results_replayed} results, `
-        + `triggered ${r.modules_triggered} new module(s).`);
+      setNote(t("instructor.assessments.recomputed", { results: r.results_replayed, modules: r.modules_triggered }));
       load();
     } finally {
       setBusy(false);
@@ -41,7 +42,7 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
     setBusy(true); setNote(null);
     try {
       const r = await api.syncAssessments(courseId);
-      setNote(`Imported ${r.assessments} assessment(s) from the LMS gradebook.`);
+      setNote(t("instructor.assessments.importedFromLms", { n: r.assessments }));
       load();
     } catch (e) {
       setNote((e as Error).message);
@@ -54,11 +55,10 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
     return (
       <div className="card">
         <p className="muted" style={{ marginTop: 0 }}>
-          No assessments yet. They import automatically from your LMS gradebook the next time an
-          instructor launches LMS Bridge from the course — or pull them now:
+          {t("instructor.assessments.emptyIntro")}
         </p>
         <button className="btn" onClick={syncLms} disabled={busy}>
-          {busy ? "Syncing…" : "Sync from LMS"}
+          {busy ? t("instructor.assessments.syncing") : t("instructor.assessments.syncFromLms")}
         </button>
         {note && <p className="muted" style={{ fontSize: 13 }}>{note}</p>}
       </div>
@@ -71,19 +71,18 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
       <div className="card" style={{ background: "var(--soft)" }}>
         <div className="row">
           <div>
-            <h3 style={{ marginBottom: 2 }}>Adaptive learning sources</h3>
+            <h3 style={{ marginBottom: 2 }}>{t("instructor.assessments.sourcesTitle")}</h3>
             <p className="muted" style={{ margin: 0, fontSize: 13 }}>
-              Toggle which assessments feed the adaptive engine. Disabled assessments are still
-              recorded and shown here, but their feedback won't affect mastery or trigger
-              remediation. {disabledCount > 0 && <strong>{disabledCount} disabled.</strong>}
+              {t("instructor.assessments.sourcesHelp")}{" "}
+              {disabledCount > 0 && <strong>{t("instructor.assessments.disabledCount", { count: disabledCount })}</strong>}
             </p>
           </div>
           <div className="row" style={{ gap: 8 }}>
             <button className="btn" onClick={syncLms} disabled={busy}>
-              {busy ? "Syncing…" : "Sync from LMS"}
+              {busy ? t("instructor.assessments.syncing") : t("instructor.assessments.syncFromLms")}
             </button>
             <button className="btn" onClick={recompute} disabled={busy}>
-              {busy ? "Recomputing…" : "Recompute adaptive model"}
+              {busy ? t("instructor.assessments.recomputing") : t("instructor.assessments.recompute")}
             </button>
           </div>
         </div>
@@ -98,10 +97,10 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
               <h3 style={{ marginBottom: 2 }}>
                 {a.title}{" "}
                 {!a.adaptive_enabled &&
-                  <span className="pill at_risk" style={{ marginLeft: 4 }}>excluded</span>}
+                  <span className="pill at_risk" style={{ marginLeft: 4 }}>{t("instructor.assessments.excluded")}</span>}
               </h3>
               <span className="muted" style={{ fontSize: 13 }}>
-                {a.type} · {a.submissions} submissions
+                {a.type} · {t("instructor.assessments.submissions", { count: a.submissions })}
               </span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
@@ -109,17 +108,17 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
                 <input type="checkbox" checked={a.adaptive_enabled}
                   onChange={(e) => toggle(a.assessment_id, e.target.checked)} />
                 <span className="slider" />
-                <span className="switch-label">{a.adaptive_enabled ? "Adaptive" : "Excluded"}</span>
+                <span className="switch-label">{a.adaptive_enabled ? t("instructor.assessments.adaptive") : t("instructor.assessments.excludedLabel")}</span>
               </label>
               <div style={{ textAlign: "right" }}>
-                <div className="muted" style={{ fontSize: 12 }}>class average</div>
+                <div className="muted" style={{ fontSize: 12 }}>{t("instructor.assessments.classAverage")}</div>
                 <div className="kpi" style={{ fontSize: 22 }}>{pct(a.avg_score)}</div>
               </div>
             </div>
           </div>
 
           <table style={{ marginTop: 10 }}>
-            <thead><tr><th>Concept</th><th>Class average</th><th>Data points</th></tr></thead>
+            <thead><tr><th>{t("instructor.assessments.thConcept")}</th><th>{t("instructor.assessments.thClassAverage")}</th><th>{t("instructor.assessments.thDataPoints")}</th></tr></thead>
             <tbody>
               {a.concept_stats.map((c) => (
                 <tr key={c.concept_key}>
@@ -143,7 +142,7 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
           {a.sample_rubric_feedback.length > 0 && (
             <div style={{ marginTop: 10 }}>
               <div className="muted" style={{ fontSize: 12, marginBottom: 4 }}>
-                Sample rubric-level feedback
+                {t("instructor.assessments.sampleRubric")}
               </div>
               {a.sample_rubric_feedback.map((f, i) => (
                 <div key={i} className="feedback" style={{ marginTop: 6, fontSize: 13 }}>{f}</div>

@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
 import type { ResultDetail, RosterEntry, StudentDetailData } from "../types";
 
@@ -8,10 +9,11 @@ function masteryClass(s: string) {
 }
 
 function McqDetail({ result }: { result: ResultDetail }) {
+  const { t } = useTranslation();
   const mcq = result.item_scores.filter((i) => i.choices && i.choices.length);
   if (mcq.length === 0)
     return <div className="muted" style={{ fontSize: 13, padding: "4px 0" }}>
-      Rubric-graded — no multiple-choice answers.</div>;
+      {t("instructor.students.rubricNoMcq")}</div>;
   return (
     <div style={{ padding: "4px 0 8px" }}>
       {mcq.map((q, i) => (
@@ -33,15 +35,15 @@ function McqDetail({ result }: { result: ResultDetail }) {
                   fontSize: 13, padding: "4px 8px", borderRadius: 6, background: bg, color,
                 }}>
                   {right ? "● " : chosen ? "✗ " : "○ "}{c}
-                  {chosen && !right && <em> — student's answer</em>}
-                  {right && <em> — correct</em>}
+                  {chosen && !right && <em> — {t("instructor.students.tagStudentAnswer")}</em>}
+                  {right && <em> — {t("instructor.students.tagCorrect")}</em>}
                 </div>
               );
             })}
           </div>
           {!q.is_correct && q.misconception && (
             <div className="feedback" style={{ marginTop: 8, fontSize: 13 }}>
-              <strong>Reveals misconception:</strong> {q.misconception}
+              <strong>{t("instructor.students.revealsMisconception")}</strong> {q.misconception}
             </div>
           )}
         </div>
@@ -51,18 +53,19 @@ function McqDetail({ result }: { result: ResultDetail }) {
 }
 
 function StudentDrill({ courseId, studentId }: { courseId: number; studentId: number }) {
+  const { t } = useTranslation();
   const [data, setData] = useState<StudentDetailData | null>(null);
   const [openResult, setOpenResult] = useState<number | null>(null);
   useEffect(() => {
     api.studentDetail(courseId, studentId).then(setData).catch(() => setData(null));
   }, [courseId, studentId]);
-  if (!data) return <tr><td colSpan={5} className="muted">Loading…</td></tr>;
+  if (!data) return <tr><td colSpan={5} className="muted">{t("instructor.overview.loading")}</td></tr>;
 
   return (
     <tr>
       <td colSpan={5} style={{ background: "var(--soft)" }}>
         <div style={{ padding: "6px 4px" }}>
-          <h3 style={{ marginBottom: 8 }}>Concept mastery</h3>
+          <h3 style={{ marginBottom: 8 }}>{t("instructor.students.conceptMastery")}</h3>
           <div className="grid cols-2">
             {data.masteries.map((m) => (
               <div key={m.concept_id} className="row" style={{ gap: 8 }}>
@@ -77,12 +80,12 @@ function StudentDrill({ courseId, studentId }: { courseId: number; studentId: nu
           </div>
 
           <h3 style={{ margin: "16px 0 8px" }}>
-            Assessment results <span className="muted" style={{ fontSize: 12, fontWeight: 400 }}>
-              — click a quiz/exam to see the student's answers</span>
+            {t("instructor.students.assessmentResults")} <span className="muted" style={{ fontSize: 12, fontWeight: 400 }}>
+              {t("instructor.students.assessmentResultsHint")}</span>
           </h3>
           <table>
-            <thead><tr><th>Assessment</th><th>Type</th><th>Score</th>
-              <th>Attempts</th><th>Time</th><th>Feedback</th></tr></thead>
+            <thead><tr><th>{t("instructor.students.thAssessment")}</th><th>{t("instructor.students.thType")}</th><th>{t("instructor.students.thScore")}</th>
+              <th>{t("instructor.students.thAttempts")}</th><th>{t("instructor.students.thTime")}</th><th>{t("instructor.students.thFeedback")}</th></tr></thead>
             <tbody>
               {data.results.map((r) => {
                 const hasMcq = r.item_scores.some((i) => i.choices && i.choices.length);
@@ -92,7 +95,7 @@ function StudentDrill({ courseId, studentId }: { courseId: number; studentId: nu
                       onClick={() => hasMcq && setOpenResult(openResult === r.id ? null : r.id)}>
                       <td>{hasMcq && (openResult === r.id ? "▾ " : "▸ ")}{r.assessment_title}
                         {r.submitted_late &&
-                          <span className="pill at_risk" style={{ marginLeft: 6 }}>late</span>}</td>
+                          <span className="pill at_risk" style={{ marginLeft: 6 }}>{t("instructor.students.late")}</span>}</td>
                       <td className="muted">{r.assessment_type}</td>
                       <td style={{ fontWeight: 600 }}>{pct(r.score)}</td>
                       <td>{r.attempts ?? "—"}</td>
@@ -110,19 +113,19 @@ function StudentDrill({ courseId, studentId }: { courseId: number; studentId: nu
             </tbody>
           </table>
 
-          <h3 style={{ margin: "16px 0 8px" }}>Remediation modules ({data.modules.length})</h3>
+          <h3 style={{ margin: "16px 0 8px" }}>{t("instructor.students.remediationModules", { count: data.modules.length })}</h3>
           <div className="stack">
-            {data.modules.length === 0 && <span className="muted">None generated.</span>}
+            {data.modules.length === 0 && <span className="muted">{t("instructor.students.noneGenerated")}</span>}
             {data.modules.map((m) => (
               <div key={m.id} className="row card" style={{ padding: 12 }}>
                 <div>
                   <strong>{m.title}</strong>
                   <div className="muted" style={{ fontSize: 12 }}>
-                    {m.concept_name} · {m.activity_count} activities · {m.response_count} responses
-                    {m.grounded_on?.length ? ` · grounded in ${m.grounded_on.join(", ")}` : ""}
+                    {m.concept_name} · {m.activity_count} {t("instructor.students.activities")} · {m.response_count} {t("instructor.students.responses")}
+                    {m.grounded_on?.length ? ` · ${t("instructor.students.groundedIn", { list: m.grounded_on.join(", ") })}` : ""}
                   </div>
                 </div>
-                <span className={`pill ${m.status}`}>{m.status.replace("_", " ")}</span>
+                <span className={`pill ${m.status}`}>{t(`status.${m.status}`, { defaultValue: m.status.replace("_", " ") })}</span>
               </div>
             ))}
           </div>
@@ -133,6 +136,7 @@ function StudentDrill({ courseId, studentId }: { courseId: number; studentId: nu
 }
 
 export default function StudentsPanel({ courseId }: { courseId: number }) {
+  const { t } = useTranslation();
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [open, setOpen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
@@ -145,7 +149,7 @@ export default function StudentsPanel({ courseId }: { courseId: number }) {
     setBusy(true); setNote(null);
     try {
       const r = await api.syncRoster(courseId);
-      setNote(`Synced ${r.synced} of ${r.members} members from the LMS.`);
+      setNote(t("instructor.students.syncedMembers", { synced: r.synced, members: r.members }));
       await load();
     } catch (e) {
       setNote((e as Error).message);
@@ -157,17 +161,17 @@ export default function StudentsPanel({ courseId }: { courseId: number }) {
   return (
     <div className="card">
       <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-        <h3 style={{ margin: 0 }}>Roster ({roster.length}) — click a student to drill down</h3>
+        <h3 style={{ margin: 0 }}>{t("instructor.students.rosterTitle", { count: roster.length })}</h3>
         <button className="btn" onClick={sync} disabled={busy}>
-          {busy ? "Syncing…" : "Sync roster from LMS"}
+          {busy ? t("instructor.students.syncing") : t("instructor.students.syncRoster")}
         </button>
       </div>
       {note && <p className="muted" style={{ fontSize: 13, margin: "8px 0 0" }}>{note}</p>}
       <div style={{ height: 12 }} />
       <table>
         <thead>
-          <tr><th>Student</th><th>Avg mastery</th><th>At-risk concepts</th>
-            <th>Open</th><th>Completed</th></tr>
+          <tr><th>{t("instructor.students.thStudent")}</th><th>{t("instructor.students.thAvgMastery")}</th><th>{t("instructor.students.thAtRiskConcepts")}</th>
+            <th>{t("instructor.students.thOpen")}</th><th>{t("instructor.students.thCompleted")}</th></tr>
         </thead>
         <tbody>
           {roster.map((s) => (

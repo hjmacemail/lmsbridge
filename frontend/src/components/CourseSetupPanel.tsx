@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
 import type { ConceptOut } from "../types";
 
 export default function CourseSetupPanel({ courseId }: { courseId: number }) {
+  const { t } = useTranslation();
   const [concepts, setConcepts] = useState<ConceptOut[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export default function CourseSetupPanel({ courseId }: { courseId: number }) {
 
   async function addConcept(e: React.FormEvent) {
     e.preventDefault();
-    if (!key.trim() || !name.trim()) { setErr("Key and name are required."); return; }
+    if (!key.trim() || !name.trim()) { setErr(t("instructor.setup.keyNameRequired")); return; }
     setErr(null);
     try {
       await api.addConcept(courseId, {
@@ -35,7 +37,7 @@ export default function CourseSetupPanel({ courseId }: { courseId: number }) {
         prerequisite_keys: prereqs,
       });
       setKey(""); setName(""); setDesc(""); setMisc(""); setPrereqs([]);
-      setNote("Concept added.");
+      setNote(t("instructor.setup.conceptAdded"));
       load();
     } catch (e) {
       setErr((e as Error).message);
@@ -52,8 +54,9 @@ export default function CourseSetupPanel({ courseId }: { courseId: number }) {
     if (!aTitle.trim()) return;
     try {
       await api.createAssessment(courseId, { title: aTitle.trim(), type: aType, max_score: aMax });
+      const created = aTitle.trim();
       setATitle("");
-      setNote(`Assessment “${aTitle.trim()}” created. Ingest results for it from the Brightspace sync or your LMS.`);
+      setNote(t("instructor.setup.assessmentCreated", { title: created }));
     } catch (e) {
       setErr((e as Error).message);
     }
@@ -65,16 +68,15 @@ export default function CourseSetupPanel({ courseId }: { courseId: number }) {
       {note && <div className="card" style={{ background: "#f0fdf4", color: "#166534" }}>{note}</div>}
 
       <div className="card">
-        <h3>Concepts ({concepts.length})</h3>
+        <h3>{t("instructor.setup.conceptsTitle", { count: concepts.length })}</h3>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          Concepts are the learning objectives the adaptive engine tracks. Order them from
-          foundational to advanced; prerequisites capture which concepts build on others.
+          {t("instructor.setup.conceptsHelp")}
         </p>
         <table>
-          <thead><tr><th>#</th><th>Concept</th><th>Key</th><th>Prerequisites</th><th></th></tr></thead>
+          <thead><tr><th>#</th><th>{t("instructor.setup.thConcept")}</th><th>{t("instructor.setup.thKey")}</th><th>{t("instructor.setup.thPrereqs")}</th><th></th></tr></thead>
           <tbody>
             {concepts.length === 0 &&
-              <tr><td colSpan={5} className="muted">No concepts yet — add the first below.</td></tr>}
+              <tr><td colSpan={5} className="muted">{t("instructor.setup.noConcepts")}</td></tr>}
             {concepts.map((c, i) => (
               <tr key={c.id}>
                 <td className="muted">{i + 1}</td>
@@ -86,7 +88,7 @@ export default function CourseSetupPanel({ courseId }: { courseId: number }) {
                   {c.prerequisite_keys?.length ? c.prerequisite_keys.join(", ") : "—"}</td>
                 <td style={{ textAlign: "right" }}>
                   <button className="btn secondary" style={{ padding: "6px 10px", color: "var(--at-risk)" }}
-                    onClick={() => removeConcept(c.id)}>Delete</button>
+                    onClick={() => removeConcept(c.id)}>{t("common.delete")}</button>
                 </td>
               </tr>
             ))}
@@ -95,23 +97,23 @@ export default function CourseSetupPanel({ courseId }: { courseId: number }) {
       </div>
 
       <div className="card">
-        <h3>Add a concept</h3>
+        <h3>{t("instructor.setup.addConceptTitle")}</h3>
         <form onSubmit={addConcept}>
           <div className="grid cols-2">
-            <div className="field"><label>Key (no spaces)</label>
+            <div className="field"><label>{t("instructor.setup.keyNoSpaces")}</label>
               <input value={key} onChange={(e) => setKey(e.target.value.replace(/\s+/g, "_"))}
-                placeholder="e.g. binary_arithmetic" /></div>
-            <div className="field"><label>Display name</label>
+                placeholder={t("instructor.setup.keyPlaceholder")} /></div>
+            <div className="field"><label>{t("instructor.setup.displayName")}</label>
               <input value={name} onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Binary Arithmetic" /></div>
+                placeholder={t("instructor.setup.namePlaceholder")} /></div>
           </div>
-          <div className="field"><label>Description (optional)</label>
+          <div className="field"><label>{t("instructor.setup.descOptional")}</label>
             <input value={desc} onChange={(e) => setDesc(e.target.value)} /></div>
-          <div className="field"><label>Common misconceptions (optional — guides the AI)</label>
+          <div className="field"><label>{t("instructor.setup.miscLabel")}</label>
             <textarea value={misc} onChange={(e) => setMisc(e.target.value)} rows={2}
-              placeholder="e.g. Students forget to carry when a column sums to two." /></div>
+              placeholder={t("instructor.setup.miscPlaceholder")} /></div>
           {concepts.length > 0 && (
-            <div className="field"><label>Prerequisites (concepts this builds on)</label>
+            <div className="field"><label>{t("instructor.setup.prereqLabel")}</label>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                 {concepts.map((c) => (
                   <label key={c.id} style={{ fontSize: 13, display: "flex", gap: 6, alignItems: "center" }}>
@@ -125,32 +127,31 @@ export default function CourseSetupPanel({ courseId }: { courseId: number }) {
               </div>
             </div>
           )}
-          <button className="btn" style={{ marginTop: 8 }}>Add concept</button>
+          <button className="btn" style={{ marginTop: 8 }}>{t("instructor.setup.addConceptBtn")}</button>
         </form>
       </div>
 
       <div className="card">
-        <h3>Create an assessment</h3>
+        <h3>{t("instructor.setup.createAssessmentTitle")}</h3>
         <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
-          For a pilot you can define assessments here, then ingest results via the LMS sync or the
-          results API. Quizzes/exams support per-question multiple-choice diagnosis.
+          {t("instructor.setup.createAssessmentHelp")}
         </p>
         <form onSubmit={addAssessment}>
           <div className="grid cols-3" style={{ alignItems: "end" }}>
-            <div className="field" style={{ marginBottom: 0 }}><label>Title</label>
+            <div className="field" style={{ marginBottom: 0 }}><label>{t("instructor.setup.titleLabel")}</label>
               <input value={aTitle} onChange={(e) => setATitle(e.target.value)}
-                placeholder="e.g. Quiz 1" /></div>
-            <div className="field" style={{ marginBottom: 0 }}><label>Type</label>
+                placeholder={t("instructor.setup.titlePlaceholder")} /></div>
+            <div className="field" style={{ marginBottom: 0 }}><label>{t("instructor.setup.typeLabel")}</label>
               <select value={aType} onChange={(e) => setAType(e.target.value)}>
-                <option value="quiz">Quiz (MCQ)</option>
-                <option value="exam">Exam (MCQ)</option>
-                <option value="assignment">Assignment (rubric)</option>
-                <option value="problem_set">Problem set</option>
+                <option value="quiz">{t("instructor.setup.typeQuiz")}</option>
+                <option value="exam">{t("instructor.setup.typeExam")}</option>
+                <option value="assignment">{t("instructor.setup.typeAssignment")}</option>
+                <option value="problem_set">{t("instructor.setup.typeProblemSet")}</option>
               </select></div>
-            <div className="field" style={{ marginBottom: 0 }}><label>Max score</label>
+            <div className="field" style={{ marginBottom: 0 }}><label>{t("instructor.setup.maxScore")}</label>
               <input type="number" value={aMax} onChange={(e) => setAMax(Number(e.target.value))} /></div>
           </div>
-          <button className="btn" style={{ marginTop: 14 }}>Create assessment</button>
+          <button className="btn" style={{ marginTop: 14 }}>{t("instructor.setup.createAssessmentBtn")}</button>
         </form>
       </div>
     </div>
