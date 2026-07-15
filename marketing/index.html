@@ -306,6 +306,7 @@
   <div class="links">
     <a href="#why">Why LMS Bridge</a>
     <a href="#how">How it works</a>
+    <a href="#sage">Sage</a>
     <a href="#install">Install</a>
     <a href="#faq">FAQ</a>
     <a href="#contact">Contact</a>
@@ -571,6 +572,18 @@
   </div>
 </div></section>
 
+<section id="sage" style="background:var(--bg2)"><div class="wrap">
+  <div class="sec-head">
+    <span class="pill" style="color:var(--accent);background:rgba(124,108,245,.12);border-color:rgba(124,108,245,.28)">New · Sage</span>
+    <h2>No LMS? Start with Sage.</h2>
+    <p>Sage is a standalone mini-LMS with LMS Bridge built in. An instructor creates a course, adds multiple-choice quizzes, and shares a join code — no IT, no LMS admin. When a student misses a concept, the platform automatically builds them a guided practice session. A simple course platform where adaptive remediation just works, out of the box.</p>
+  </div>
+  <div class="hero-cta">
+    <a class="btn primary" id="sageBtn" href="#" target="_blank" rel="noopener">Open Sage</a>
+    <a class="btn dark" href="#install">Or install the full platform in your LMS</a>
+  </div>
+</div></section>
+
 <section id="selfhost" class="final"><div class="wrap final-grid">
   <div>
     <h2>Ready to help every student truly learn?</h2>
@@ -588,14 +601,18 @@
   </div>
 </div></section>
 
-<footer><div class="wrap">
-  <span class="brand" style="font-size:16px"><span class="mark" style="width:22px;height:22px;font-size:12px">📘</span> LMS Bridge <small>· © 2025 · AGPL-3.0</small></span>
-  <div class="fl">
-    <a data-gh href="#">Documentation</a>
-    <a data-gh href="#">GitHub</a>
-    <a href="#selfhost">Self-host</a>
-    <a href="mailto:info@lmsbridge.app">Contact</a>
+<footer><div class="wrap" style="flex-direction:column;align-items:flex-start;gap:14px">
+  <div class="wrap" style="width:100%;margin:0;padding:0">
+    <span class="brand" style="font-size:16px"><span class="mark" style="width:22px;height:22px;font-size:12px">📘</span> LMS Bridge <small>· © 2025 · AGPL-3.0</small></span>
+    <div class="fl">
+      <a data-gh href="#">Documentation</a>
+      <a data-gh href="#">GitHub</a>
+      <a href="#sage">Sage</a>
+      <a href="#selfhost">Self-host</a>
+      <a href="mailto:info@lmsbridge.app">Contact</a>
+    </div>
   </div>
+  <p class="mini" style="margin:0">This is part of the <a href="initiative.html" style="color:var(--accent)">Knowledge in Service of Society Initiative</a>.</p>
 </div></footer>
 
 <script src="/config.js"></script>
@@ -610,6 +627,8 @@
     document.querySelectorAll("[data-gh]").forEach(function(a){ a.setAttribute("href", window.LMSBRIDGE_SOURCE); });
     var connect = document.getElementById("connectBtn");
     if (connect) connect.setAttribute("href", app + "/connect");
+    var sage = document.getElementById("sageBtn");
+    if (sage) sage.setAttribute("href", app + "/sage");
   })();
 
   // Fill the real LTI registration URLs from the backend (no placeholders).
