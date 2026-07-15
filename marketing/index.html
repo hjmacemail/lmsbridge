@@ -1,34 +1,32 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>LMS Bridge — open-source AI tutoring built into your LMS</title>
-<meta name="description" content="LMS Bridge is a free, open-source AI teaching assistant. It turns your LMS quiz and assignment data into personalized, AI-guided tutoring that catches struggling students early — pinpointing each student's misconception and coaching them to fix it. Installs into Canvas, Moodle, Brightspace, and Blackboard via LTI 1.3, or runs standalone." />
-<meta name="keywords" content="LMS Bridge, LTI 1.3, LTI Advantage, adaptive learning, AI remediation, open source edtech, AGPL, Canvas, Moodle, Brightspace, Blackboard, STEM, retrieval practice, mastery learning, Socratic tutor" />
-<meta name="author" content="LMS Bridge authors" />
-<meta name="robots" content="index, follow, max-image-preview:large" />
-<meta name="theme-color" content="#0b1020" />
-<link rel="canonical" href="https://www.lmsbridge.app/" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-
+<meta content="LMS Bridge is a free, open-source AI teaching assistant. It turns your LMS quiz and assignment data into personalized, AI-guided tutoring that catches struggling students early — pinpointing each student's misconception and coaching them to fix it. Installs into Canvas, Moodle, Brightspace, and Blackboard via LTI 1.3, or runs standalone." name="description"/>
+<meta content="LMS Bridge, LTI 1.3, LTI Advantage, adaptive learning, AI remediation, open source edtech, AGPL, Canvas, Moodle, Brightspace, Blackboard, STEM, retrieval practice, mastery learning, Socratic tutor" name="keywords"/>
+<meta content="LMS Bridge authors" name="author"/>
+<meta content="index, follow, max-image-preview:large" name="robots"/>
+<meta content="#0b1020" name="theme-color"/>
+<link href="https://www.lmsbridge.app/" rel="canonical"/>
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
 <!-- Open Graph (link previews on social + some answer engines) -->
-<meta property="og:type" content="website" />
-<meta property="og:site_name" content="LMS Bridge" />
-<meta property="og:title" content="LMS Bridge — open-source AI tutoring built into your LMS" />
-<meta property="og:description" content="An AI teaching assistant that catches struggling students inside your LMS — turning quiz data into personalized, guided tutoring. Free and open source (AGPL-3.0), installs via LTI 1.3 into Canvas, Moodle, Brightspace, and Blackboard, or runs standalone." />
-<meta property="og:url" content="https://www.lmsbridge.app/" />
-<meta property="og:image" content="https://www.lmsbridge.app/og-image.png" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="LMS Bridge — Bridge early gaps before they widen." />
-
+<meta content="website" property="og:type"/>
+<meta content="LMS Bridge" property="og:site_name"/>
+<meta content="LMS Bridge — open-source AI tutoring built into your LMS" property="og:title"/>
+<meta content="An AI teaching assistant that catches struggling students inside your LMS — turning quiz data into personalized, guided tutoring. Free and open source (AGPL-3.0), installs via LTI 1.3 into Canvas, Moodle, Brightspace, and Blackboard, or runs standalone." property="og:description"/>
+<meta content="https://www.lmsbridge.app/" property="og:url"/>
+<meta content="https://www.lmsbridge.app/og-image.png" property="og:image"/>
+<meta content="1200" property="og:image:width"/>
+<meta content="630" property="og:image:height"/>
+<meta content="LMS Bridge — Bridge early gaps before they widen." property="og:image:alt"/>
 <!-- Twitter / X card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="LMS Bridge — open-source AI tutoring built into your LMS" />
-<meta name="twitter:description" content="An AI teaching assistant that catches struggling students inside your LMS. Free, open source, installs via LTI 1.3 — or runs standalone." />
-<meta name="twitter:image" content="https://www.lmsbridge.app/og-image.png" />
-
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="LMS Bridge — open-source AI tutoring built into your LMS" name="twitter:title"/>
+<meta content="An AI teaching assistant that catches struggling students inside your LMS. Free, open source, installs via LTI 1.3 — or runs standalone." name="twitter:description"/>
+<meta content="https://www.lmsbridge.app/og-image.png" name="twitter:image"/>
 <!-- Structured data (SEO rich results + machine-readable facts for AI answer engines) -->
 <script type="application/ld+json">
 {
@@ -332,325 +330,313 @@
   .field textarea{min-height:100px;resize:vertical}
   .ok{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:#86efac;border-radius:10px;padding:12px;font-size:14px;margin-bottom:12px}
   .err{color:#f87171;font-size:13px;margin-top:8px}
+
+  .langsel{height:38px;border-radius:10px;background:var(--tint);border:1px solid var(--line2);color:var(--ink);font-size:13px;font-weight:700;padding:0 8px;cursor:pointer;font-family:inherit}
+  .langsel option{color:#0f172a}
+  html[dir="rtl"] body{direction:rtl;text-align:right}
+  html[dir="rtl"] .checks li{padding-left:0;padding-right:30px}
+  html[dir="rtl"] .checks li::before{left:auto;right:0}
+  html[dir="rtl"] .compare th,html[dir="rtl"] .compare td{text-align:right}
+  html[dir="rtl"] .compare th:last-child,html[dir="rtl"] .compare td:last-child{border-left:none;border-right:1px solid rgba(124,108,245,.18)}
+  html[dir="rtl"] .srow .nm{text-align:right}
+  html[dir="rtl"] .mrow .dot,html[dir="rtl"] .st-n,html[dir="rtl"] .step .n{margin-right:0;margin-left:8px}
 </style>
 </head>
 <body>
-
 <nav><div class="wrap">
-  <span class="brand"><span class="mark">📘</span> LMS Bridge</span>
-  <div class="links">
-    <a href="#why">Why LMS Bridge</a>
-    <a href="#how">How it works</a>
-    <a href="#sage">Sage</a>
-    <a href="#install">Install</a>
-    <a href="#faq">FAQ</a>
-    <a href="#contact">Contact</a>
-  </div>
-  <div class="navbtns">
-    <button class="themebtn" id="themeBtn" type="button" aria-label="Toggle light and dark mode" title="Toggle theme"><span class="sun">☀️</span><span class="moon">🌙</span></button>
-    <a class="btn dark sm" data-gh href="https://github.com/hjmacemail/lmsbridge">★ Star on GitHub</a>
-    <a class="btn primary sm" data-demo href="#">Try live demo</a>
-  </div>
+<span class="brand"><span class="mark">📘</span> LMS Bridge</span>
+<div class="links">
+<a data-i18n="k001" href="#why">Why LMS Bridge</a>
+<a data-i18n="k002" href="#how">How it works</a>
+<a href="#sage">Sage</a>
+<a data-i18n="k003" href="#install">Install</a>
+<a data-i18n="k004" href="#faq">FAQ</a>
+<a data-i18n="k005" href="#contact">Contact</a>
+</div>
+<div class="navbtns">
+<select class="langsel" id="langSel" aria-label="Language"><option value="en">EN</option><option value="es">ES</option><option value="fr">FR</option><option value="ar">AR</option></select>
+    <button aria-label="Toggle light and dark mode" class="themebtn" id="themeBtn" title="Toggle theme" type="button"><span class="sun">☀️</span><span class="moon">🌙</span></button>
+<a class="btn dark sm" data-gh="" data-i18n="k006" href="https://github.com/hjmacemail/lmsbridge">★ Star on GitHub</a>
+<a class="btn primary sm" data-demo="" data-i18n="k007" href="#">Try live demo</a>
+</div>
 </div></nav>
-
 <header class="hero"><div class="wrap hero-grid">
-  <div>
-    <span class="pill">AI misconception detection &amp; tutoring</span>
-    <h1>Your LMS tells you who failed. <span class="hl">LMS Bridge</span> tells you <span class="hl">why —</span> and <span class="hl">fixes it</span>.</h1>
-    <p class="sub">LMS Bridge detects misconceptions, generates personalized tutoring, and helps every student recover — inside your LMS.</p>
-    <ul class="checks">
-      <li>Detects misconceptions automatically</li>
-      <li>Generates personalized AI tutoring</li>
-      <li>Works inside Canvas, Moodle, Blackboard &amp; Brightspace</li>
-    </ul>
-    <div class="hero-cta">
-      <a class="btn primary" data-demo href="#">Try live demo</a>
-      <a class="btn dark" href="selfhost.html">Self-host LMS Bridge</a>
-    </div>
-    <div class="workswith"><b>Works with</b> <span>Canvas</span> · <span>Moodle</span> · <span>Blackboard</span> · <span>Brightspace</span></div>
-  </div>
-
-  <div>
-    <div class="mock">
-      <div class="mock-bar">
-        <span style="opacity:.7">▦ CS 101</span><span style="opacity:.5">›</span>
-        <span class="brand" style="font-size:13.5px"><span class="mark" style="width:18px;height:18px;font-size:10px">📘</span> LMS Bridge</span>
-        <span style="margin-left:auto;font-size:11.5px;opacity:.7">CS-UY 2110 · Computer Architecture</span>
-      </div>
-      <div class="dash-main" style="padding:15px 16px">
-        <div class="mtabs"><span class="on">Overview</span><span>Students</span><span>Assessments</span><span>Course Material</span><span>Remediation</span></div>
-
-        <div class="copilot">
-          <div class="cl">✨ AI Copilot — what to do before your next class</div>
-          <div class="cstats">
-            <div><b>72%</b> <em style="color:var(--green)">↑ 6%</em><span>class health · vs last week</span></div>
-            <div><b style="color:#f87171">8</b><span>of 24 students need attention</span></div>
-            <div><b style="color:var(--green)">18/22</b><span>AI sessions completed</span></div>
-          </div>
-          <p class="cbrief">Class mastery is around 58% across the tracked concepts. <b>Binary Representation</b> is the biggest gap at 46%, with 5 students at risk. The tutor has run 22 sessions (18 completed).</p>
-          <div class="crec">🎯 Spend ~10 minutes reviewing Binary Representation before your next lecture — the highest-impact fix, affecting 5 students.</div>
-        </div>
-
-        <div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-top:12px">
-          <div class="kbox"><div class="kl">Enrolled students</div><div class="kv">24</div></div>
-          <div class="kbox"><div class="kl">Modules generated</div><div class="kv">22</div></div>
-          <div class="kbox"><div class="kl">Modules completed</div><div class="kv">5</div></div>
-        </div>
-
-        <div class="risk">
-          <div class="rh">Concepts ranked by class risk</div>
-          <div class="rrow"><span class="rn">Binary Representation</span><span class="rbar"><i style="width:46%;background:#ef4444"></i></span><span class="rp">46%</span><span class="rc">5/8</span><span class="tag">Needs attention</span></div>
-          <div class="rrow"><span class="rn">Machine-Level Computation</span><span class="rbar"><i style="width:52%;background:#ef4444"></i></span><span class="rp">52%</span><span class="rc">6/8</span><span class="tag">Needs attention</span></div>
-          <div class="rrow"><span class="rn">Boolean Logic</span><span class="rbar"><i style="width:60%;background:#f59e0b"></i></span><span class="rp">60%</span><span class="rc">4/8</span><span class="tag">Needs attention</span></div>
-          <div class="rrow"><span class="rn">Binary Arithmetic</span><span class="rbar"><i style="width:65%;background:#f59e0b"></i></span><span class="rp">65%</span><span class="rc">4/8</span><span class="tag">Needs attention</span></div>
-        </div>
-      </div>
-    </div>
-    <div class="workswith" style="justify-content:center;margin-top:16px">No data leaves your system. · FERPA-aware · Built for education</div>
-  </div>
+<div>
+<span class="pill" data-i18n="k008">AI misconception detection &amp; tutoring</span>
+<h1 data-i18n="k009">Your LMS tells you who failed. <span class="hl">LMS Bridge</span> tells you <span class="hl">why —</span> and <span class="hl">fixes it</span>.</h1>
+<p class="sub" data-i18n="k010">LMS Bridge detects misconceptions, generates personalized tutoring, and helps every student recover — inside your LMS.</p>
+<ul class="checks">
+<li data-i18n="k011">Detects misconceptions automatically</li>
+<li data-i18n="k012">Generates personalized AI tutoring</li>
+<li data-i18n="k013">Works inside Canvas, Moodle, Blackboard &amp; Brightspace</li>
+</ul>
+<div class="hero-cta">
+<a class="btn primary" data-demo="" data-i18n="k014" href="#">Try live demo</a>
+<a class="btn dark" data-i18n="k015" href="selfhost.html">Self-host LMS Bridge</a>
+</div>
+<div class="workswith"><b data-i18n="k016">Works with</b> <span>Canvas</span> · <span>Moodle</span> · <span>Blackboard</span> · <span>Brightspace</span></div>
+</div>
+<div>
+<div class="mock">
+<div class="mock-bar">
+<span style="opacity:.7">▦ CS 101</span><span style="opacity:.5">›</span>
+<span class="brand" style="font-size:13.5px"><span class="mark" style="width:18px;height:18px;font-size:10px">📘</span> LMS Bridge</span>
+<span style="margin-left:auto;font-size:11.5px;opacity:.7">CS-UY 2110 · Computer Architecture</span>
+</div>
+<div class="dash-main" style="padding:15px 16px">
+<div class="mtabs"><span class="on">Overview</span><span>Students</span><span>Assessments</span><span>Course Material</span><span>Remediation</span></div>
+<div class="copilot">
+<div class="cl">✨ AI Copilot — what to do before your next class</div>
+<div class="cstats">
+<div><b>72%</b> <em style="color:var(--green)">↑ 6%</em><span>class health · vs last week</span></div>
+<div><b style="color:#f87171">8</b><span>of 24 students need attention</span></div>
+<div><b style="color:var(--green)">18/22</b><span>AI sessions completed</span></div>
+</div>
+<p class="cbrief">Class mastery is around 58% across the tracked concepts. <b>Binary Representation</b> is the biggest gap at 46%, with 5 students at risk. The tutor has run 22 sessions (18 completed).</p>
+<div class="crec">🎯 Spend ~10 minutes reviewing Binary Representation before your next lecture — the highest-impact fix, affecting 5 students.</div>
+</div>
+<div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-top:12px">
+<div class="kbox"><div class="kl">Enrolled students</div><div class="kv">24</div></div>
+<div class="kbox"><div class="kl">Modules generated</div><div class="kv">22</div></div>
+<div class="kbox"><div class="kl">Modules completed</div><div class="kv">5</div></div>
+</div>
+<div class="risk">
+<div class="rh">Concepts ranked by class risk</div>
+<div class="rrow"><span class="rn">Binary Representation</span><span class="rbar"><i style="width:46%;background:#ef4444"></i></span><span class="rp">46%</span><span class="rc">5/8</span><span class="tag">Needs attention</span></div>
+<div class="rrow"><span class="rn">Machine-Level Computation</span><span class="rbar"><i style="width:52%;background:#ef4444"></i></span><span class="rp">52%</span><span class="rc">6/8</span><span class="tag">Needs attention</span></div>
+<div class="rrow"><span class="rn">Boolean Logic</span><span class="rbar"><i style="width:60%;background:#f59e0b"></i></span><span class="rp">60%</span><span class="rc">4/8</span><span class="tag">Needs attention</span></div>
+<div class="rrow"><span class="rn">Binary Arithmetic</span><span class="rbar"><i style="width:65%;background:#f59e0b"></i></span><span class="rp">65%</span><span class="rc">4/8</span><span class="tag">Needs attention</span></div>
+</div>
+</div>
+</div>
+<div class="workswith" data-i18n="k017" style="justify-content:center;margin-top:16px">No data leaves your system. · FERPA-aware · Built for education</div>
+</div>
 </div></header>
-
 <section id="how"><div class="wrap">
-  <div class="sec-head"><h2>See LMS Bridge in action</h2><p>From student struggle to mastery — in minutes.</p></div>
-  <div class="tl">
-    <div class="tl-line"></div>
-    <div class="tl-steps">
-      <div class="tl-step"><div class="tl-num">1</div><div class="t">Student submits quiz</div>
-        <div class="tl-card"><div class="h">Quiz 2 · Probability</div>Score: 52%</div><div class="tl-cap">Struggles show up.</div></div>
-      <div class="tl-step"><div class="tl-num">2</div><div class="t">AI analyzes responses</div>
-        <div class="tl-card"><div class="h">Analyzing 14 responses…</div>Identifying concepts…</div><div class="tl-cap">LMS Bridge finds the root cause.</div></div>
-      <div class="tl-step"><div class="tl-num">3</div><div class="t">Misconception detected</div>
-        <div class="tl-card"><div class="h" style="color:var(--danger)">⚑ Primary misconception</div>Confuses overflow with carry in binary addition.</div><div class="tl-cap">Pinpoints the exact gap.</div></div>
-      <div class="tl-step"><div class="tl-num">4</div><div class="t">Guided practice generated</div>
-        <div class="tl-card"><div class="h">AI-generated module<br>Binary Addition &amp; Overflow</div>· 6-min lesson<br>· 4 guided steps<br>· 3 practice questions</div><div class="tl-cap">Personalized tutoring, instantly.</div></div>
-      <div class="tl-step"><div class="tl-num">5</div><div class="t">Student recovers</div>
-        <div class="tl-card"><div class="h">After practice</div>Score: <b style="color:var(--green)">89%</b><br>+37% improvement</div><div class="tl-cap">Student builds understanding.</div></div>
-      <div class="tl-step"><div class="tl-num">6</div><div class="t">Instructor gets visibility</div>
-        <div class="tl-card"><div class="h">Recovery dashboard</div><b style="color:var(--green)">17 students improved</b> this week</div><div class="tl-cap">You see what's working.</div></div>
-    </div>
-  </div>
+<div class="sec-head"><h2 data-i18n="k018">See LMS Bridge in action</h2><p data-i18n="k019">From student struggle to mastery — in minutes.</p></div>
+<div class="tl">
+<div class="tl-line"></div>
+<div class="tl-steps">
+<div class="tl-step"><div class="tl-num">1</div><div class="t" data-i18n="k020">Student submits quiz</div>
+<div class="tl-card"><div class="h" data-i18n="k021">Quiz 2 · Probability</div>Score: 52%</div><div class="tl-cap" data-i18n="k022">Struggles show up.</div></div>
+<div class="tl-step"><div class="tl-num">2</div><div class="t" data-i18n="k023">AI analyzes responses</div>
+<div class="tl-card"><div class="h" data-i18n="k024">Analyzing 14 responses…</div>Identifying concepts…</div><div class="tl-cap" data-i18n="k025">LMS Bridge finds the root cause.</div></div>
+<div class="tl-step"><div class="tl-num">3</div><div class="t" data-i18n="k026">Misconception detected</div>
+<div class="tl-card"><div class="h" data-i18n="k027" style="color:var(--danger)">⚑ Primary misconception</div>Confuses overflow with carry in binary addition.</div><div class="tl-cap" data-i18n="k028">Pinpoints the exact gap.</div></div>
+<div class="tl-step"><div class="tl-num">4</div><div class="t" data-i18n="k029">Guided practice generated</div>
+<div class="tl-card"><div class="h" data-i18n="k030">AI-generated module<br/>Binary Addition &amp; Overflow</div>· 6-min lesson<br/>· 4 guided steps<br/>· 3 practice questions</div><div class="tl-cap" data-i18n="k031">Personalized tutoring, instantly.</div></div>
+<div class="tl-step"><div class="tl-num">5</div><div class="t" data-i18n="k032">Student recovers</div>
+<div class="tl-card"><div class="h" data-i18n="k033">After practice</div>Score: <b style="color:var(--green)">89%</b><br/>+37% improvement</div><div class="tl-cap" data-i18n="k034">Student builds understanding.</div></div>
+<div class="tl-step"><div class="tl-num">6</div><div class="t" data-i18n="k035">Instructor gets visibility</div>
+<div class="tl-card"><div class="h" data-i18n="k036">Recovery dashboard</div><b data-i18n="k037" style="color:var(--green)">17 students improved</b> this week</div><div class="tl-cap" data-i18n="k038">You see what's working.</div></div>
+</div>
+</div>
 </div></section>
-
 <section id="why" style="background:var(--bg2)"><div class="wrap">
-  <div class="two">
-    <div>
-      <h2 class="h2s">Why can't we just use ChatGPT?</h2>
-      <p class="subs">General AI vs. LMS Bridge.</p>
-      <div class="compare"><table>
-        <thead><tr><th></th><th>✗ ChatGPT / General AI</th><th>✓ LMS Bridge</th></tr></thead>
-        <tbody>
-          <tr><td>Knows your course</td><td class="no">No</td><td class="yes">Yes (your content)</td></tr>
-          <tr><td>Sees student answers</td><td class="no">No</td><td class="yes">Yes</td></tr>
-          <tr><td>Detects misconceptions</td><td class="no">No</td><td class="yes">Yes (AI + psych science)</td></tr>
-          <tr><td>Creates guided practice</td><td class="no">No</td><td class="yes">Yes (personalized)</td></tr>
-          <tr><td>Tracks recovery</td><td class="no">No</td><td class="yes">Yes</td></tr>
-          <tr><td>Works in your LMS</td><td class="no">No</td><td class="yes">Yes (native)</td></tr>
-          <tr><td>FERPA / privacy</td><td class="no">Unknown</td><td class="yes">Your data stays yours</td></tr>
-        </tbody>
-      </table></div>
-    </div>
-    <div>
-      <h2 class="h2s">One student, start to finish</h2>
-      <p class="subs">Real example. Real impact.</p>
-      <div class="story">
-        <div class="st-grid">
-          <div>
-            <div class="st-step"><div class="st-n">1</div><div><div class="lbl">Quiz 2 score</div><div class="big">52%</div><div class="lbl">Struggled with binary addition</div></div></div>
-            <div class="st-step"><div class="st-n">2</div><div><div class="lbl">AI diagnosis</div><div style="font-weight:600">Confuses overflow with carry.</div><div class="lbl">Root misconception detected.</div></div></div>
-            <div class="st-step"><div class="st-n">3</div><div><div class="lbl">Guided practice</div><div class="big">11 min</div><div class="lbl">Personalized AI tutoring module</div></div></div>
-            <div class="st-step"><div class="st-n">4</div><div><div class="lbl">After practice</div><div class="big">52% → 89%</div><div class="lbl">37% improvement</div></div></div>
-          </div>
-          <div>
-            <svg viewBox="0 0 260 190" width="100%">
-              <text x="8" y="120" fill="#94a3b8" font-size="13">52%</text>
-              <text x="205" y="46" fill="#f8fafc" font-size="15" font-weight="700">89%</text>
-              <line x1="45" y1="130" x2="225" y2="60" stroke="#7c6cf5" stroke-width="3"/>
-              <polygon points="45,130 225,60 225,170 45,170" fill="rgba(124,108,245,.14)"/>
-              <circle cx="45" cy="130" r="6" fill="#7c6cf5"/>
-              <circle cx="225" cy="60" r="7" fill="#7c6cf5" stroke="#fff" stroke-width="2"/>
-              <text x="30" y="186" fill="#94a3b8" font-size="12">Before</text>
-              <text x="180" y="186" fill="#94a3b8" font-size="12">After practice</text>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="impact">
-    <div><b>17</b><span>Students recovered</span></div>
-    <div><b>61</b><span>Misconceptions detected</span></div>
-    <div><b>9 hrs</b><span>Instructor time saved</span></div>
-    <div><b>92%</b><span>Practice completion rate</span></div>
-  </div>
-  <p class="muted" style="text-align:center;font-size:12.5px;margin-top:12px">Illustrative figures from the demo course — not from a live deployment.</p>
+<div class="two">
+<div>
+<h2 class="h2s" data-i18n="k039">Why can't we just use ChatGPT?</h2>
+<p class="subs" data-i18n="k040">General AI vs. LMS Bridge.</p>
+<div class="compare"><table>
+<thead><tr><th></th><th data-i18n="k041">✗ ChatGPT / General AI</th><th data-i18n="k042">✓ LMS Bridge</th></tr></thead>
+<tbody>
+<tr><td data-i18n="k043">Knows your course</td><td class="no" data-i18n="k044">No</td><td class="yes" data-i18n="k045">Yes (your content)</td></tr>
+<tr><td data-i18n="k046">Sees student answers</td><td class="no" data-i18n="k047">No</td><td class="yes" data-i18n="k048">Yes</td></tr>
+<tr><td data-i18n="k049">Detects misconceptions</td><td class="no" data-i18n="k050">No</td><td class="yes" data-i18n="k051">Yes (AI + psych science)</td></tr>
+<tr><td data-i18n="k052">Creates guided practice</td><td class="no" data-i18n="k053">No</td><td class="yes" data-i18n="k054">Yes (personalized)</td></tr>
+<tr><td data-i18n="k055">Tracks recovery</td><td class="no" data-i18n="k056">No</td><td class="yes" data-i18n="k057">Yes</td></tr>
+<tr><td data-i18n="k058">Works in your LMS</td><td class="no" data-i18n="k059">No</td><td class="yes" data-i18n="k060">Yes (native)</td></tr>
+<tr><td data-i18n="k061">FERPA / privacy</td><td class="no" data-i18n="k062">Unknown</td><td class="yes" data-i18n="k063">Your data stays yours</td></tr>
+</tbody>
+</table></div>
+</div>
+<div>
+<h2 class="h2s" data-i18n="k064">One student, start to finish</h2>
+<p class="subs" data-i18n="k065">Real example. Real impact.</p>
+<div class="story">
+<div class="st-grid">
+<div>
+<div class="st-step"><div class="st-n">1</div><div><div class="lbl" data-i18n="k066">Quiz 2 score</div><div class="big">52%</div><div class="lbl" data-i18n="k067">Struggled with binary addition</div></div></div>
+<div class="st-step"><div class="st-n">2</div><div><div class="lbl" data-i18n="k068">AI diagnosis</div><div data-i18n="k069" style="font-weight:600">Confuses overflow with carry.</div><div class="lbl" data-i18n="k070">Root misconception detected.</div></div></div>
+<div class="st-step"><div class="st-n">3</div><div><div class="lbl" data-i18n="k071">Guided practice</div><div class="big" data-i18n="k072">11 min</div><div class="lbl" data-i18n="k073">Personalized AI tutoring module</div></div></div>
+<div class="st-step"><div class="st-n">4</div><div><div class="lbl" data-i18n="k074">After practice</div><div class="big">52% → 89%</div><div class="lbl" data-i18n="k075">37% improvement</div></div></div>
+</div>
+<div>
+<svg viewbox="0 0 260 190" width="100%">
+<text fill="#94a3b8" font-size="13" x="8" y="120">52%</text>
+<text fill="#f8fafc" font-size="15" font-weight="700" x="205" y="46">89%</text>
+<line stroke="#7c6cf5" stroke-width="3" x1="45" x2="225" y1="130" y2="60"></line>
+<polygon fill="rgba(124,108,245,.14)" points="45,130 225,60 225,170 45,170"></polygon>
+<circle cx="45" cy="130" fill="#7c6cf5" r="6"></circle>
+<circle cx="225" cy="60" fill="#7c6cf5" r="7" stroke="#fff" stroke-width="2"></circle>
+<text fill="#94a3b8" font-size="12" x="30" y="186">Before</text>
+<text fill="#94a3b8" font-size="12" x="180" y="186">After practice</text>
+</svg>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="impact">
+<div><b>17</b><span data-i18n="k076">Students recovered</span></div>
+<div><b>61</b><span data-i18n="k077">Misconceptions detected</span></div>
+<div><b data-i18n="k078">9 hrs</b><span data-i18n="k079">Instructor time saved</span></div>
+<div><b>92%</b><span data-i18n="k080">Practice completion rate</span></div>
+</div>
+<p class="muted" data-i18n="k081" style="text-align:center;font-size:12.5px;margin-top:12px">Illustrative figures from the demo course — not from a live deployment.</p>
 </div></section>
-
 <section id="integrations"><div class="wrap">
-  <div class="sec-head"><h2>Built for instructors. Loved by students.</h2><p>Everything you need — right where you teach.</p></div>
-  <div class="thumbs">
-
-    <div class="thumb"><div class="shot">
-      <div class="st">Overview · CS-UY 2110</div>
-      <div class="sstats">
-        <div class="sstat"><b>17</b><i>at risk</i></div>
-        <div class="sstat"><b>61</b><i>misconc.</i></div>
-        <div class="sstat"><b style="color:#22c55e">+42%</b><i>improved</i></div>
-      </div>
-      <div class="srow"><span class="nm">Binary Rep.</span><span class="sbar"><i style="width:46%;background:#ef4444"></i></span><span>46%</span></div>
-      <div class="srow"><span class="nm">Machine-Level</span><span class="sbar"><i style="width:52%;background:#ef4444"></i></span><span>52%</span></div>
-      <div class="srow"><span class="nm">Boolean Logic</span><span class="sbar"><i style="width:60%;background:#f59e0b"></i></span><span>60%</span></div>
-    </div><div class="cap">Instructor dashboard</div><div class="sub">See who's struggling and why.</div></div>
-
-    <div class="thumb"><div class="shot">
-      <div class="srow" style="justify-content:space-between"><span class="st">Ava Chen</span><span class="spill" style="background:rgba(239,68,68,.15);color:#f87171">HIGH RISK</span></div>
-      <div class="ssub">3 concepts · 2 open · 1 completed</div>
-      <div class="srow"><span class="nm">Binary Rep.</span><span class="sbar"><i style="width:35%;background:#ef4444"></i></span></div>
-      <div class="srow"><span class="nm">Boolean Logic</span><span class="sbar"><i style="width:58%;background:#f59e0b"></i></span></div>
-      <div class="srow"><span class="nm">Binary Arith.</span><span class="sbar"><i style="width:84%;background:#22c55e"></i></span></div>
-    </div><div class="cap">Student profile</div><div class="sub">Deep insights into each learner.</div></div>
-
-    <div class="thumb"><div class="shot">
-      <div class="st p">🎯 Rebuilding Binary Representation</div>
-      <div class="sbubble"><b style="color:var(--accent)">AI Tutor</b> · In <code style="font-size:7px">1011</code>, what is the leftmost bit worth?</div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap"><span class="sopt">1</span><span class="sopt">2</span><span class="sopt" style="border-color:#22c55e;color:#22c55e">8 ✓</span></div>
-      <div class="ssub">retrieval practice · ~6 min</div>
-    </div><div class="cap">Generated module</div><div class="sub">AI-powered, curriculum aligned.</div></div>
-
-    <div class="thumb"><div class="shot">
-      <div class="st">Recommended for you</div>
-      <div class="srow" style="justify-content:space-between"><span class="nm">Binary Representation</span><span class="spill" style="background:rgba(245,158,11,.15);color:#fbbf24">Needs review</span></div>
-      <div class="srow"><span class="sbar"><i style="width:12%;background:var(--primary)"></i></span><span class="sbtn">Start · 6 min</span></div>
-      <div class="srow" style="justify-content:space-between;margin-top:2px"><span class="nm">Boolean Logic</span><span class="spill" style="background:rgba(245,158,11,.15);color:#fbbf24">Needs review</span></div>
-      <div class="srow"><span class="sbar"><i style="width:14%;background:var(--primary)"></i></span><span class="sbtn">Start · 7 min</span></div>
-    </div><div class="cap">Student practice view</div><div class="sub">Guided, step-by-step support.</div></div>
-
-    <div class="thumb"><div class="shot">
-      <div class="srow" style="justify-content:space-between"><span class="st">Class mastery</span><span class="spill" style="background:rgba(34,197,94,.15);color:#4ade80">↑ +6% wk</span></div>
-      <svg viewBox="0 0 170 66" width="100%" style="margin-top:2px">
-        <polyline points="6,52 40,46 74,40 108,28 142,20 164,12" fill="none" stroke="#7c6cf5" stroke-width="2.5"/>
-        <polygon points="6,52 40,46 74,40 108,28 142,20 164,12 164,60 6,60" fill="rgba(124,108,245,.14)"/>
-        <circle cx="164" cy="12" r="3.5" fill="#7c6cf5" stroke="#fff" stroke-width="1.5"/>
-      </svg>
-      <div class="ssub">17 students recovered this week</div>
-    </div><div class="cap">Recovery analytics</div><div class="sub">Track what's working.</div></div>
-
-  </div>
+<div class="sec-head"><h2 data-i18n="k082">Built for instructors. Loved by students.</h2><p data-i18n="k083">Everything you need — right where you teach.</p></div>
+<div class="thumbs">
+<div class="thumb"><div class="shot">
+<div class="st" data-i18n="k084">Overview · CS-UY 2110</div>
+<div class="sstats">
+<div class="sstat"><b>17</b><i>at risk</i></div>
+<div class="sstat"><b>61</b><i>misconc.</i></div>
+<div class="sstat"><b style="color:#22c55e">+42%</b><i>improved</i></div>
+</div>
+<div class="srow"><span class="nm" data-i18n="k085">Binary Rep.</span><span class="sbar"><i style="width:46%;background:#ef4444"></i></span><span>46%</span></div>
+<div class="srow"><span class="nm" data-i18n="k086">Machine-Level</span><span class="sbar"><i style="width:52%;background:#ef4444"></i></span><span>52%</span></div>
+<div class="srow"><span class="nm" data-i18n="k087">Boolean Logic</span><span class="sbar"><i style="width:60%;background:#f59e0b"></i></span><span>60%</span></div>
+</div><div class="cap" data-i18n="k088">Instructor dashboard</div><div class="sub" data-i18n="k089">See who's struggling and why.</div></div>
+<div class="thumb"><div class="shot">
+<div class="srow" style="justify-content:space-between"><span class="st" data-i18n="k090">Ava Chen</span><span class="spill" data-i18n="k091" style="background:rgba(239,68,68,.15);color:#f87171">HIGH RISK</span></div>
+<div class="ssub" data-i18n="k092">3 concepts · 2 open · 1 completed</div>
+<div class="srow"><span class="nm" data-i18n="k093">Binary Rep.</span><span class="sbar"><i style="width:35%;background:#ef4444"></i></span></div>
+<div class="srow"><span class="nm" data-i18n="k094">Boolean Logic</span><span class="sbar"><i style="width:58%;background:#f59e0b"></i></span></div>
+<div class="srow"><span class="nm" data-i18n="k095">Binary Arith.</span><span class="sbar"><i style="width:84%;background:#22c55e"></i></span></div>
+</div><div class="cap" data-i18n="k096">Student profile</div><div class="sub" data-i18n="k097">Deep insights into each learner.</div></div>
+<div class="thumb"><div class="shot">
+<div class="st p" data-i18n="k098">🎯 Rebuilding Binary Representation</div>
+<div class="sbubble"><b data-i18n="k099" style="color:var(--accent)">AI Tutor</b> · In <code style="font-size:7px">1011</code>, what is the leftmost bit worth?</div>
+<div style="display:flex;gap:4px;flex-wrap:wrap"><span class="sopt">1</span><span class="sopt">2</span><span class="sopt" style="border-color:#22c55e;color:#22c55e">8 ✓</span></div>
+<div class="ssub" data-i18n="k100">retrieval practice · ~6 min</div>
+</div><div class="cap" data-i18n="k101">Generated module</div><div class="sub" data-i18n="k102">AI-powered, curriculum aligned.</div></div>
+<div class="thumb"><div class="shot">
+<div class="st" data-i18n="k103">Recommended for you</div>
+<div class="srow" style="justify-content:space-between"><span class="nm" data-i18n="k104">Binary Representation</span><span class="spill" data-i18n="k105" style="background:rgba(245,158,11,.15);color:#fbbf24">Needs review</span></div>
+<div class="srow"><span class="sbar"><i style="width:12%;background:var(--primary)"></i></span><span class="sbtn" data-i18n="k106">Start · 6 min</span></div>
+<div class="srow" style="justify-content:space-between;margin-top:2px"><span class="nm" data-i18n="k107">Boolean Logic</span><span class="spill" data-i18n="k108" style="background:rgba(245,158,11,.15);color:#fbbf24">Needs review</span></div>
+<div class="srow"><span class="sbar"><i style="width:14%;background:var(--primary)"></i></span><span class="sbtn" data-i18n="k109">Start · 7 min</span></div>
+</div><div class="cap" data-i18n="k110">Student practice view</div><div class="sub" data-i18n="k111">Guided, step-by-step support.</div></div>
+<div class="thumb"><div class="shot">
+<div class="srow" style="justify-content:space-between"><span class="st" data-i18n="k112">Class mastery</span><span class="spill" data-i18n="k113" style="background:rgba(34,197,94,.15);color:#4ade80">↑ +6% wk</span></div>
+<svg style="margin-top:2px" viewbox="0 0 170 66" width="100%">
+<polyline fill="none" points="6,52 40,46 74,40 108,28 142,20 164,12" stroke="#7c6cf5" stroke-width="2.5"></polyline>
+<polygon fill="rgba(124,108,245,.14)" points="6,52 40,46 74,40 108,28 142,20 164,12 164,60 6,60"></polygon>
+<circle cx="164" cy="12" fill="#7c6cf5" r="3.5" stroke="#fff" stroke-width="1.5"></circle>
+</svg>
+<div class="ssub" data-i18n="k114">17 students recovered this week</div>
+</div><div class="cap" data-i18n="k115">Recovery analytics</div><div class="sub" data-i18n="k116">Track what's working.</div></div>
+</div>
 </div></section>
-
 <section id="install" style="background:var(--bg2)"><div class="wrap">
-  <div class="sec-head"><h2>Install in your LMS</h2><p>LMS Bridge registers as a standard LTI 1.3 tool. Your admin needs four URLs from your instance.</p></div>
-  <div class="ltiurls" id="ltiUrls">
-    <div>Dynamic Registration (Canvas/Moodle — one click): <span id="u_dyn">…</span></div>
-    <div>OIDC login&nbsp;: <span id="u_login">…</span></div>
-    <div>Launch URL&nbsp;: <span id="u_launch">…</span></div>
-    <div>Redirect URL: <span id="u_redirect">…</span></div>
-    <div>Public JWKS&nbsp;: <span id="u_jwks">…</span></div>
-  </div>
-  <div class="hero-cta" style="margin-top:16px">
-    <a class="btn primary" id="connectBtn" href="#" target="_blank" rel="noopener">Open the interactive setup helper</a>
-    <span class="mini" style="align-self:center">Copy-ready URLs + per-LMS steps, right in the app.</span>
-  </div>
-  <div class="steps">
-    <div class="step"><div class="n">1</div><div><h4>Add the tool</h4>
-      <p>In your LMS admin (Blackboard / Brightspace / Canvas / Moodle) add a new LTI 1.3 / Advantage tool using the URLs above, and enable AGS + NRPS + Deep Linking.</p></div></div>
-    <div class="step"><div class="n">2</div><div><h4>Exchange keys</h4>
-      <p>The LMS gives you an Issuer, Client ID, Deployment ID, and its auth/token/JWKS URLs. Enter them in your admin console (the <b>LMS (LTI)</b> tab) to complete registration — Canvas and Moodle do this in one click via Dynamic Registration.</p></div></div>
-    <div class="step"><div class="n">3</div><div><h4>Place it in a course</h4>
-      <p>Instructors add LMS Bridge to a module via Deep Linking and launch — single sign-on does the rest.</p></div></div>
-  </div>
-  <h3 style="margin:26px 0 12px;font-size:17px">One-page install guide for your LMS</h3>
-  <div class="grid cols-2">
-    <a class="card" href="/guides/install-canvas.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Canvas</b><br><span class="mini">install-canvas.pdf</span></span></a>
-    <a class="card" href="/guides/install-moodle.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Moodle</b><br><span class="mini">install-moodle.pdf</span></span></a>
-    <a class="card" href="/guides/install-brightspace.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Brightspace (D2L)</b><br><span class="mini">install-brightspace.pdf</span></span></a>
-    <a class="card" href="/guides/install-blackboard.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Blackboard (Anthology)</b><br><span class="mini">install-blackboard.pdf</span></span></a>
-  </div>
-  <p class="mini" style="margin-top:16px">Prefer to self-host? Bring it up with Docker and point it at your own AI key — the full runbook is in the repo (<code>docs/INSTALL_LTI.md</code>, <code>docs/DEPLOY_RAILWAY.md</code>). No student data leaves your environment.</p>
+<div class="sec-head"><h2 data-i18n="k117">Install in your LMS</h2><p data-i18n="k118">LMS Bridge registers as a standard LTI 1.3 tool. Your admin needs four URLs from your instance.</p></div>
+<div class="ltiurls" id="ltiUrls">
+<div>Dynamic Registration (Canvas/Moodle — one click): <span id="u_dyn">…</span></div>
+<div>OIDC login : <span id="u_login">…</span></div>
+<div>Launch URL : <span id="u_launch">…</span></div>
+<div>Redirect URL: <span id="u_redirect">…</span></div>
+<div>Public JWKS : <span id="u_jwks">…</span></div>
+</div>
+<div class="hero-cta" style="margin-top:16px">
+<a class="btn primary" data-i18n="k119" href="#" id="connectBtn" rel="noopener" target="_blank">Open the interactive setup helper</a>
+<span class="mini" data-i18n="k120" style="align-self:center">Copy-ready URLs + per-LMS steps, right in the app.</span>
+</div>
+<div class="steps">
+<div class="step"><div class="n">1</div><div><h4 data-i18n="k121">Add the tool</h4>
+<p data-i18n="k122">In your LMS admin (Blackboard / Brightspace / Canvas / Moodle) add a new LTI 1.3 / Advantage tool using the URLs above, and enable AGS + NRPS + Deep Linking.</p></div></div>
+<div class="step"><div class="n">2</div><div><h4 data-i18n="k123">Exchange keys</h4>
+<p data-i18n="k124">The LMS gives you an Issuer, Client ID, Deployment ID, and its auth/token/JWKS URLs. Enter them in your admin console (the <b>LMS (LTI)</b> tab) to complete registration — Canvas and Moodle do this in one click via Dynamic Registration.</p></div></div>
+<div class="step"><div class="n">3</div><div><h4 data-i18n="k125">Place it in a course</h4>
+<p data-i18n="k126">Instructors add LMS Bridge to a module via Deep Linking and launch — single sign-on does the rest.</p></div></div>
+</div>
+<h3 data-i18n="k127" style="margin:26px 0 12px;font-size:17px">One-page install guide for your LMS</h3>
+<div class="grid cols-2">
+<a class="card" data-i18n="k128" href="/guides/install-canvas.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Canvas</b><br/><span class="mini">install-canvas.pdf</span></span></a>
+<a class="card" data-i18n="k129" href="/guides/install-moodle.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Moodle</b><br/><span class="mini">install-moodle.pdf</span></span></a>
+<a class="card" data-i18n="k130" href="/guides/install-brightspace.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Brightspace (D2L)</b><br/><span class="mini">install-brightspace.pdf</span></span></a>
+<a class="card" data-i18n="k131" href="/guides/install-blackboard.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Blackboard (Anthology)</b><br/><span class="mini">install-blackboard.pdf</span></span></a>
+</div>
+<p class="mini" data-i18n="k132" style="margin-top:16px">Prefer to self-host? Bring it up with Docker and point it at your own AI key — the full runbook is in the repo (<code>docs/INSTALL_LTI.md</code>, <code>docs/DEPLOY_RAILWAY.md</code>). No student data leaves your environment.</p>
 </div></section>
-
 <section id="faq"><div class="wrap" style="max-width:820px">
-  <div class="sec-head"><h2>Frequently asked</h2></div>
-  <details><summary>Does this affect students' grades?</summary><p>No. Mastery indicators are a private learning aid. Grades are set solely by the instructor through official assessments; any LMS gradebook write-back is a non-graded column.</p></details>
-  <details><summary>Is it a "homework cheating" tool?</summary><p>The opposite. The tutor is pedagogically constrained: it diagnoses and guides with Socratic questions and never provides graded answers.</p></details>
-  <details><summary>Where does student data go?</summary><p>LMS Bridge is FERPA-aware with role-based access. For full governance, run the AI on your own approved infrastructure (e.g. your Azure OpenAI tenant) via bring-your-own-key — or self-host the whole thing so nothing leaves your boundary.</p></details>
-  <details><summary>Which AI models can we use — and can we run a local one?</summary><p>Bring your own key: Anthropic (Claude), OpenAI (GPT), and Azure OpenAI work out of the box, chosen per institution or course. A local/self-hosted model behind an OpenAI-compatible endpoint works too — so you can run entirely on-premise with no third-party API.</p></details>
-  <details><summary>How much does the AI cost?</summary><p>Only what your own provider charges for the tokens you use — there's no per-student LMS Bridge fee. A small, fast model keeps it low, and you can set a hard spend cap in your provider's console. The non-AI features cost nothing to run.</p></details>
-  <details><summary>Can instructors edit or customize the remediation?</summary><p>Yes. Instructors control course content, concepts, and which assessments feed the engine; tutoring is grounded in the instructor's own materials, and prompt templates are course-configurable.</p></details>
-  <details><summary>Does it work for large classes?</summary><p>Yes — that's the point: personalized, concept-level help at a scale where individual feedback is otherwise impossible. Roster and grades sync automatically via LTI Advantage (NRPS/AGS).</p></details>
-  <details><summary>Can we connect our grading rubric?</summary><p>Yes. LMS Bridge ingests rubric-level results from the LMS gradebook and uses that criterion-by-concept signal (alongside multiple-choice answers) to target remediation.</p></details>
-  <details><summary>How is it licensed? Is it really free?</summary><p>Open source under GNU AGPL-3.0 — free to self-host at any size, no per-student fee. You pay only for your own AI usage and hosting. Optional commercial support, managed hosting, and an OEM license are available. See <code>LICENSE</code> and <code>COMMERCIAL.md</code> in the repo.</p></details>
+<div class="sec-head"><h2 data-i18n="k133">Frequently asked</h2></div>
+<details><summary data-i18n="k134">Does this affect students' grades?</summary><p data-i18n="k135">No. Mastery indicators are a private learning aid. Grades are set solely by the instructor through official assessments; any LMS gradebook write-back is a non-graded column.</p></details>
+<details><summary data-i18n="k136">Is it a "homework cheating" tool?</summary><p data-i18n="k137">The opposite. The tutor is pedagogically constrained: it diagnoses and guides with Socratic questions and never provides graded answers.</p></details>
+<details><summary data-i18n="k138">Where does student data go?</summary><p data-i18n="k139">LMS Bridge is FERPA-aware with role-based access. For full governance, run the AI on your own approved infrastructure (e.g. your Azure OpenAI tenant) via bring-your-own-key — or self-host the whole thing so nothing leaves your boundary.</p></details>
+<details><summary data-i18n="k140">Which AI models can we use — and can we run a local one?</summary><p data-i18n="k141">Bring your own key: Anthropic (Claude), OpenAI (GPT), and Azure OpenAI work out of the box, chosen per institution or course. A local/self-hosted model behind an OpenAI-compatible endpoint works too — so you can run entirely on-premise with no third-party API.</p></details>
+<details><summary data-i18n="k142">How much does the AI cost?</summary><p data-i18n="k143">Only what your own provider charges for the tokens you use — there's no per-student LMS Bridge fee. A small, fast model keeps it low, and you can set a hard spend cap in your provider's console. The non-AI features cost nothing to run.</p></details>
+<details><summary data-i18n="k144">Can instructors edit or customize the remediation?</summary><p data-i18n="k145">Yes. Instructors control course content, concepts, and which assessments feed the engine; tutoring is grounded in the instructor's own materials, and prompt templates are course-configurable.</p></details>
+<details><summary data-i18n="k146">Does it work for large classes?</summary><p data-i18n="k147">Yes — that's the point: personalized, concept-level help at a scale where individual feedback is otherwise impossible. Roster and grades sync automatically via LTI Advantage (NRPS/AGS).</p></details>
+<details><summary data-i18n="k148">Can we connect our grading rubric?</summary><p data-i18n="k149">Yes. LMS Bridge ingests rubric-level results from the LMS gradebook and uses that criterion-by-concept signal (alongside multiple-choice answers) to target remediation.</p></details>
+<details><summary data-i18n="k150">How is it licensed? Is it really free?</summary><p data-i18n="k151">Open source under GNU AGPL-3.0 — free to self-host at any size, no per-student fee. You pay only for your own AI usage and hosting. Optional commercial support, managed hosting, and an OEM license are available. See <code>LICENSE</code> and <code>COMMERCIAL.md</code> in the repo.</p></details>
 </div></section>
-
 <section id="contact" style="background:var(--bg2)"><div class="wrap">
-  <div class="sec-head"><h2>Get in touch</h2><p>Questions, help installing, an efficacy-study collaboration, or commercial support. Self-hosting? You don't need us to start — just follow the guide above.</p></div>
-  <div class="grid cols-2">
-    <div class="form-card">
-      <div id="okmsg" class="ok" style="display:none">Thanks! Your request was received — we'll reach out shortly.</div>
-      <form id="leadForm">
-        <input type="hidden" name="kind" id="kind" value="contact" />
-        <div class="field"><label>Full name</label><input name="name" required /></div>
-        <div class="field"><label>Work email</label><input name="email" type="email" required /></div>
-        <div class="field"><label>Institution / organization</label><input name="organization" /></div>
-        <div class="field"><label>Your role</label>
-          <select name="role"><option value="">Select…</option><option>Instructor / Faculty</option><option>Department chair</option><option>Instructional designer</option><option>LMS administrator</option><option>Dean / Provost office</option><option>Other</option></select></div>
-        <div class="field"><label>What can we help with?</label><textarea name="message" placeholder="e.g. Installing in our intro CS course on Canvas, or commercial support"></textarea></div>
-        <button class="btn primary" type="submit" id="submitBtn">Send message</button>
-        <div id="errmsg" class="err" style="display:none"></div>
-      </form>
-    </div>
-    <div class="grid" style="gap:16px;align-content:start">
-      <div class="card"><h3>Prefer email?</h3><p>Write to <a href="mailto:info@lmsbridge.app">info@lmsbridge.app</a>.</p></div>
-      <div class="card"><h3>For developers</h3><p>Full source is on GitHub (AGPL-3.0), with an OpenAPI spec at <code>/docs</code>, the LTI provider, and deployment guides. Issues and PRs welcome.</p></div>
-      <div class="card"><h3>Security &amp; procurement</h3><p>Read the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/SECURITY.md" target="_blank" rel="noopener">Security policy</a>, the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/docs/COMPLIANCE.md" target="_blank" rel="noopener">compliance summary</a>, and the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/docs/PRIVACY_AND_SELF_HOSTING.md" target="_blank" rel="noopener">privacy &amp; self-hosting guide</a>. HECVAT, VPAT, and DPA available on request.</p></div>
-      <div class="card"><h3>Maintainer</h3><p>Built and maintained by <a href="https://cs.nyu.edu/~ha2285"><b>Hasan Aljabbouli</b>, New York University</a> · <a href="mailto:info@lmsbridge.app">info@lmsbridge.app</a>.</p></div>
-    </div>
-  </div>
+<div class="sec-head"><h2 data-i18n="k152">Get in touch</h2><p data-i18n="k153">Questions, help installing, an efficacy-study collaboration, or commercial support. Self-hosting? You don't need us to start — just follow the guide above.</p></div>
+<div class="grid cols-2">
+<div class="form-card">
+<div class="ok" data-i18n="k154" id="okmsg" style="display:none">Thanks! Your request was received — we'll reach out shortly.</div>
+<form id="leadForm">
+<input id="kind" name="kind" type="hidden" value="contact"/>
+<div class="field"><label data-i18n="k155">Full name</label><input name="name" required=""/></div>
+<div class="field"><label data-i18n="k156">Work email</label><input name="email" required="" type="email"/></div>
+<div class="field"><label data-i18n="k157">Institution / organization</label><input name="organization"/></div>
+<div class="field"><label data-i18n="k158">Your role</label>
+<select name="role"><option data-i18n="k159" value="">Select…</option><option data-i18n="k160">Instructor / Faculty</option><option data-i18n="k161">Department chair</option><option data-i18n="k162">Instructional designer</option><option data-i18n="k163">LMS administrator</option><option data-i18n="k164">Dean / Provost office</option><option data-i18n="k165">Other</option></select></div>
+<div class="field"><label data-i18n="k166">What can we help with?</label><textarea data-i18n-ph="ph01" name="message" placeholder="e.g. Installing in our intro CS course on Canvas, or commercial support"></textarea></div>
+<button class="btn primary" data-i18n="k167" id="submitBtn" type="submit">Send message</button>
+<div class="err" id="errmsg" style="display:none"></div>
+</form>
+</div>
+<div class="grid" style="gap:16px;align-content:start">
+<div class="card"><h3 data-i18n="k168">Prefer email?</h3><p data-i18n="k169">Write to <a href="mailto:info@lmsbridge.app">info@lmsbridge.app</a>.</p></div>
+<div class="card"><h3 data-i18n="k170">For developers</h3><p data-i18n="k171">Full source is on GitHub (AGPL-3.0), with an OpenAPI spec at <code>/docs</code>, the LTI provider, and deployment guides. Issues and PRs welcome.</p></div>
+<div class="card"><h3 data-i18n="k172">Security &amp; procurement</h3><p data-i18n="k173">Read the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/SECURITY.md" rel="noopener" target="_blank">Security policy</a>, the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/docs/COMPLIANCE.md" rel="noopener" target="_blank">compliance summary</a>, and the <a href="https://github.com/hjmacemail/lmsbridge/blob/main/docs/PRIVACY_AND_SELF_HOSTING.md" rel="noopener" target="_blank">privacy &amp; self-hosting guide</a>. HECVAT, VPAT, and DPA available on request.</p></div>
+<div class="card"><h3 data-i18n="k174">Maintainer</h3><p data-i18n="k175">Built and maintained by <a href="https://cs.nyu.edu/~ha2285"><b>Hasan Aljabbouli</b>, New York University</a> · <a href="mailto:info@lmsbridge.app">info@lmsbridge.app</a>.</p></div>
+</div>
+</div>
 </div></section>
-
 <section id="sage" style="background:var(--bg2)"><div class="wrap">
-  <div class="sec-head">
-    <span class="pill" style="color:var(--accent);background:rgba(124,108,245,.12);border-color:rgba(124,108,245,.28)">New · Sage</span>
-    <h2>No LMS? Start with Sage.</h2>
-    <p>Sage is a standalone mini-LMS with LMS Bridge built in. An instructor creates a course, adds multiple-choice quizzes, and shares a join code — no IT, no LMS admin. When a student misses a concept, the platform automatically builds them a guided practice session. A simple course platform where adaptive remediation just works, out of the box.</p>
-  </div>
-  <div class="hero-cta">
-    <a class="btn primary" id="sageBtn" href="#" target="_blank" rel="noopener">Open Sage</a>
-    <a class="btn dark" href="#install">Or install the full platform in your LMS</a>
-  </div>
+<div class="sec-head">
+<span class="pill" data-i18n="k176" style="color:var(--accent);background:rgba(124,108,245,.12);border-color:rgba(124,108,245,.28)">New · Sage</span>
+<h2 data-i18n="k177">No LMS? Start with Sage.</h2>
+<p data-i18n="k178">Sage is a standalone mini-LMS with LMS Bridge built in. An instructor creates a course, adds multiple-choice quizzes, and shares a join code — no IT, no LMS admin. When a student misses a concept, the platform automatically builds them a guided practice session. A simple course platform where adaptive remediation just works, out of the box.</p>
+</div>
+<div class="hero-cta">
+<a class="btn primary" data-i18n="k179" href="#" id="sageBtn" rel="noopener" target="_blank">Open Sage</a>
+<a class="btn dark" data-i18n="k180" href="#install">Or install the full platform in your LMS</a>
+</div>
 </div></section>
-
-<section id="selfhost" class="final"><div class="wrap final-grid">
-  <div>
-    <h2>Ready to help every student truly learn?</h2>
-    <p class="muted" style="margin:14px 0 22px">Join educators using LMS Bridge to turn struggle into mastery.</p>
-    <div class="hero-cta">
-      <a class="btn primary" data-demo href="#">Try live demo</a>
-      <a class="btn dark" href="selfhost.html">Self-host LMS Bridge</a>
-      <a class="btn dark" data-gh href="#">★ Star on GitHub</a>
-    </div>
-  </div>
-  <div class="valgrid">
-    <div><div class="ic">🔗</div><b>Works inside your LMS</b><p>Canvas, Moodle, Blackboard, Brightspace &amp; more.</p></div>
-    <div><div class="ic">🔒</div><b>Privacy first</b><p>FERPA-aware. Your data stays in your system.</p></div>
-    <div><div class="ic">⚙️</div><b>Open source</b><p>Transparent, extensible, community driven.</p></div>
-  </div>
+<section class="final" id="selfhost"><div class="wrap final-grid">
+<div>
+<h2 data-i18n="k181">Ready to help every student truly learn?</h2>
+<p class="muted" data-i18n="k182" style="margin:14px 0 22px">Join educators using LMS Bridge to turn struggle into mastery.</p>
+<div class="hero-cta">
+<a class="btn primary" data-demo="" data-i18n="k183" href="#">Try live demo</a>
+<a class="btn dark" data-i18n="k184" href="selfhost.html">Self-host LMS Bridge</a>
+<a class="btn dark" data-gh="" data-i18n="k185" href="#">★ Star on GitHub</a>
+</div>
+</div>
+<div class="valgrid">
+<div><div class="ic">🔗</div><b data-i18n="k186">Works inside your LMS</b><p data-i18n="k187">Canvas, Moodle, Blackboard, Brightspace &amp; more.</p></div>
+<div><div class="ic">🔒</div><b data-i18n="k188">Privacy first</b><p data-i18n="k189">FERPA-aware. Your data stays in your system.</p></div>
+<div><div class="ic">⚙️</div><b data-i18n="k190">Open source</b><p data-i18n="k191">Transparent, extensible, community driven.</p></div>
+</div>
 </div></section>
-
 <footer><div class="wrap" style="flex-direction:column;align-items:flex-start;gap:14px">
-  <div class="wrap" style="width:100%;margin:0;padding:0">
-    <span class="brand" style="font-size:16px"><span class="mark" style="width:22px;height:22px;font-size:12px">📘</span> LMS Bridge <small>· © 2025 · AGPL-3.0</small></span>
-    <div class="fl">
-      <a data-gh href="#">Documentation</a>
-      <a data-gh href="#">GitHub</a>
-      <a href="#sage">Sage</a>
-      <a href="#selfhost">Self-host</a>
-      <a href="mailto:info@lmsbridge.app">Contact</a>
-    </div>
-  </div>
-  <p class="mini" style="margin:0">This is part of the <a href="initiative.html" style="color:var(--accent)">Knowledge in Service of Society Initiative</a>.</p>
+<div class="wrap" style="width:100%;margin:0;padding:0">
+<span class="brand" style="font-size:16px"><span class="mark" style="width:22px;height:22px;font-size:12px">📘</span> LMS Bridge <small data-i18n="k192">· © 2025 · AGPL-3.0</small></span>
+<div class="fl">
+<a data-gh="" data-i18n="k193" href="#">Documentation</a>
+<a data-gh="" href="#">GitHub</a>
+<a href="#sage">Sage</a>
+<a data-i18n="k194" href="#selfhost">Self-host</a>
+<a data-i18n="k195" href="mailto:info@lmsbridge.app">Contact</a>
+</div>
+</div>
+<p class="mini" data-i18n="k196" style="margin:0">This is part of the <a href="initiative.html" style="color:var(--accent)">Knowledge in Service of Society Initiative</a>.</p>
 </div></footer>
-
 <script src="/config.js"></script>
 <script>
   window.LMSBRIDGE_API = window.LMSBRIDGE_API || "http://localhost:8000/api/v1";
@@ -724,6 +710,40 @@
       err.style.display="block";
     }finally{ clearTimeout(timer); btn.disabled=false; btn.textContent="Send message"; }
   });
+</script>
+
+<script id="i18n-data" type="application/json">{"es": {"k001": "Por qué LMS Bridge", "k002": "Cómo funciona", "k003": "Instalación", "k004": "Preguntas frecuentes", "k005": "Contacto", "k006": "★ Marcar en GitHub", "k007": "Probar la demo", "k008": "Detección de errores conceptuales y tutoría con IA", "k009": "Tu LMS te dice quién suspendió. <span class=\"hl\">LMS Bridge</span> te dice <span class=\"hl\">por qué —</span> y <span class=\"hl\">lo resuelve</span>.", "k010": "LMS Bridge detecta errores conceptuales, genera tutoría personalizada y ayuda a cada estudiante a recuperarse — dentro de tu LMS.", "k011": "Detecta errores conceptuales automáticamente", "k012": "Genera tutoría personalizada con IA", "k013": "Funciona dentro de Canvas, Moodle, Blackboard y Brightspace", "k014": "Probar la demo", "k015": "Autoalojar LMS Bridge", "k016": "Compatible con", "k017": "Ningún dato sale de tu sistema. · Conforme con FERPA · Diseñado para la educación", "k018": "LMS Bridge en acción", "k019": "De la dificultad del estudiante al dominio — en minutos.", "k020": "El estudiante entrega el cuestionario", "k021": "Cuestionario 2 · Probabilidad", "k022": "Aparecen las dificultades.", "k023": "La IA analiza las respuestas", "k024": "Analizando 14 respuestas…", "k025": "LMS Bridge encuentra la causa raíz.", "k026": "Error conceptual detectado", "k027": "⚑ Error conceptual principal", "k028": "Identifica la brecha exacta.", "k029": "Práctica guiada generada", "k030": "Módulo generado por IA<br/>Binary Addition &amp; Overflow", "k031": "Tutoría personalizada, al instante.", "k032": "El estudiante se recupera", "k033": "Tras la práctica", "k034": "El estudiante construye comprensión.", "k035": "El docente obtiene visibilidad", "k036": "Panel de recuperación", "k037": "17 estudiantes mejoraron", "k038": "Ves lo que funciona.", "k039": "¿Por qué no usar simplemente ChatGPT?", "k040": "IA general frente a LMS Bridge.", "k041": "✗ ChatGPT / IA general", "k043": "Conoce tu curso", "k044": "No", "k045": "Sí (tu contenido)", "k046": "Ve las respuestas del estudiante", "k047": "No", "k048": "Sí", "k049": "Detecta errores conceptuales", "k050": "No", "k051": "Sí (IA + ciencia cognitiva)", "k052": "Crea práctica guiada", "k053": "No", "k054": "Sí (personalizada)", "k055": "Hace seguimiento de la recuperación", "k056": "No", "k057": "Sí", "k058": "Funciona en tu LMS", "k059": "No", "k060": "Sí (nativo)", "k061": "FERPA / privacidad", "k062": "Desconocido", "k063": "Tus datos siguen siendo tuyos", "k064": "Un estudiante, de principio a fin", "k065": "Ejemplo real. Impacto real.", "k066": "Nota del cuestionario 2", "k067": "Dificultad con la suma binaria", "k068": "Diagnóstico de la IA", "k069": "Confunde el desbordamiento con el acarreo.", "k070": "Error conceptual de raíz detectado.", "k071": "Práctica guiada", "k073": "Módulo de tutoría personalizada con IA", "k074": "Tras la práctica", "k075": "37 % de mejora", "k076": "Estudiantes recuperados", "k077": "Errores conceptuales detectados", "k079": "Tiempo del docente ahorrado", "k080": "Tasa de finalización de la práctica", "k081": "Cifras ilustrativas del curso de demostración — no de un despliegue real.", "k082": "Hecho para docentes. Adorado por estudiantes.", "k083": "Todo lo que necesitas — justo donde enseñas.", "k084": "Resumen · CS-UY 2110", "k088": "Panel del docente", "k089": "Descubre quién tiene dificultades y por qué.", "k091": "RIESGO ALTO", "k092": "3 conceptos · 2 abiertos · 1 completado", "k096": "Perfil del estudiante", "k097": "Información detallada de cada alumno.", "k098": "🎯 Reconstruyendo la representación binaria", "k099": "Tutor IA", "k100": "práctica de recuperación · ~6 min", "k101": "Módulo generado", "k102": "Con IA, alineado con el currículo.", "k103": "Recomendado para ti", "k105": "Necesita repaso", "k106": "Empezar · 6 min", "k108": "Necesita repaso", "k109": "Empezar · 7 min", "k110": "Vista de práctica del estudiante", "k111": "Apoyo guiado, paso a paso.", "k112": "Dominio de la clase", "k114": "17 estudiantes recuperados esta semana", "k115": "Analítica de recuperación", "k116": "Sigue lo que funciona.", "k117": "Instálalo en tu LMS", "k118": "LMS Bridge se registra como una herramienta LTI 1.3 estándar. Tu administrador necesita cuatro URL de tu instancia.", "k119": "Abrir el asistente de configuración", "k120": "URL listas para copiar y pasos por LMS, dentro de la app.", "k121": "Añade la herramienta", "k122": "En el administrador de tu LMS (Blackboard / Brightspace / Canvas / Moodle) añade una nueva herramienta LTI 1.3 / Advantage usando las URL de arriba.", "k123": "Intercambia claves", "k124": "El LMS te da un Issuer, Client ID, Deployment ID y sus URL de auth/token/JWKS. Introdúcelos en tu consola de administración (o usa el Registro Dinámico para hacerlo en un clic).", "k125": "Colócalo en un curso", "k126": "Los docentes añaden LMS Bridge a un módulo mediante Deep Linking y lo abren — el inicio de sesión único hace el resto.", "k127": "Guía de instalación de una página para tu LMS", "k132": "¿Prefieres autoalojarlo? Levántalo con Docker y apúntalo a tu propia clave de IA — el manual completo está en el repositorio (<code>docker-compose.prod.yml</code> + <code>docs/DEPLOYMENT.md</code>).", "k133": "Preguntas frecuentes", "k134": "¿Afecta esto a las calificaciones de los estudiantes?", "k135": "No. Los indicadores de dominio son una ayuda de aprendizaje privada. Las calificaciones las establece únicamente el docente mediante evaluaciones oficiales; cualquier escritura en el libro de calificaciones del LMS es una columna no calificada.", "k136": "¿Es una herramienta para «copiar en las tareas»?", "k137": "Todo lo contrario. El tutor está pedagógicamente limitado: diagnostica y guía con preguntas socráticas y nunca proporciona respuestas calificadas.", "k138": "¿A dónde van los datos de los estudiantes?", "k139": "LMS Bridge es conforme con FERPA y con acceso basado en roles. Para una gobernanza total, ejecuta la IA en tu propia infraestructura aprobada (p. ej., tu tenant de Azure OpenAI) mediante «bring-your-own-key» — o autoaloja todo para que nada salga de tu perímetro.", "k140": "¿Qué modelos de IA podemos usar, y podemos ejecutar uno local?", "k141": "Trae tu propia clave: Anthropic (Claude), OpenAI (GPT) y Azure OpenAI funcionan de fábrica, elegidos por institución o curso. Un modelo local/autoalojado tras un endpoint compatible con OpenAI también funciona — puedes ejecutarlo totalmente on-premise sin API de terceros.", "k142": "¿Cuánto cuesta la IA?", "k143": "Solo lo que tu propio proveedor cobre por los tokens que uses — no hay tarifa por estudiante de LMS Bridge. Un modelo pequeño y rápido lo mantiene bajo, y puedes fijar un límite de gasto en la consola de tu proveedor. Las funciones sin IA no cuestan nada.", "k144": "¿Pueden los docentes editar o personalizar la remediación?", "k145": "Sí. Los docentes controlan el contenido del curso, los conceptos y qué evaluaciones alimentan el motor; la tutoría se basa en los propios materiales del docente y las plantillas de prompts son configurables por curso.", "k146": "¿Funciona para clases grandes?", "k147": "Sí — de eso se trata: ayuda personalizada a nivel de concepto a una escala donde la retroalimentación individual sería imposible. La lista y las calificaciones se sincronizan automáticamente vía LTI Advantage (NRPS/AGS).", "k148": "¿Podemos conectar nuestra rúbrica de calificación?", "k149": "Sí. LMS Bridge importa los resultados a nivel de rúbrica del libro de calificaciones del LMS y usa esa señal criterio-por-concepto (junto con las respuestas de opción múltiple) para dirigir la remediación.", "k150": "¿Cómo está licenciado? ¿Es realmente gratis?", "k151": "Código abierto bajo GNU AGPL-3.0 — gratis para autoalojar a cualquier tamaño, sin tarifa por estudiante. Solo pagas tu propio uso de IA y alojamiento. Hay soporte comercial, alojamiento gestionado y licencia OEM opcionales. Consulta <code>LICENSE</code> y <code>COMMERCIAL.md</code> en el repositorio.", "k152": "Ponte en contacto", "k153": "Preguntas, ayuda con la instalación, una colaboración de estudio de eficacia o soporte comercial. ¿Autoalojando? No nos necesitas para empezar — solo sigue la guía de arriba.", "k154": "¡Gracias! Recibimos tu solicitud — te contactaremos en breve.", "k155": "Nombre completo", "k156": "Correo de trabajo", "k157": "Institución / organización", "k158": "Tu rol", "k159": "Selecciona…", "k160": "Docente / Profesorado", "k161": "Jefe de departamento", "k162": "Diseñador instruccional", "k163": "Administrador del LMS", "k164": "Decanato / Vicerrectorado", "k165": "Otro", "k166": "¿En qué podemos ayudarte?", "k167": "Enviar mensaje", "k168": "¿Prefieres el correo?", "k169": "Escríbenos a <a href=\"mailto:info@lmsbridge.app\">info@lmsbridge.app</a>.", "k170": "Para desarrolladores", "k171": "Todo el código fuente está en GitHub (AGPL-3.0), con una especificación OpenAPI en <code>/docs</code>, el proveedor LTI y las guías de despliegue. Se agradecen issues y PR.", "k172": "Seguridad y adquisiciones", "k173": "Lee la <a href=\"https://github.com/hjmacemail/lmsbridge/blob/main/SECURITY.md\" rel=\"noopener\" target=\"_blank\">política de seguridad</a>, el <a href=\"https://github.com/hjmacemail/lmsbridge/blob/main/docs/COMPLIANCE.md\" rel=\"noopener\" target=\"_blank\">resumen de cumplimiento</a> y la <a href=\"https://github.com/hjmacemail/lmsbridge/blob/main/docs/PRIVACY_AND_SELF_HOSTING.md\" rel=\"noopener\" target=\"_blank\">guía de privacidad y autoalojamiento</a>. HECVAT, VPAT y DPA disponibles a petición.", "k174": "Responsable", "k175": "Creado y mantenido por <a href=\"https://cs.nyu.edu/~ha2285\"><b>Hasan Aljabbouli</b>, New York University</a> · <a href=\"mailto:info@lmsbridge.app\">info@lmsbridge.app</a>.", "k176": "Nuevo · Sage", "k177": "¿Sin LMS? Empieza con Sage.", "k178": "Sage es un mini-LMS independiente con LMS Bridge integrado. Un docente crea un curso, añade cuestionarios de opción múltiple y comparte un código de acceso — sin TI, sin administrador de LMS. Cuando un estudiante falla un concepto, la plataforma le crea automáticamente una sesión de práctica guiada. Una plataforma de cursos sencilla donde la remediación adaptativa simplemente funciona, de fábrica.", "k179": "Abrir Sage", "k180": "O instala la plataforma completa en tu LMS", "k181": "¿Listo para ayudar a cada estudiante a aprender de verdad?", "k182": "Únete a los educadores que usan LMS Bridge para convertir la dificultad en dominio.", "k183": "Probar la demo", "k184": "Autoalojar LMS Bridge", "k185": "★ Marcar en GitHub", "k186": "Funciona dentro de tu LMS", "k187": "Canvas, Moodle, Blackboard, Brightspace y más.", "k188": "Privacidad ante todo", "k189": "Conforme con FERPA. Tus datos permanecen en tu sistema.", "k190": "Código abierto", "k191": "Transparente, extensible, impulsado por la comunidad.", "k193": "Documentación", "k194": "Autoalojar", "k195": "Contacto", "k196": "Esto forma parte de la <a href=\"initiative.html\" style=\"color:var(--accent)\">Iniciativa Conocimiento al Servicio de la Sociedad</a>.", "ph01": "p. ej., instalarlo en nuestro curso de introducción a la informática en Canvas, o soporte comercial"}, "fr": {"k001": "Pourquoi LMS Bridge", "k002": "Comment ça marche", "k003": "Installation", "k004": "FAQ", "k005": "Contact", "k006": "★ Star sur GitHub", "k007": "Voir la démo", "k008": "Détection des erreurs de compréhension et tutorat par IA", "k009": "Votre LMS vous dit qui a échoué. <span class=\"hl\">LMS Bridge</span> vous dit <span class=\"hl\">pourquoi —</span> et <span class=\"hl\">y remédie</span>.", "k010": "LMS Bridge détecte les erreurs de compréhension, génère un tutorat personnalisé et aide chaque étudiant à se remettre à niveau — au sein de votre LMS.", "k011": "Détecte automatiquement les erreurs de compréhension", "k012": "Génère un tutorat personnalisé par IA", "k013": "Fonctionne dans Canvas, Moodle, Blackboard et Brightspace", "k014": "Voir la démo", "k015": "Héberger LMS Bridge soi-même", "k016": "Compatible avec", "k017": "Aucune donnée ne quitte votre système. · Respecte la FERPA · Conçu pour l’éducation", "k018": "LMS Bridge en action", "k019": "De la difficulté de l’étudiant à la maîtrise — en quelques minutes.", "k020": "L’étudiant rend son quiz", "k021": "Quiz 2 · Probabilités", "k022": "Les difficultés apparaissent.", "k023": "L’IA analyse les réponses", "k024": "Analyse de 14 réponses…", "k025": "LMS Bridge trouve la cause racine.", "k026": "Erreur de compréhension détectée", "k027": "⚑ Erreur principale", "k028": "Cible la lacune exacte.", "k029": "Exercices guidés générés", "k030": "Module généré par IA<br/>Binary Addition &amp; Overflow", "k031": "Tutorat personnalisé, instantanément.", "k032": "L’étudiant se remet à niveau", "k033": "Après l’entraînement", "k034": "L’étudiant construit sa compréhension.", "k035": "L’enseignant gagne en visibilité", "k036": "Tableau de bord de progression", "k037": "17 étudiants ont progressé", "k038": "Vous voyez ce qui fonctionne.", "k039": "Pourquoi ne pas simplement utiliser ChatGPT ?", "k040": "IA généraliste vs LMS Bridge.", "k041": "✗ ChatGPT / IA généraliste", "k043": "Connaît votre cours", "k044": "Non", "k045": "Oui (votre contenu)", "k046": "Voit les réponses des étudiants", "k047": "Non", "k048": "Oui", "k049": "Détecte les erreurs de compréhension", "k050": "Non", "k051": "Oui (IA + sciences cognitives)", "k052": "Crée des exercices guidés", "k053": "Non", "k054": "Oui (personnalisés)", "k055": "Suit la progression", "k056": "Non", "k057": "Oui", "k058": "Fonctionne dans votre LMS", "k059": "Non", "k060": "Oui (natif)", "k061": "FERPA / confidentialité", "k062": "Inconnu", "k063": "Vos données restent les vôtres", "k064": "Un étudiant, du début à la fin", "k065": "Exemple réel. Impact réel.", "k066": "Note du quiz 2", "k067": "En difficulté sur l’addition binaire", "k068": "Diagnostic de l’IA", "k069": "Confond le dépassement et la retenue.", "k070": "Erreur de compréhension racine détectée.", "k071": "Exercices guidés", "k073": "Module de tutorat personnalisé par IA", "k074": "Après l’entraînement", "k075": "37 % d’amélioration", "k076": "Étudiants remis à niveau", "k077": "Erreurs de compréhension détectées", "k079": "Temps enseignant économisé", "k080": "Taux d’achèvement des exercices", "k081": "Chiffres illustratifs du cours de démonstration — pas d’un déploiement réel.", "k082": "Conçu pour les enseignants. Adoré des étudiants.", "k083": "Tout ce qu’il vous faut — là où vous enseignez.", "k084": "Aperçu · CS-UY 2110", "k088": "Tableau de bord enseignant", "k089": "Voyez qui est en difficulté et pourquoi.", "k091": "RISQUE ÉLEVÉ", "k092": "3 concepts · 2 en cours · 1 terminé", "k096": "Profil de l’étudiant", "k097": "Un aperçu détaillé de chaque apprenant.", "k098": "🎯 Reconstruire la représentation binaire", "k099": "Tuteur IA", "k100": "pratique de récupération · ~6 min", "k101": "Module généré", "k102": "Propulsé par l’IA, aligné sur le programme.", "k103": "Recommandé pour vous", "k105": "À revoir", "k106": "Commencer · 6 min", "k108": "À revoir", "k109": "Commencer · 7 min", "k110": "Vue d’entraînement de l’étudiant", "k111": "Un accompagnement guidé, étape par étape.", "k112": "Maîtrise de la classe", "k114": "17 étudiants remis à niveau cette semaine", "k115": "Analyse de la progression", "k116": "Suivez ce qui fonctionne.", "k117": "Installez-le dans votre LMS", "k118": "LMS Bridge s’enregistre comme un outil LTI 1.3 standard. Votre administrateur a besoin de quatre URL de votre instance.", "k119": "Ouvrir l’assistant de configuration", "k120": "URL prêtes à copier + étapes par LMS, directement dans l’app.", "k121": "Ajoutez l’outil", "k122": "Dans l’administration de votre LMS (Blackboard / Brightspace / Canvas / Moodle), ajoutez un nouvel outil LTI 1.3 / Advantage à l’aide des URL ci-dessus.", "k123": "Échangez les clés", "k124": "Le LMS vous fournit un Issuer, un Client ID, un Deployment ID et ses URL auth/token/JWKS. Saisissez-les dans votre console d’administration (ou utilisez l’enregistrement dynamique pour le faire en un clic).", "k125": "Placez-le dans un cours", "k126": "Les enseignants ajoutent LMS Bridge à un module via le Deep Linking et le lancent — l’authentification unique fait le reste.", "k127": "Guide d’installation d’une page pour votre LMS", "k132": "Vous préférez l’héberger vous-même ? Lancez-le avec Docker et pointez-le vers votre propre clé d’IA — le guide complet est dans le dépôt (<code>docker-compose.prod.yml</code> + <code>docs/DEPLOYMENT.md</code>).", "k133": "Questions fréquentes", "k134": "Cela affecte-t-il les notes des étudiants ?", "k135": "Non. Les indicateurs de maîtrise sont une aide à l’apprentissage privée. Les notes sont fixées uniquement par l’enseignant via les évaluations officielles ; toute écriture dans le carnet de notes du LMS est une colonne non notée.", "k136": "Est-ce un outil de « triche aux devoirs » ?", "k137": "Au contraire. Le tuteur est pédagogiquement encadré : il diagnostique et guide par des questions socratiques et ne donne jamais de réponses notées.", "k138": "Où vont les données des étudiants ?", "k139": "LMS Bridge respecte la FERPA avec un accès basé sur les rôles. Pour une gouvernance totale, exécutez l’IA sur votre propre infrastructure approuvée (p. ex. votre tenant Azure OpenAI) via « bring-your-own-key » — ou hébergez le tout vous-même pour que rien ne quitte votre périmètre.", "k140": "Quels modèles d’IA pouvons-nous utiliser — et peut-on en exécuter un en local ?", "k141": "Apportez votre propre clé : Anthropic (Claude), OpenAI (GPT) et Azure OpenAI fonctionnent d’emblée, choisis par établissement ou par cours. Un modèle local/auto-hébergé derrière un endpoint compatible OpenAI fonctionne aussi — vous pouvez donc tout exécuter sur site sans API tierce.", "k142": "Combien coûte l’IA ?", "k143": "Seulement ce que votre propre fournisseur facture pour les tokens que vous utilisez — aucun frais par étudiant chez LMS Bridge. Un petit modèle rapide maintient les coûts bas, et vous pouvez fixer un plafond de dépenses dans la console de votre fournisseur. Les fonctions sans IA ne coûtent rien.", "k144": "Les enseignants peuvent-ils modifier ou personnaliser la remédiation ?", "k145": "Oui. Les enseignants contrôlent le contenu du cours, les concepts et les évaluations qui alimentent le moteur ; le tutorat s’appuie sur les propres supports de l’enseignant, et les modèles de prompts sont configurables par cours.", "k146": "Fonctionne-t-il pour les grandes classes ?", "k147": "Oui — c’est tout l’intérêt : une aide personnalisée au niveau du concept à une échelle où le retour individuel serait autrement impossible. La liste et les notes se synchronisent automatiquement via LTI Advantage (NRPS/AGS).", "k148": "Pouvons-nous connecter notre grille d’évaluation ?", "k149": "Oui. LMS Bridge importe les résultats au niveau de la grille depuis le carnet de notes du LMS et utilise ce signal critère-par-concept (avec les réponses à choix multiples) pour cibler la remédiation.", "k150": "Quelle est la licence ? Est-ce vraiment gratuit ?", "k151": "Open source sous GNU AGPL-3.0 — gratuit à auto-héberger à toute échelle, sans frais par étudiant. Vous ne payez que votre propre usage de l’IA et votre hébergement. Un support commercial, un hébergement géré et une licence OEM sont proposés en option. Voir <code>LICENSE</code> et <code>COMMERCIAL.md</code> dans le dépôt.", "k152": "Contactez-nous", "k153": "Questions, aide à l’installation, collaboration pour une étude d’efficacité ou support commercial. Vous auto-hébergez ? Pas besoin de nous pour démarrer — suivez simplement le guide ci-dessus.", "k154": "Merci ! Votre demande a bien été reçue — nous vous recontacterons rapidement.", "k155": "Nom complet", "k156": "E-mail professionnel", "k157": "Établissement / organisation", "k158": "Votre rôle", "k159": "Sélectionner…", "k160": "Enseignant / Corps professoral", "k161": "Chef de département", "k162": "Concepteur pédagogique", "k163": "Administrateur du LMS", "k164": "Doyen / Direction", "k165": "Autre", "k166": "Comment pouvons-nous vous aider ?", "k167": "Envoyer le message", "k168": "Vous préférez l’e-mail ?", "k169": "Écrivez à <a href=\"mailto:info@lmsbridge.app\">info@lmsbridge.app</a>.", "k170": "Pour les développeurs", "k171": "Tout le code source est sur GitHub (AGPL-3.0), avec une spécification OpenAPI sur <code>/docs</code>, le fournisseur LTI et les guides de déploiement. Issues et PR bienvenus.", "k172": "Sécurité et achats", "k173": "Consultez la <a href=\"https://github.com/hjmacemail/lmsbridge/blob/main/SECURITY.md\" rel=\"noopener\" target=\"_blank\">politique de sécurité</a>, le <a href=\"https://github.com/hjmacemail/lmsbridge/blob/main/docs/COMPLIANCE.md\" rel=\"noopener\" target=\"_blank\">résumé de conformité</a> et le <a href=\"https://github.com/hjmacemail/lmsbridge/blob/main/docs/PRIVACY_AND_SELF_HOSTING.md\" rel=\"noopener\" target=\"_blank\">guide de confidentialité et d’auto-hébergement</a>. HECVAT, VPAT et DPA disponibles sur demande.", "k174": "Mainteneur", "k175": "Créé et maintenu par <a href=\"https://cs.nyu.edu/~ha2285\"><b>Hasan Aljabbouli</b>, New York University</a> · <a href=\"mailto:info@lmsbridge.app\">info@lmsbridge.app</a>.", "k176": "Nouveau · Sage", "k177": "Pas de LMS ? Commencez avec Sage.", "k178": "Sage est un mini-LMS autonome avec LMS Bridge intégré. Un enseignant crée un cours, ajoute des quiz à choix multiples et partage un code d’accès — sans informatique, sans administrateur de LMS. Quand un étudiant rate un concept, la plateforme lui crée automatiquement une session d’entraînement guidée. Une plateforme de cours simple où la remédiation adaptative fonctionne, prête à l’emploi.", "k179": "Ouvrir Sage", "k180": "Ou installez la plateforme complète dans votre LMS", "k181": "Prêt à aider chaque étudiant à vraiment apprendre ?", "k182": "Rejoignez les enseignants qui utilisent LMS Bridge pour transformer la difficulté en maîtrise.", "k183": "Voir la démo", "k184": "Héberger LMS Bridge soi-même", "k185": "★ Star sur GitHub", "k186": "Fonctionne dans votre LMS", "k187": "Canvas, Moodle, Blackboard, Brightspace et plus.", "k188": "La confidentialité d’abord", "k189": "Respecte la FERPA. Vos données restent dans votre système.", "k190": "Open source", "k191": "Transparent, extensible, porté par la communauté.", "k193": "Documentation", "k194": "Auto-hébergement", "k195": "Contact", "k196": "Ceci fait partie de l’<a href=\"initiative.html\" style=\"color:var(--accent)\">Initiative Le Savoir au Service de la Société</a>.", "ph01": "p. ex. l’installer dans notre cours d’introduction à l’informatique sur Canvas, ou support commercial"}, "ar": {"k001": "لماذا LMS Bridge", "k002": "كيف يعمل", "k003": "التثبيت", "k004": "الأسئلة الشائعة", "k005": "تواصل معنا", "k006": "★ نجّمنا على GitHub", "k007": "جرّب العرض التجريبي", "k008": "كشف المفاهيم الخاطئة والدعم التعليمي بالذكاء الاصطناعي", "k009": "نظامك التعليمي يخبرك مَن رسب. <span class=\"hl\">LMS Bridge</span> يخبرك <span class=\"hl\">لماذا —</span> <span class=\"hl\">ويعالج ذلك</span>.", "k010": "يكشف LMS Bridge المفاهيم الخاطئة، ويولّد دعمًا تعليميًا مخصصًا، ويساعد كل طالب على التعافي — داخل نظامك التعليمي.", "k011": "يكشف المفاهيم الخاطئة تلقائيًا", "k012": "يولّد دعمًا تعليميًا مخصصًا بالذكاء الاصطناعي", "k013": "يعمل داخل Canvas وMoodle وBlackboard وBrightspace", "k014": "جرّب العرض التجريبي", "k015": "استضف LMS Bridge بنفسك", "k016": "متوافق مع", "k017": "لا تغادر أي بيانات نظامك. · متوافق مع FERPA · مصمَّم للتعليم", "k018": "LMS Bridge أثناء العمل", "k019": "من تعثّر الطالب إلى الإتقان — في دقائق.", "k020": "الطالب يسلّم الاختبار", "k021": "الاختبار 2 · الاحتمالات", "k022": "تظهر مواطن التعثّر.", "k023": "الذكاء الاصطناعي يحلّل الإجابات", "k024": "جارٍ تحليل 14 إجابة…", "k025": "يجد LMS Bridge السبب الجذري.", "k026": "تم كشف مفهوم خاطئ", "k027": "⚑ المفهوم الخاطئ الأساسي", "k028": "يحدّد الفجوة بدقة.", "k029": "تم إنشاء تدريب موجَّه", "k030": "وحدة مولّدة بالذكاء الاصطناعي<br/>Binary Addition &amp; Overflow", "k031": "دعم تعليمي مخصّص، فورًا.", "k032": "الطالب يتعافى", "k033": "بعد التدريب", "k034": "الطالب يبني فهمه.", "k035": "المعلّم يحصل على رؤية واضحة", "k036": "لوحة التعافي", "k037": "تحسّن 17 طالبًا", "k038": "ترى ما ينجح فعلًا.", "k039": "لماذا لا نكتفي باستخدام ChatGPT؟", "k040": "الذكاء الاصطناعي العام مقابل LMS Bridge.", "k041": "✗ ChatGPT / ذكاء اصطناعي عام", "k043": "يعرف مقرّرك", "k044": "لا", "k045": "نعم (محتواك)", "k046": "يرى إجابات الطلاب", "k047": "لا", "k048": "نعم", "k049": "يكشف المفاهيم الخاطئة", "k050": "لا", "k051": "نعم (ذكاء اصطناعي + علم النفس المعرفي)", "k052": "ينشئ تدريبًا موجَّهًا", "k053": "لا", "k054": "نعم (مخصّص)", "k055": "يتابع التعافي", "k056": "لا", "k057": "نعم", "k058": "يعمل داخل نظامك التعليمي", "k059": "لا", "k060": "نعم (أصلي)", "k061": "FERPA / الخصوصية", "k062": "غير معروف", "k063": "تبقى بياناتك ملكك", "k064": "طالب واحد، من البداية إلى النهاية", "k065": "مثال حقيقي. أثر حقيقي.", "k066": "درجة الاختبار 2", "k067": "تعثّر في الجمع الثنائي", "k068": "تشخيص الذكاء الاصطناعي", "k069": "يخلط بين الطفحان (overflow) والحمل (carry).", "k070": "تم كشف المفهوم الخاطئ الجذري.", "k071": "تدريب موجَّه", "k073": "وحدة دعم تعليمي مخصّصة بالذكاء الاصطناعي", "k074": "بعد التدريب", "k075": "تحسُّن بنسبة 37٪", "k076": "طلاب تعافوا", "k077": "مفاهيم خاطئة مكتشفة", "k079": "وقت مُوفَّر على المعلّم", "k080": "معدّل إكمال التدريب", "k081": "أرقام توضيحية من مقرّر العرض التجريبي — وليست من نشرٍ فعلي.", "k082": "مصمَّم للمعلّمين. محبوب من الطلاب.", "k083": "كل ما تحتاجه — في مكان تدريسك تمامًا.", "k084": "نظرة عامة · CS-UY 2110", "k088": "لوحة المعلّم", "k089": "اعرف مَن يتعثّر ولماذا.", "k091": "خطر مرتفع", "k092": "3 مفاهيم · 2 مفتوحة · 1 مكتمل", "k096": "ملف الطالب", "k097": "رؤى معمّقة عن كل متعلّم.", "k098": "🎯 إعادة بناء التمثيل الثنائي", "k099": "مُعلّم الذكاء الاصطناعي", "k100": "تدريب استرجاعي · ~6 دقائق", "k101": "وحدة مولّدة", "k102": "مدعومة بالذكاء الاصطناعي، متوائمة مع المنهج.", "k103": "مُوصى به لك", "k105": "يحتاج مراجعة", "k106": "ابدأ · 6 دقائق", "k108": "يحتاج مراجعة", "k109": "ابدأ · 7 دقائق", "k110": "واجهة تدريب الطالب", "k111": "دعم موجَّه، خطوة بخطوة.", "k112": "إتقان الصف", "k114": "تعافى 17 طالبًا هذا الأسبوع", "k115": "تحليلات التعافي", "k116": "تابِع ما ينجح.", "k117": "ثبّته في نظامك التعليمي", "k118": "يُسجَّل LMS Bridge كأداة LTI 1.3 قياسية. يحتاج مسؤولك إلى أربعة روابط من مثيلك.", "k119": "افتح مساعد الإعداد التفاعلي", "k120": "روابط جاهزة للنسخ وخطوات لكل نظام تعليمي، داخل التطبيق.", "k121": "أضف الأداة", "k122": "من لوحة إدارة نظامك التعليمي (Blackboard / Brightspace / Canvas / Moodle) أضف أداة LTI 1.3 / Advantage جديدة باستخدام الروابط أعلاه.", "k123": "تبادل المفاتيح", "k124": "يمنحك النظام التعليمي Issuer وClient ID وDeployment ID وروابط auth/token/JWKS. أدخِلها في وحدة تحكم الإدارة (أو استخدم التسجيل الديناميكي للقيام بذلك بنقرة واحدة).", "k125": "ضعه داخل مقرّر", "k126": "يضيف المعلّمون LMS Bridge إلى وحدة عبر Deep Linking ويشغّلونه — وتسجيل الدخول الموحّد يتكفّل بالباقي.", "k127": "دليل تثبيت من صفحة واحدة لنظامك التعليمي", "k132": "تفضّل الاستضافة الذاتية؟ شغّله عبر Docker ووجّهه إلى مفتاح الذكاء الاصطناعي الخاص بك — الدليل الكامل في المستودع (<code>docker-compose.prod.yml</code> + <code>docs/DEPLOYMENT.md</code>).", "k133": "الأسئلة الشائعة", "k134": "هل يؤثّر هذا على درجات الطلاب؟", "k135": "لا. مؤشرات الإتقان أداة تعلّم خاصة. تُحدَّد الدرجات حصريًا من قِبل المعلّم عبر التقييمات الرسمية؛ وأي كتابة في سجل درجات النظام التعليمي تكون عمودًا غير مُقيَّم.", "k136": "هل هي أداة «غش في الواجبات»؟", "k137": "على العكس. المُعلّم مقيَّد تربويًا: يُشخّص ويوجّه بأسئلة سقراطية ولا يقدّم أبدًا إجابات مُقيَّمة.", "k138": "إلى أين تذهب بيانات الطلاب؟", "k139": "LMS Bridge متوافق مع FERPA مع وصول قائم على الأدوار. لحوكمة كاملة، شغّل الذكاء الاصطناعي على بنيتك التحتية المعتمدة (مثل مستأجر Azure OpenAI) عبر «أحضِر مفتاحك» — أو استضف كل شيء ذاتيًا كي لا يغادر أي شيء نطاقك.", "k140": "ما نماذج الذكاء الاصطناعي التي يمكننا استخدامها — وهل يمكن تشغيل نموذج محلي؟", "k141": "أحضِر مفتاحك: Anthropic (Claude) وOpenAI (GPT) وAzure OpenAI تعمل مباشرةً، ويُختار حسب المؤسسة أو المقرّر. كما يعمل نموذج محلي/مستضاف ذاتيًا خلف نقطة نهاية متوافقة مع OpenAI — فيمكنك التشغيل بالكامل داخل مؤسستك دون أي واجهة برمجية خارجية.", "k142": "كم تكلفة الذكاء الاصطناعي؟", "k143": "فقط ما يتقاضاه مزوّدك مقابل الرموز (tokens) التي تستخدمها — لا رسوم لكل طالب من LMS Bridge. نموذج صغير وسريع يبقي التكلفة منخفضة، ويمكنك ضبط حدّ إنفاق صارم في وحدة تحكّم مزوّدك. الميزات غير المعتمِدة على الذكاء الاصطناعي مجانية التشغيل.", "k144": "هل يمكن للمعلّمين تحرير المعالجة أو تخصيصها؟", "k145": "نعم. يتحكّم المعلّمون في محتوى المقرّر والمفاهيم والتقييمات التي تُغذّي المحرّك؛ ويستند الدعم التعليمي إلى مواد المعلّم نفسها، وقوالب المطالبات قابلة للتهيئة لكل مقرّر.", "k146": "هل يعمل مع الصفوف الكبيرة؟", "k147": "نعم — وهذا هو الهدف: مساعدة مخصّصة على مستوى المفهوم بحجم يستحيل معه تقديم تغذية راجعة فردية. تتزامن القوائم والدرجات تلقائيًا عبر LTI Advantage (NRPS/AGS).", "k148": "هل يمكننا ربط سلّم التقييم (rubric) الخاص بنا؟", "k149": "نعم. يستورد LMS Bridge النتائج على مستوى السلّم من سجل درجات النظام التعليمي ويستخدم تلك الإشارة معيار-لكل-مفهوم (إلى جانب إجابات الاختيار من متعدد) لتوجيه المعالجة.", "k150": "ما نوع الترخيص؟ هل هو مجاني فعلًا؟", "k151": "مفتوح المصدر بموجب GNU AGPL-3.0 — مجاني للاستضافة الذاتية بأي حجم، دون رسوم لكل طالب. تدفع فقط مقابل استخدامك للذكاء الاصطناعي واستضافتك. يتوفّر دعم تجاري واستضافة مُدارة وترخيص OEM اختياريًا. راجِع <code>LICENSE</code> و<code>COMMERCIAL.md</code> في المستودع.", "k152": "تواصل معنا", "k153": "أسئلة، مساعدة في التثبيت، تعاون في دراسة فعالية، أو دعم تجاري. تستضيف ذاتيًا؟ لا تحتاج إلينا للبدء — فقط اتبع الدليل أعلاه.", "k154": "شكرًا! تم استلام طلبك — سنتواصل معك قريبًا.", "k155": "الاسم الكامل", "k156": "البريد الإلكتروني للعمل", "k157": "المؤسسة / الجهة", "k158": "دورك", "k159": "اختر…", "k160": "معلّم / هيئة تدريس", "k161": "رئيس قسم", "k162": "مصمّم تعليمي", "k163": "مسؤول النظام التعليمي", "k164": "عمادة / إدارة", "k165": "أخرى", "k166": "بماذا يمكننا مساعدتك؟", "k167": "إرسال الرسالة", "k168": "تفضّل البريد الإلكتروني؟", "k169": "راسِلنا على <a href=\"mailto:info@lmsbridge.app\">info@lmsbridge.app</a>.", "k170": "للمطوّرين", "k171": "الشيفرة المصدرية كاملة على GitHub (AGPL-3.0)، مع مواصفة OpenAPI على <code>/docs</code>، ومزوّد LTI، وأدلة النشر. الـ issues والـ PR مُرحَّب بها.", "k172": "الأمان والمشتريات", "k173": "اطّلِع على <a href=\"https://github.com/hjmacemail/lmsbridge/blob/main/SECURITY.md\" rel=\"noopener\" target=\"_blank\">سياسة الأمان</a>، و<a href=\"https://github.com/hjmacemail/lmsbridge/blob/main/docs/COMPLIANCE.md\" rel=\"noopener\" target=\"_blank\">ملخّص الامتثال</a>، و<a href=\"https://github.com/hjmacemail/lmsbridge/blob/main/docs/PRIVACY_AND_SELF_HOSTING.md\" rel=\"noopener\" target=\"_blank\">دليل الخصوصية والاستضافة الذاتية</a>. تتوفّر HECVAT وVPAT وDPA عند الطلب.", "k174": "القائم على الصيانة", "k175": "صُمّم ويُصان بواسطة <a href=\"https://cs.nyu.edu/~ha2285\"><b>Hasan Aljabbouli</b>, New York University</a> · <a href=\"mailto:info@lmsbridge.app\">info@lmsbridge.app</a>.", "k176": "جديد · Sage", "k177": "لا يوجد نظام تعليمي؟ ابدأ مع Sage.", "k178": "Sage نظام تعليمي مصغّر ومستقل مع LMS Bridge مدمجًا فيه. ينشئ المعلّم مقرّرًا، ويضيف اختبارات اختيار من متعدد، ويشارك رمز انضمام — دون قسم تقنية، ودون مسؤول نظام تعليمي. وعندما يخفق طالب في مفهوم، تُنشئ المنصّة له تلقائيًا جلسة تدريب موجَّهة. منصّة مقرّرات بسيطة تعمل فيها المعالجة التكيّفية ببساطة، جاهزة للاستخدام.", "k179": "افتح Sage", "k180": "أو ثبّت المنصّة الكاملة في نظامك التعليمي", "k181": "مستعدّ لمساعدة كل طالب على التعلّم فعلًا؟", "k182": "انضمّ إلى المعلّمين الذين يستخدمون LMS Bridge لتحويل التعثّر إلى إتقان.", "k183": "جرّب العرض التجريبي", "k184": "استضف LMS Bridge بنفسك", "k185": "★ نجّمنا على GitHub", "k186": "يعمل داخل نظامك التعليمي", "k187": "Canvas وMoodle وBlackboard وBrightspace والمزيد.", "k188": "الخصوصية أولًا", "k189": "متوافق مع FERPA. تبقى بياناتك في نظامك.", "k190": "مفتوح المصدر", "k191": "شفّاف، قابل للتوسّع، تقوده المجتمعات.", "k193": "التوثيق", "k194": "الاستضافة الذاتية", "k195": "تواصل", "k196": "هذا جزء من <a href=\"initiative.html\" style=\"color:var(--accent)\">مبادرة المعرفة في خدمة المجتمع</a>.", "ph01": "مثال: تثبيته في مقرّر مقدّمة علوم الحاسب لدينا على Canvas، أو دعم تجاري"}}</script>
+<script>
+(function(){
+  var I18N = JSON.parse(document.getElementById('i18n-data').textContent);
+  var nodes = document.querySelectorAll('[data-i18n]');
+  var phNodes = document.querySelectorAll('[data-i18n-ph]');
+  function apply(lang){
+    var d = I18N[lang];
+    nodes.forEach(function(el){
+      var k = el.getAttribute('data-i18n');
+      if(el.dataset.en === undefined) el.dataset.en = el.innerHTML;
+      if(lang === 'en' || !d || d[k] === undefined){ el.innerHTML = el.dataset.en; }
+      else { el.innerHTML = d[k]; }
+    });
+    phNodes.forEach(function(el){
+      var k = el.getAttribute('data-i18n-ph');
+      if(el.dataset.enPh === undefined) el.dataset.enPh = el.getAttribute('placeholder') || '';
+      if(lang === 'en' || !d || d[k] === undefined){ el.setAttribute('placeholder', el.dataset.enPh); }
+      else { el.setAttribute('placeholder', d[k]); }
+    });
+    document.documentElement.setAttribute('lang', lang);
+    document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+    var sel = document.getElementById('langSel'); if(sel) sel.value = lang;
+    try{ localStorage.setItem('lmsb-lang', lang); }catch(e){}
+  }
+  var saved; try{ saved = localStorage.getItem('lmsb-lang'); }catch(e){}
+  var nav = (navigator.language || 'en').slice(0,2).toLowerCase();
+  var init = saved || (['es','fr','ar'].indexOf(nav) >= 0 ? nav : 'en');
+  var sel = document.getElementById('langSel');
+  if(sel) sel.addEventListener('change', function(){ apply(this.value); });
+  apply(init);
+})();
 </script>
 </body>
 </html>
