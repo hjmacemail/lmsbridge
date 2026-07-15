@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import {
   api, sageApi, saveToken, clearToken, loadToken,
   type SageAuth, type SageCourseSummary, type SageCourseDetail, type SageQuizListItem,
@@ -148,6 +150,7 @@ export default function SageApp() {
   const [course, setCourse] = useState<SageCourseSummary | null>(null);
   const [courseTab, setCourseTab] = useState("Home");
   const [detail, setDetail] = useState<SageCourseDetail | null>(null);
+  const { t } = useTranslation();
   // Keep the shared AuthContext in sync so the LMS Bridge tutor route (/modules/:id,
   // a Protected route) recognises the Sage session instead of bouncing to /login.
   const { adoptToken, logout: ctxLogout } = useAuth();
@@ -173,13 +176,16 @@ export default function SageApp() {
       <div style={{ minHeight: "100vh", background: C.pageBg, color: C.ink }}>
         <header style={{ background: BRAND.accent || C.brand, color: "#fff", padding: "13px 0" }}>
           <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 20px", display: "flex",
-            alignItems: "center", gap: 9 }}>
-            <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 18 }}>
-              {BRAND.logoUrl ? <img src={BRAND.logoUrl} alt={BRAND.name} style={{ height: 22 }} />
-                : <Icon name="school" size={20} />} {BRAND.name}</span>
-            <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer"
-              style={{ opacity: 0.75, fontWeight: 400, fontSize: 12.5, color: "#fff",
-                textDecoration: "underline", textUnderlineOffset: 3 }}>· {BRAND.attribution}</a>
+            alignItems: "center", gap: 9, justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 18 }}>
+                {BRAND.logoUrl ? <img src={BRAND.logoUrl} alt={BRAND.name} style={{ height: 22 }} />
+                  : <Icon name="school" size={20} />} {BRAND.name}</span>
+              <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer"
+                style={{ opacity: 0.75, fontWeight: 400, fontSize: 12.5, color: "#fff",
+                  textDecoration: "underline", textUnderlineOffset: 3 }}>· {BRAND.attribution}</a>
+            </div>
+            <LanguageSwitcher dark />
           </div>
         </header>
         <div style={{ maxWidth: 1120, margin: "0 auto", padding: "24px 16px 56px" }}>
@@ -218,23 +224,24 @@ export default function SageApp() {
             <>
               <button onClick={() => setView("courses")} style={{ display: "flex", alignItems: "center", gap: 8,
                 background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: 12.5,
-                padding: "4px 11px 10px" }}><Icon name="back" size={14} /> All courses</button>
+                padding: "4px 11px 10px" }}><Icon name="back" size={14} /> {t("sage.allCourses")}</button>
               <div style={{ padding: "0 11px 10px", fontWeight: 700, fontSize: 13.5, color: C.ink,
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{course!.name}</div>
               {courseTabs.map((tName) => (
-                <SideLink key={tName} icon={TAB_ICON[tName] || "note"} label={tName}
+                <SideLink key={tName} icon={TAB_ICON[tName] || "note"} label={t("sage.tab." + tName)}
                   active={courseTab === tName} onClick={() => setCourseTab(tName)} />
               ))}
             </>
           ) : (
             <>
-              <SideLink icon="school" label="Courses" active={view === "courses"} onClick={() => setView("courses")} />
-              <SideLink icon="note" label="Profile" active={view === "profile"} onClick={() => setView("profile")} />
+              <SideLink icon="school" label={t("sage.tab.Courses")} active={view === "courses"} onClick={() => setView("courses")} />
+              <SideLink icon="note" label={t("sage.tab.Profile")} active={view === "profile"} onClick={() => setView("profile")} />
             </>
           )}
         </nav>
 
         <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 10, marginTop: 8 }}>
+          <div style={{ padding: "2px 8px 8px" }}><LanguageSwitcher /></div>
           <button onClick={() => setView("profile")} style={{ display: "flex", alignItems: "center", gap: 9,
             width: "100%", background: "none", border: "none", cursor: "pointer", padding: "6px 8px",
             marginBottom: 4 }}>
@@ -244,7 +251,7 @@ export default function SageApp() {
             <span style={{ fontSize: 13, color: C.ink, fontWeight: 600, overflow: "hidden",
               textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.full_name}</span>
           </button>
-          <SideLink icon="logout" label="Sign out" onClick={signOut} />
+          <SideLink icon="logout" label={t("common.signOut")} onClick={signOut} />
         </div>
       </aside>
 
@@ -262,6 +269,7 @@ export default function SageApp() {
 
 // --------------------------------------------------------------- Auth
 function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<"pick" | "signup" | "join" | "login">("pick");
   const [name, setName] = useState(""); const [email, setEmail] = useState("");
   const [pw, setPw] = useState(""); const [code, setCode] = useState("");
@@ -270,21 +278,21 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
   async function go(e: React.FormEvent) {
     e.preventDefault(); setErr(null);
     // Friendly client-side checks so the user isn't bounced by a server validation error.
-    if (mode === "join" && !code.trim()) { setErr("Enter the course join code."); return; }
-    if (mode !== "login" && !name.trim()) { setErr("Please enter your name."); return; }
+    if (mode === "join" && !code.trim()) { setErr(t("sage.auth.errCode")); return; }
+    if (mode !== "login" && !name.trim()) { setErr(t("sage.auth.errName")); return; }
     if (mode !== "join") {
-      if (!email.trim()) { setErr("Enter your email address."); return; }
-      if (!pw) { setErr("Enter a password."); return; }
+      if (!email.trim()) { setErr(t("sage.auth.errEmail")); return; }
+      if (!pw) { setErr(t("sage.auth.errPw")); return; }
       if (mode === "signup" && pw.length < 6) {
-        setErr("Password must be at least 6 characters."); return;
+        setErr(t("sage.auth.errPwLen")); return;
       }
     }
     setBusy(true);
     try {
       if (mode === "signup") onAuth(await sageApi.signup(name.trim(), email.trim(), pw));
       else if (mode === "login") {
-        const t = await sageApi.login(email, pw);
-        onAuth({ access_token: t.access_token, token_type: t.token_type,
+        const tok = await sageApi.login(email, pw);
+        onAuth({ access_token: tok.access_token, token_type: tok.token_type,
           user_id: 0, full_name: email, role: "instructor" });
       } else onAuth(await sageApi.guestJoin(code.trim().toUpperCase(), name));
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
@@ -307,72 +315,72 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
     );
     return (
       <div style={{ maxWidth: 560, margin: "24px auto", textAlign: "center" }}>
-        <h1 style={{ color: C.ink, marginBottom: 8, fontSize: 30 }}>Welcome to {BRAND.name}</h1>
+        <h1 style={{ color: C.ink, marginBottom: 8, fontSize: 30 }}>{t("sage.auth.welcome", { name: BRAND.name })}</h1>
         <p style={{ color: C.muted, marginTop: 0, fontSize: 15, lineHeight: 1.55, maxWidth: 460,
           margin: "0 auto 22px" }}>{BRAND.tagline}</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-          {roleCard({ icon: "edit", title: "I'm an instructor", sub: "Create a course",
+          {roleCard({ icon: "edit", title: t("sage.auth.instructor"), sub: t("sage.auth.instructorSub"),
             onClick: () => { setMode("signup"); setErr(null); } })}
-          {roleCard({ icon: "school", title: "I'm a student", sub: "Join a course",
+          {roleCard({ icon: "school", title: t("sage.auth.student"), sub: t("sage.auth.studentSub"),
             onClick: () => { setMode("join"); setErr(null); } })}
         </div>
         <p style={{ color: C.muted, fontSize: 13.5, marginTop: 20 }}>
-          Already have an account?{" "}
+          {t("sage.auth.haveAccount")}{" "}
           <button onClick={() => { setMode("login"); setErr(null); }} style={{ background: "none",
             border: "none", color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 13.5,
-            padding: 0 }}>Log in</button>
+            padding: 0 }}>{t("sage.auth.login")}</button>
         </p>
         <p style={{ color: C.muted, fontSize: 12.5, marginTop: 24 }}>
-          No LMS required. Just great teaching and learning.
+          {t("sage.auth.noLms")}
         </p>
       </div>
     );
   }
 
-  const heading = mode === "signup" ? "Create your instructor account"
-    : mode === "login" ? "Welcome back" : "Join a course";
-  const subhead = mode === "signup" ? `Start building courses with ${BRAND.name}.`
-    : mode === "login" ? "Log in to continue." : "Enter the course code your instructor shared.";
+  const heading = mode === "signup" ? t("sage.auth.signupHead")
+    : mode === "login" ? t("sage.auth.loginHead") : t("sage.auth.joinHead");
+  const subhead = mode === "signup" ? t("sage.auth.signupSub", { name: BRAND.name })
+    : mode === "login" ? t("sage.auth.loginSub") : t("sage.auth.joinSub");
   return (
     <div style={{ maxWidth: 420, margin: "24px auto" }}>
       <button onClick={() => { setMode("pick"); setErr(null); }} style={{ display: "inline-flex",
         alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer",
-        color: C.muted, fontSize: 13, marginBottom: 10 }}><Icon name="back" size={15} /> Back</button>
+        color: C.muted, fontSize: 13, marginBottom: 10 }}><Icon name="back" size={15} /> {t("sage.back")}</button>
       <Card>
         <h1 style={{ textAlign: "center", color: C.ink, margin: "2px 0 4px", fontSize: 23 }}>{heading}</h1>
         <p style={{ textAlign: "center", color: C.muted, marginTop: 0, marginBottom: 18, fontSize: 14 }}>{subhead}</p>
         <form onSubmit={go} style={{ display: "grid", gap: 11 }}>
-          {mode === "join" && <input style={inputStyle} placeholder="Course join code (e.g. 7QK4PD)"
+          {mode === "join" && <input style={inputStyle} placeholder={t("sage.auth.phCode")}
             value={code} onChange={(e) => setCode(e.target.value)} />}
-          {mode !== "login" && <input style={inputStyle} placeholder="Your name"
+          {mode !== "login" && <input style={inputStyle} placeholder={t("sage.auth.phName")}
             value={name} onChange={(e) => setName(e.target.value)} />}
-          {mode !== "join" && <input style={inputStyle} placeholder="Email" type="email"
+          {mode !== "join" && <input style={inputStyle} placeholder={t("sage.auth.phEmail")} type="email"
             value={email} onChange={(e) => setEmail(e.target.value)} />}
-          {mode !== "join" && <input style={inputStyle} placeholder="Password" type="password"
+          {mode !== "join" && <input style={inputStyle} placeholder={t("sage.auth.phPw")} type="password"
             value={pw} onChange={(e) => setPw(e.target.value)} />}
           <PrimaryBtn type="submit" disabled={busy}>
-            {busy ? "…" : mode === "signup" ? "Create account"
-              : mode === "login" ? "Log in" : "Join course"}
+            {busy ? "…" : mode === "signup" ? t("sage.auth.createBtn")
+              : mode === "login" ? t("sage.auth.loginBtn") : t("sage.auth.joinBtn")}
           </PrimaryBtn>
           {err && <div style={{ color: C.danger, fontSize: 13 }}>{err}</div>}
         </form>
         {mode === "signup" && (
           <p style={{ textAlign: "center", color: C.muted, fontSize: 13, marginTop: 14, marginBottom: 0 }}>
-            Already have an account?{" "}
+            {t("sage.auth.haveAccount")}{" "}
             <button onClick={() => { setMode("login"); setErr(null); }} style={{ background: "none",
-              border: "none", color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 13, padding: 0 }}>Log in</button>
+              border: "none", color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 13, padding: 0 }}>{t("sage.auth.login")}</button>
           </p>
         )}
         {mode === "login" && (
           <p style={{ textAlign: "center", color: C.muted, fontSize: 13, marginTop: 14, marginBottom: 0 }}>
-            Don't have an account?{" "}
+            {t("sage.auth.noAccount")}{" "}
             <button onClick={() => { setMode("signup"); setErr(null); }} style={{ background: "none",
-              border: "none", color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 13, padding: 0 }}>Create one</button>
+              border: "none", color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 13, padding: 0 }}>{t("sage.auth.createOne")}</button>
           </p>
         )}
         {mode === "join" && (
           <p style={{ textAlign: "center", color: C.muted, fontSize: 12.5, marginTop: 14, marginBottom: 0 }}>
-            No account or email required. Need a code? Ask your instructor.
+            {t("sage.auth.joinNote")}
           </p>
         )}
       </Card>
@@ -381,12 +389,13 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
 }
 
 // --------------------------------------------------------------- Courses
-function greeting() {
+function greetingKey() {
   const h = new Date().getHours();
-  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+  return h < 12 ? "morning" : h < 18 ? "afternoon" : "evening";
 }
 
 function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void; userName: string }) {
+  const { t } = useTranslation();
   const [courses, setCourses] = useState<SageCourseSummary[]>([]);
   const [name, setName] = useState(""); const [subject, setSubject] = useState("");
   const [code, setCode] = useState(""); const [msg, setMsg] = useState<string | null>(null);
@@ -411,22 +420,22 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ margin: 0, fontSize: 24, color: C.ink }}>{greeting()}, {firstName}</h1>
+        <h1 style={{ margin: 0, fontSize: 24, color: C.ink }}>{t("sage.greeting." + greetingKey())}, {firstName}</h1>
         <p style={{ margin: "4px 0 0", color: C.muted, fontSize: 14.5 }}>
-          Here's what's happening in your courses.</p>
+          {t("sage.courses.subtitle")}</p>
       </div>
       {teaching.length > 0 && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
           gap: 12, marginBottom: 20 }}>
-          <Stat label="Courses" value={teaching.length} />
-          <Stat label="Students" value={totalStudents} />
-          <Stat label="Quizzes" value={totalQuizzes} />
+          <Stat label={t("sage.stat.courses")} value={teaching.length} />
+          <Stat label={t("sage.stat.students")} value={totalStudents} />
+          <Stat label={t("sage.stat.quizzes")} value={totalQuizzes} />
         </div>
       )}
-      <h2 style={{ color: C.ink, fontSize: 18, margin: "0 0 12px" }}>Your courses</h2>
+      <h2 style={{ color: C.ink, fontSize: 18, margin: "0 0 12px" }}>{t("sage.courses.title")}</h2>
       {courses.length === 0 && (
         <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
-          No courses yet — create your first one below, or join one with a code.
+          {t("sage.courses.empty")}
         </Card>
       )}
       <div style={{ display: "grid", gap: 12 }}>
@@ -436,8 +445,8 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
             <div onClick={() => onOpen(c)} style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 16.5 }}>{c.name}</div>
               <div style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>
-                {c.student_count} students · {c.quiz_count} quizzes
-                {c.role === "instructor" && <> · join code <b style={{ color: C.accentInk, letterSpacing: 1 }}>{c.join_code}</b></>}
+                {t("sage.courses.meta", { students: c.student_count, quizzes: c.quiz_count })}
+                {c.role === "instructor" && <> · {t("sage.joinCode")} <b style={{ color: C.accentInk, letterSpacing: 1 }}>{c.join_code}</b></>}
               </div>
             </div>
             <span style={{ fontSize: 12, fontWeight: 600, background: C.accentBg, color: C.accentInk,
@@ -449,19 +458,19 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
         gap: 14, marginTop: 16 }}>
         <Card>
-          <h3 style={{ marginTop: 0, fontSize: 16 }}>Create a course</h3>
+          <h3 style={{ marginTop: 0, fontSize: 16 }}>{t("sage.courses.createTitle")}</h3>
           <form onSubmit={create} style={{ display: "grid", gap: 9 }}>
-            <input style={inputStyle} placeholder="Course name" value={name} onChange={(e) => setName(e.target.value)} />
-            <input style={inputStyle} placeholder="Subject (optional)" value={subject}
+            <input style={inputStyle} placeholder={t("sage.courses.phName")} value={name} onChange={(e) => setName(e.target.value)} />
+            <input style={inputStyle} placeholder={t("sage.courses.phSubject")} value={subject}
               onChange={(e) => setSubject(e.target.value)} />
-            <PrimaryBtn type="submit"><Icon name="plus" size={16} /> Create course</PrimaryBtn>
+            <PrimaryBtn type="submit"><Icon name="plus" size={16} /> {t("sage.courses.createBtn")}</PrimaryBtn>
           </form>
         </Card>
         <Card>
-          <h3 style={{ marginTop: 0, fontSize: 16 }}>Join a course</h3>
+          <h3 style={{ marginTop: 0, fontSize: 16 }}>{t("sage.courses.joinTitle")}</h3>
           <form onSubmit={join} style={{ display: "grid", gap: 9 }}>
-            <input style={inputStyle} placeholder="Join code" value={code} onChange={(e) => setCode(e.target.value)} />
-            <GhostBtn><span>Join with code</span></GhostBtn>
+            <input style={inputStyle} placeholder={t("sage.courses.phJoin")} value={code} onChange={(e) => setCode(e.target.value)} />
+            <GhostBtn><span>{t("sage.courses.joinBtn")}</span></GhostBtn>
           </form>
         </Card>
       </div>
@@ -472,14 +481,15 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
 
 // --------------------------------------------------------------- Course shell
 function CopyChip({ code }: { code: string | null }) {
+  const { t } = useTranslation();
   const [done, setDone] = useState(false);
   if (!code) return null;
   return (
     <button onClick={() => { navigator.clipboard?.writeText(code); setDone(true); setTimeout(() => setDone(false), 1500); }}
       style={{ display: "inline-flex", alignItems: "center", gap: 7, background: C.accentBg, color: C.accentInk,
         border: "none", padding: "7px 13px", borderRadius: 999, fontSize: 13, cursor: "pointer" }}>
-      <Icon name="key" size={15} /> join code <b style={{ letterSpacing: 1 }}>{code}</b>
-      <Icon name={done ? "check" : "copy"} size={15} />{done && <span>copied</span>}
+      <Icon name="key" size={15} /> {t("sage.joinCode")} <b style={{ letterSpacing: 1 }}>{code}</b>
+      <Icon name={done ? "check" : "copy"} size={15} />{done && <span>{t("sage.copied")}</span>}
     </button>
   );
 }
@@ -513,6 +523,7 @@ function CourseView({ course, tab, detail, reloadDetail }:
 
 // --------------------------------------------------------------- Analytics (real data)
 function Analytics({ course }: { course: SageCourseSummary }) {
+  const { t } = useTranslation();
   const [a, setA] = useState<InstructorAnalytics | null>(null);
   const [err, setErr] = useState(false);
   useEffect(() => { setA(null); setErr(false);
@@ -520,9 +531,9 @@ function Analytics({ course }: { course: SageCourseSummary }) {
 
   if (err) return (
     <Card><p style={{ margin: 0, color: C.muted }}>
-      Analytics will appear here once your students start submitting quizzes.</p></Card>
+      {t("sage.analytics.empty")}</p></Card>
   );
-  if (!a) return <p style={{ color: C.muted }}>Loading…</p>;
+  if (!a) return <p style={{ color: C.muted }}>{t("sage.loading")}</p>;
 
   const risks = a.concept_risks;
   const avg = risks.length ? risks.reduce((s, r) => s + r.avg_mastery, 0) / risks.length : 0;
@@ -542,17 +553,17 @@ function Analytics({ course }: { course: SageCourseSummary }) {
   return (
     <div style={{ display: "grid", gap: 14 }}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12 }}>
-        {tile(pct(avg), "Average mastery")}
-        {tile(a.enrolled_students, "Students")}
-        {tile(a.modules_generated, "Practice sessions")}
-        {tile(atRisk, "At-risk on a concept", atRisk > 0 ? "danger" : undefined)}
+        {tile(pct(avg), t("sage.analytics.avgMastery"))}
+        {tile(a.enrolled_students, t("sage.analytics.students"))}
+        {tile(a.modules_generated, t("sage.analytics.practiceSessions"))}
+        {tile(atRisk, t("sage.analytics.atRisk"), atRisk > 0 ? "danger" : undefined)}
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 14 }}>
         <Card>
-          <h3 style={{ marginTop: 0, fontSize: 16 }}>Concept mastery</h3>
+          <h3 style={{ marginTop: 0, fontSize: 16 }}>{t("sage.analytics.conceptMastery")}</h3>
           {risks.length === 0 && <p style={{ color: C.muted, margin: 0 }}>
-            No concept data yet. Add concepts to your quiz questions to see per-concept mastery.</p>}
+            {t("sage.analytics.noConcepts")}</p>}
           {risks.map((r) => (
             <div key={r.concept_id} style={{ display: "flex", alignItems: "center", gap: 12,
               padding: "9px 0", borderTop: `1px solid ${C.line}` }}>
@@ -565,10 +576,10 @@ function Analytics({ course }: { course: SageCourseSummary }) {
           ))}
         </Card>
         <Card style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10 }}>
-          <h3 style={{ margin: 0, fontSize: 16, alignSelf: "flex-start" }}>Practice impact</h3>
+          <h3 style={{ margin: 0, fontSize: 16, alignSelf: "flex-start" }}>{t("sage.analytics.practiceImpact")}</h3>
           <Donut v={recovery} size={128} />
           <div style={{ fontSize: 13, color: C.muted, textAlign: "center" }}>
-            {a.modules_completed} of {a.modules_generated} practice sessions completed
+            {t("sage.analytics.completedOf", { done: a.modules_completed, total: a.modules_generated })}
           </div>
         </Card>
       </div>
@@ -589,6 +600,7 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "da
 }
 
 function Announcements({ course, instr }: { course: SageCourseSummary; instr: boolean }) {
+  const { t } = useTranslation();
   const [items, setItems] = useState<SageAnnouncement[]>([]);
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(""); const [body, setBody] = useState("");
@@ -603,20 +615,20 @@ function Announcements({ course, instr }: { course: SageCourseSummary; instr: bo
   return (
     <Card>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-        <h3 style={{ marginTop: 0, marginBottom: 0, fontSize: 17 }}>Announcements</h3>
+        <h3 style={{ marginTop: 0, marginBottom: 0, fontSize: 17 }}>{t("sage.ann.title")}</h3>
         {instr && <GhostBtn onClick={() => setOpen((o) => !o)}>
-          <Icon name="plus" size={15} /> {open ? "Cancel" : "Post"}</GhostBtn>}
+          <Icon name="plus" size={15} /> {open ? t("sage.cancel") : t("sage.ann.post")}</GhostBtn>}
       </div>
       {open && (
         <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-          <input style={inputStyle} placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-          <textarea style={{ ...inputStyle, minHeight: 70, resize: "vertical" }} placeholder="Message (Markdown supported)"
+          <input style={inputStyle} placeholder={t("sage.ann.phTitle")} value={title} onChange={(e) => setTitle(e.target.value)} />
+          <textarea style={{ ...inputStyle, minHeight: 70, resize: "vertical" }} placeholder={t("sage.ann.phBody")}
             value={body} onChange={(e) => setBody(e.target.value)} />
-          <div><PrimaryBtn onClick={post} disabled={busy}>{busy ? "Posting…" : "Post announcement"}</PrimaryBtn></div>
+          <div><PrimaryBtn onClick={post} disabled={busy}>{busy ? t("sage.ann.posting") : t("sage.ann.postBtn")}</PrimaryBtn></div>
         </div>
       )}
       <div style={{ marginTop: 12 }}>
-        {items.length === 0 && <p style={{ color: C.muted, margin: 0 }}>No announcements yet.</p>}
+        {items.length === 0 && <p style={{ color: C.muted, margin: 0 }}>{t("sage.ann.empty")}</p>}
         {items.map((a) => (
           <div key={a.id} style={{ padding: "10px 0", borderTop: `1px solid ${C.line}` }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
@@ -639,13 +651,14 @@ function Announcements({ course, instr }: { course: SageCourseSummary; instr: bo
 
 function Home({ course, instr, detail }:
   { course: SageCourseSummary; instr: boolean; detail: SageCourseDetail | null }) {
+  const { t } = useTranslation();
   const ins = detail?.instructor;
   return (
     <div style={{ display: "grid", gap: 14 }}>
       {instr && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}>
-          <Stat label="Students" value={course.student_count} />
-          <Stat label="Quizzes" value={course.quiz_count} />
+          <Stat label={t("sage.stat.students")} value={course.student_count} />
+          <Stat label={t("sage.stat.quizzes")} value={course.quiz_count} />
         </div>
       )}
       <Announcements course={course} instr={instr} />
@@ -655,7 +668,7 @@ function Home({ course, instr, detail }:
             display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>
             {initials(ins.full_name)}</div>
           <div>
-            <div style={{ fontSize: 12, color: C.muted }}>Taught by</div>
+            <div style={{ fontSize: 12, color: C.muted }}>{t("sage.home.taughtBy")}</div>
             <div style={{ fontWeight: 700 }}>{ins.full_name}</div>
             {ins.title && <div style={{ fontSize: 13.5, color: C.accentInk }}>{ins.title}</div>}
             {ins.bio && <div style={{ fontSize: 13.5, color: "#444", marginTop: 4, lineHeight: 1.5 }}>{ins.bio}</div>}
@@ -663,19 +676,10 @@ function Home({ course, instr, detail }:
         </Card>
       )}
       <Card>
-        <h3 style={{ marginTop: 0, fontSize: 17 }}>Welcome to {course.name}</h3>
-        {instr ? (
-          <p style={{ color: "#444", lineHeight: 1.6, margin: 0 }}>
-            Share the join code <b style={{ color: C.accentInk }}>{course.join_code}</b> with your students,
-            then add quizzes under the <b>Quizzes</b> tab. When a student misses a concept, LMS Bridge
-            automatically builds a guided practice session for them — you'll see who needs help under <b>Grades</b>.
-          </p>
-        ) : (
-          <p style={{ color: "#444", lineHeight: 1.6, margin: 0 }}>
-            Take the quizzes under the <b>Quizzes</b> tab. If you slip on something, a short guided
-            practice session will be waiting for you under <b>Needs review</b> — no stress, that's how you learn.
-          </p>
-        )}
+        <h3 style={{ marginTop: 0, fontSize: 17 }}>{t("sage.home.welcome", { name: course.name })}</h3>
+        <p style={{ color: "#444", lineHeight: 1.6, margin: 0 }}>
+          {instr ? t("sage.home.instrBlurb", { code: course.join_code }) : t("sage.home.studentBlurb")}
+        </p>
       </Card>
     </div>
   );
@@ -683,6 +687,7 @@ function Home({ course, instr, detail }:
 
 // --------------------------------------------------------------- Quizzes (instructor)
 function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
+  const { t } = useTranslation();
   const [quizzes, setQuizzes] = useState<SageQuizListItem[]>([]);
   const [build, setBuild] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
@@ -699,21 +704,20 @@ function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
   }
   async function dup(id: number) { await sageApi.duplicateQuiz(id); load(); }
   async function del(id: number) {
-    if (!window.confirm("Delete this quiz? Student results for it will also be removed.")) return;
+    if (!window.confirm(t("sage.quiz.deleteConfirm"))) return;
     await sageApi.deleteQuiz(id); load();
   }
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h3 style={{ margin: 0, fontSize: 17 }}>Quizzes</h3>
-        {!build && <PrimaryBtn onClick={startNew}><Icon name="plus" size={16} /> New quiz</PrimaryBtn>}
+        <h3 style={{ margin: 0, fontSize: 17 }}>{t("sage.tab.Quizzes")}</h3>
+        {!build && <PrimaryBtn onClick={startNew}><Icon name="plus" size={16} /> {t("sage.quiz.new")}</PrimaryBtn>}
       </div>
       {build && <QuizBuilder courseId={course.id} editId={editId} initial={initial}
         onCancel={() => setBuild(false)} onDone={() => { setBuild(false); load(); }} />}
       {quizzes.length === 0 && !build && (
         <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
-          No quizzes yet. Click <b>New quiz</b> to build one — multiple choice, true/false, multiple
-          answers, or short answer.
+          {t("sage.quiz.empty")}
         </Card>
       )}
       {!build && quizzes.map((q) => {
@@ -725,12 +729,12 @@ function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
               <div>
                 <b style={{ fontSize: 15 }}>{q.title}</b>
                 <div style={{ color: C.muted, fontSize: 13 }}>
-                  {q.question_count} questions · {q.submission_count ?? 0} submitted
-                  {q.due_at && <> · due {fmtDateTime(q.due_at)}</>}</div>
+                  {t("sage.quiz.metaInstr", { questions: q.question_count, submitted: q.submission_count ?? 0 })}
+                  {q.due_at && <> · {t("sage.quiz.due", { date: fmtDateTime(q.due_at) })}</>}</div>
               </div>
               <div style={{ display: "flex", gap: 6 }}>
-                <GhostBtn onClick={() => startEdit(q.id)}><Icon name="edit" size={15} /> Edit</GhostBtn>
-                <GhostBtn onClick={() => dup(q.id)}><Icon name="copy" size={15} /> Duplicate</GhostBtn>
+                <GhostBtn onClick={() => startEdit(q.id)}><Icon name="edit" size={15} /> {t("sage.quiz.edit")}</GhostBtn>
+                <GhostBtn onClick={() => dup(q.id)}><Icon name="copy" size={15} /> {t("sage.quiz.duplicate")}</GhostBtn>
                 <button onClick={() => del(q.id)} title="Delete" style={{ background: "none", border: "none",
                   cursor: "pointer", color: C.danger, padding: 6 }}><Icon name="trash" size={16} /></button>
               </div>
@@ -757,6 +761,7 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
   initial: { title: string; questions: SageQuestionDraft[]; due_at?: string | null } | null;
   onDone: () => void; onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const blank = (): SageQuestionDraft =>
     ({ prompt: "", qtype: "mcq", choices: ["", ""], correct: [], concept: "" });
   const [title, setTitle] = useState(initial?.title || "");
@@ -795,21 +800,21 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
   }
   async function save() {
     setErr(null);
-    if (!title.trim()) { setErr("Add a quiz title."); return; }
+    if (!title.trim()) { setErr(t("sage.quiz.errTitle")); return; }
     const payload: SageQuestionDraft[] = [];
     for (const q of qs) {
-      if (!q.prompt.trim() || !q.concept.trim()) { setErr("Each question needs a prompt and a concept."); return; }
+      if (!q.prompt.trim() || !q.concept.trim()) { setErr(t("sage.quiz.errPromptConcept")); return; }
       let choices = q.choices.map((c) => c.trim()).filter(Boolean);
       let correct = q.correct.map((c) => c.trim()).filter(Boolean);
       if (q.qtype === "true_false") choices = ["True", "False"];
-      if (q.qtype === "short") { choices = []; if (!correct.length) { setErr(`Add accepted answer(s) for: ${q.prompt}`); return; } }
+      if (q.qtype === "short") { choices = []; if (!correct.length) { setErr(t("sage.quiz.errShort", { p: q.prompt })); return; } }
       else {
-        if (choices.length < 2) { setErr(`Add at least 2 choices for: ${q.prompt}`); return; }
+        if (choices.length < 2) { setErr(t("sage.quiz.errChoices", { p: q.prompt })); return; }
         correct = correct.filter((c) => choices.includes(c));
         if ((q.qtype === "mcq" || q.qtype === "true_false") && correct.length !== 1) {
-          setErr(`Mark exactly one correct answer for: ${q.prompt}`); return;
+          setErr(t("sage.quiz.errOne", { p: q.prompt })); return;
         }
-        if (q.qtype === "multi" && correct.length < 1) { setErr(`Mark the correct answers for: ${q.prompt}`); return; }
+        if (q.qtype === "multi" && correct.length < 1) { setErr(t("sage.quiz.errMulti", { p: q.prompt })); return; }
       }
       payload.push({ ...q, choices, correct });
     }
@@ -823,13 +828,13 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
   }
   return (
     <Card style={{ background: C.soft, border: `1px solid ${C.line}` }}>
-      <input style={{ ...inputStyle, marginBottom: 10, fontWeight: 600 }} placeholder="Quiz title (e.g. Binary basics)"
+      <input style={{ ...inputStyle, marginBottom: 10, fontWeight: 600 }} placeholder={t("sage.quiz.phTitle")}
         value={title} onChange={(e) => setTitle(e.target.value)} />
       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
-        <label style={{ fontSize: 13, color: C.muted }}>Due date (optional)</label>
+        <label style={{ fontSize: 13, color: C.muted }}>{t("sage.quiz.dueDate")}</label>
         <input type="datetime-local" style={{ ...inputStyle, width: "auto" }} value={dueAt}
           onChange={(e) => setDueAt(e.target.value)} />
-        {dueAt && <GhostBtn onClick={() => setDueAt("")}>Clear</GhostBtn>}
+        {dueAt && <GhostBtn onClick={() => setDueAt("")}>{t("sage.quiz.clear")}</GhostBtn>}
       </div>
       {qs.map((q, i) => (
         <div key={i} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
@@ -837,48 +842,48 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
             <span style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>Q{i + 1}</span>
             <select value={q.qtype} onChange={(e) => setType(i, e.target.value as SageQType)}
               style={{ ...inputStyle, width: "auto", padding: "7px 10px" }}>
-              {QTYPE_LABELS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              {QTYPE_LABELS.map((qt) => <option key={qt.value} value={qt.value}>{t("sage.qtype." + qt.value)}</option>)}
             </select>
             {qs.length > 1 && <button onClick={() => setQs((a) => a.filter((_, j) => j !== i))}
-              title="Remove question" style={{ marginLeft: "auto", background: "none", border: "none",
+              title={t("sage.quiz.removeQ")} style={{ marginLeft: "auto", background: "none", border: "none",
                 color: C.danger, cursor: "pointer" }}><Icon name="trash" size={15} /></button>}
           </div>
-          <input style={{ ...inputStyle, marginBottom: 8 }} placeholder="Question prompt"
+          <input style={{ ...inputStyle, marginBottom: 8 }} placeholder={t("sage.quiz.phPrompt")}
             value={q.prompt} onChange={(e) => upd(i, { prompt: e.target.value })} />
 
           {q.qtype === "short" ? (
-            <input style={inputStyle} placeholder="Accepted answer(s), comma-separated"
+            <input style={inputStyle} placeholder={t("sage.quiz.phShortAns")}
               value={q.correct.join(", ")}
               onChange={(e) => upd(i, { correct: e.target.value.split(",").map((s) => s.trim()) })} />
           ) : (
             <>
               <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>
-                {q.qtype === "multi" ? "Check every correct answer." : "Select the one correct answer."}</div>
+                {q.qtype === "multi" ? t("sage.quiz.checkAll") : t("sage.quiz.selectOne")}</div>
               {(q.qtype === "true_false" ? ["True", "False"] : q.choices).map((c, ci) => (
                 <div key={ci} style={{ display: "flex", gap: 9, alignItems: "center", marginBottom: 6 }}>
                   <input type={q.qtype === "multi" ? "checkbox" : "radio"} name={`correct-${i}`}
                     checked={q.correct.includes(c) && !!c}
                     onChange={() => toggleCorrect(i, c, q.qtype !== "multi")}
-                    style={{ accentColor: C.primary }} title="Mark correct" />
+                    style={{ accentColor: C.primary }} title={t("sage.quiz.markCorrect")} />
                   {q.qtype === "true_false"
                     ? <span style={{ fontSize: 14 }}>{c}</span>
-                    : <input style={inputStyle} placeholder={`Choice ${ci + 1}`} value={c}
+                    : <input style={inputStyle} placeholder={t("sage.quiz.choiceN", { n: ci + 1 })} value={c}
                         onChange={(e) => setChoice(i, ci, e.target.value)} />}
                 </div>
               ))}
               {q.qtype !== "true_false" && (
-                <GhostBtn onClick={() => upd(i, { choices: [...q.choices, ""] })}>+ choice</GhostBtn>
+                <GhostBtn onClick={() => upd(i, { choices: [...q.choices, ""] })}>{t("sage.quiz.addChoice")}</GhostBtn>
               )}
             </>
           )}
-          <input style={{ ...inputStyle, marginTop: 8 }} placeholder="Concept (e.g. Binary arithmetic)"
+          <input style={{ ...inputStyle, marginTop: 8 }} placeholder={t("sage.quiz.phConcept")}
             value={q.concept} onChange={(e) => upd(i, { concept: e.target.value })} />
         </div>
       ))}
       <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
-        <GhostBtn onClick={() => setQs((a) => [...a, blank()])}><Icon name="plus" size={15} /> Add question</GhostBtn>
-        <PrimaryBtn onClick={save} disabled={busy}>{busy ? "Saving…" : editId != null ? "Save changes" : "Save quiz"}</PrimaryBtn>
-        <GhostBtn onClick={onCancel}>Cancel</GhostBtn>
+        <GhostBtn onClick={() => setQs((a) => [...a, blank()])}><Icon name="plus" size={15} /> {t("sage.quiz.addQ")}</GhostBtn>
+        <PrimaryBtn onClick={save} disabled={busy}>{busy ? t("sage.quiz.saving") : editId != null ? t("sage.quiz.saveChanges") : t("sage.quiz.saveQuiz")}</PrimaryBtn>
+        <GhostBtn onClick={onCancel}>{t("sage.cancel")}</GhostBtn>
       </div>
       {err && <div style={{ color: C.danger, fontSize: 13, marginTop: 8 }}>{err}</div>}
     </Card>
@@ -887,6 +892,7 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
 
 // --------------------------------------------------------------- Quizzes (student)
 function QuizzesStudent({ course }: { course: SageCourseSummary }) {
+  const { t } = useTranslation();
   const [quizzes, setQuizzes] = useState<SageQuizListItem[]>([]);
   const [taking, setTaking] = useState<SageTakeQuiz | null>(null);
   const [result, setResult] = useState<SageSubmitResult | null>(null);
@@ -924,13 +930,13 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
             display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700 }}>{pct}%</div>
           <div>
             <h3 style={{ margin: 0, fontSize: 17 }}>{taking.title}</h3>
-            <div style={{ color: C.muted, fontSize: 14 }}>You got {result.correct} of {result.total} correct.</div>
+            <div style={{ color: C.muted, fontSize: 14 }}>{t("sage.quiz.gotCorrect", { correct: result.correct, total: result.total })}</div>
           </div>
         </div>
         {result.remediation_created > 0 && (
           <div style={{ background: C.infoBg, color: C.info, borderRadius: 10, padding: "10px 14px",
             marginTop: 14, fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}>
-            <Icon name="spark" size={18} /> A guided practice session is ready for you under “Needs review”.</div>
+            <Icon name="spark" size={18} /> {t("sage.quiz.practiceReady")}</div>
         )}
         <div style={{ marginTop: 14 }}>
           {taking.questions.map((q) => {
@@ -942,13 +948,13 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
                   color={r?.is_correct ? C.success : C.danger} />
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 500 }}>{q.prompt}</div>
-                  {!r?.is_correct && <div style={{ fontSize: 13, color: C.muted }}>Correct answer: {r?.correct}</div>}
+                  {!r?.is_correct && <div style={{ fontSize: 13, color: C.muted }}>{t("sage.quiz.correctAns", { ans: r?.correct })}</div>}
                 </div>
               </div>
             );
           })}
         </div>
-        <GhostBtn onClick={() => setTaking(null)}><Icon name="back" size={16} /> Back to quizzes</GhostBtn>
+        <GhostBtn onClick={() => setTaking(null)}><Icon name="back" size={16} /> {t("sage.quiz.backToQuizzes")}</GhostBtn>
       </Card>
     );
   }
@@ -957,15 +963,15 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
     return (
       <Card>
         <h3 style={{ marginTop: 0, fontSize: 17 }}>{taking.title}</h3>
-        <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>{answered} of {taking.questions.length} answered</div>
+        <div style={{ fontSize: 13, color: C.muted, marginBottom: 6 }}>{t("sage.quiz.answered", { answered, total: taking.questions.length })}</div>
         {taking.questions.map((q, i) => (
           <div key={q.id} style={{ padding: "12px 0", borderTop: `1px solid ${C.line}` }}>
             <div style={{ fontWeight: 600, fontSize: 14.5, marginBottom: 8 }}>
               {i + 1}. {q.prompt}
-              {q.qtype === "multi" && <span style={{ color: C.muted, fontWeight: 400, fontSize: 12 }}> (select all that apply)</span>}
+              {q.qtype === "multi" && <span style={{ color: C.muted, fontWeight: 400, fontSize: 12 }}> {t("sage.quiz.selectAll")}</span>}
             </div>
             {q.qtype === "short" ? (
-              <input style={inputStyle} placeholder="Type your answer" value={answers[q.id]?.choice || ""}
+              <input style={inputStyle} placeholder={t("sage.quiz.phAnswer")} value={answers[q.id]?.choice || ""}
                 onChange={(e) => setChoice(q.id, e.target.value)} />
             ) : (q.choices.map((c) => {
               const multi = q.qtype === "multi";
@@ -983,18 +989,18 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
           </div>
         ))}
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <GhostBtn onClick={() => setTaking(null)}>Cancel</GhostBtn>
-          <PrimaryBtn onClick={submit}>Submit quiz</PrimaryBtn>
+          <GhostBtn onClick={() => setTaking(null)}>{t("sage.cancel")}</GhostBtn>
+          <PrimaryBtn onClick={submit}>{t("sage.quiz.submit")}</PrimaryBtn>
         </div>
       </Card>
     );
   }
   return (
     <div style={{ display: "grid", gap: 12 }}>
-      <h3 style={{ margin: 0, fontSize: 17 }}>Quizzes</h3>
+      <h3 style={{ margin: 0, fontSize: 17 }}>{t("sage.tab.Quizzes")}</h3>
       {quizzes.length === 0 && (
         <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
-          No quizzes yet — check back soon.</Card>
+          {t("sage.quiz.studentEmpty")}</Card>
       )}
       {quizzes.map((q) => {
         const taken = q.my_score != null;
@@ -1005,17 +1011,17 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
               <div>
                 <b style={{ fontSize: 15 }}>{q.title}</b>
                 <div style={{ color: C.muted, fontSize: 13 }}>
-                  {q.question_count} questions
-                  {taken && <> · your score <b style={{ color: C.success }}>{Math.round((q.my_score || 0) * 100)}%</b></>}
+                  {t("sage.quiz.questions", { count: q.question_count })}
+                  {taken && <> · {t("sage.quiz.yourScore")} <b style={{ color: C.success }}>{Math.round((q.my_score || 0) * 100)}%</b></>}
                   {q.due_at && (() => {
                     const overdue = new Date(q.due_at) < new Date();
                     return <span style={{ color: overdue && !taken ? C.danger : C.muted }}>
-                      {" · "}{overdue ? "was due" : "due"} {fmtDateTime(q.due_at)}</span>;
+                      {" · "}{overdue ? t("sage.quiz.wasDue") : t("sage.quiz.dueLabel")} {fmtDateTime(q.due_at)}</span>;
                   })()}
                 </div>
               </div>
             </div>
-            <PrimaryBtn onClick={() => open(q.id)}>{taken ? "Retake" : "Take quiz"}</PrimaryBtn>
+            <PrimaryBtn onClick={() => open(q.id)}>{taken ? t("sage.quiz.retake") : t("sage.quiz.take")}</PrimaryBtn>
           </Card>
         );
       })}
@@ -1025,16 +1031,17 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
 
 // --------------------------------------------------------------- Students
 function Students({ course }: { course: SageCourseSummary }) {
+  const { t } = useTranslation();
   const [students, setStudents] = useState<SageStudent[]>([]);
   useEffect(() => { sageApi.students(course.id).then(setStudents).catch(() => setStudents([])); }, [course.id]);
   return (
     <Card>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-        <h3 style={{ marginTop: 0, marginBottom: 0, fontSize: 17 }}>Students ({students.length})</h3>
+        <h3 style={{ marginTop: 0, marginBottom: 0, fontSize: 17 }}>{t("sage.students.title", { count: students.length })}</h3>
         <CopyChip code={course.join_code} />
       </div>
       <div style={{ marginTop: 8 }}>
-        {students.length === 0 && <p style={{ color: C.muted }}>No students yet — share the join code to invite them.</p>}
+        {students.length === 0 && <p style={{ color: C.muted }}>{t("sage.students.empty")}</p>}
         {students.map((s) => (
           <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 11,
             padding: "10px 0", borderTop: `1px solid ${C.line}` }}>
@@ -1053,34 +1060,35 @@ function Students({ course }: { course: SageCourseSummary }) {
 // --------------------------------------------------------------- Grades
 function StudentDrill({ course, studentId, onClose }:
   { course: SageCourseSummary; studentId: number; onClose: () => void }) {
+  const { t } = useTranslation();
   const [d, setD] = useState<import("../api/client").SageStudentDetail | null>(null);
   const nav = useNavigate();
   useEffect(() => { sageApi.studentDetail(course.id, studentId).then(setD).catch(() => setD(null)); }, [course.id, studentId]);
-  if (!d) return <Card><p style={{ color: C.muted, margin: 0 }}>Loading…</p></Card>;
+  if (!d) return <Card><p style={{ color: C.muted, margin: 0 }}>{t("sage.loading")}</p></Card>;
   const open = d.remediation.filter((m) => m.status !== "completed");
   return (
     <Card style={{ borderColor: "#c9c2f0" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div><b style={{ fontSize: 16 }}>{d.full_name}</b>
           <div style={{ color: C.muted, fontSize: 13 }}>{d.email}</div></div>
-        <GhostBtn onClick={onClose}>Close</GhostBtn>
+        <GhostBtn onClick={onClose}>{t("sage.close")}</GhostBtn>
       </div>
-      <h4 style={{ margin: "14px 0 6px", fontSize: 14 }}>Quiz attempts</h4>
-      {d.quizzes.length === 0 && <p style={{ color: C.muted }}>No quizzes.</p>}
+      <h4 style={{ margin: "14px 0 6px", fontSize: 14 }}>{t("sage.grades.quizAttempts")}</h4>
+      {d.quizzes.length === 0 && <p style={{ color: C.muted }}>{t("sage.grades.noAttempts")}</p>}
       {d.quizzes.map((q) => (
         <div key={q.id} style={{ display: "flex", justifyContent: "space-between",
           padding: "7px 0", borderTop: `1px solid ${C.line}`, fontSize: 14 }}>
-          <span>{q.title} <span style={{ color: C.muted, fontSize: 12 }}>· {q.attempts} attempt(s)</span></span>
+          <span>{q.title} <span style={{ color: C.muted, fontSize: 12 }}>· {t("sage.grades.attempts", { count: q.attempts })}</span></span>
           <b>{q.best_score == null ? "—" : `${Math.round(q.best_score * 100)}%`}</b>
         </div>
       ))}
-      <h4 style={{ margin: "14px 0 6px", fontSize: 14 }}>Needs review ({open.length})</h4>
-      {open.length === 0 && <p style={{ color: C.muted, margin: 0 }}>None open.</p>}
+      <h4 style={{ margin: "14px 0 6px", fontSize: 14 }}>{t("sage.grades.needsOpen", { count: open.length })}</h4>
+      {open.length === 0 && <p style={{ color: C.muted, margin: 0 }}>{t("sage.grades.noneOpen")}</p>}
       {open.map((m) => (
         <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "7px 0", borderTop: `1px solid ${C.line}` }}>
           <span style={{ fontSize: 14 }}>{m.concept || m.title}</span>
-          <GhostBtn onClick={() => nav(`/modules/${m.id}?home=/sage`)}>View session</GhostBtn>
+          <GhostBtn onClick={() => nav(`/modules/${m.id}?home=/sage`)}>{t("sage.grades.viewSession")}</GhostBtn>
         </div>
       ))}
     </Card>
@@ -1088,10 +1096,11 @@ function StudentDrill({ course, studentId, onClose }:
 }
 
 function GradesTab({ course }: { course: SageCourseSummary }) {
+  const { t } = useTranslation();
   const [g, setG] = useState<SageGrades | null>(null);
   const [drill, setDrill] = useState<number | null>(null);
   useEffect(() => { sageApi.grades(course.id).then(setG).catch(() => setG(null)); }, [course.id]);
-  if (!g) return <p style={{ color: C.muted }}>Loading…</p>;
+  if (!g) return <p style={{ color: C.muted }}>{t("sage.loading")}</p>;
   const pct = (v?: number) => v == null ? "—" : `${Math.round(v * 100)}%`;
   if (g.is_instructor) {
     return (
@@ -1099,17 +1108,17 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
         {drill != null && <StudentDrill course={course} studentId={drill} onClose={() => setDrill(null)} />}
         <Card>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-            <h3 style={{ marginTop: 0, marginBottom: 0, fontSize: 17 }}>Grades</h3>
+            <h3 style={{ marginTop: 0, marginBottom: 0, fontSize: 17 }}>{t("sage.grades.title")}</h3>
             <GhostBtn onClick={() => api.authedDownload(`/sage/courses/${course.id}/grades.csv`, "sage-grades.csv")}>
-              <Icon name="download" size={15} /> Download CSV</GhostBtn>
+              <Icon name="download" size={15} /> {t("sage.grades.downloadCsv")}</GhostBtn>
           </div>
-          <p style={{ color: C.muted, fontSize: 12.5, margin: "4px 0 10px" }}>Click a student to drill in.</p>
+          <p style={{ color: C.muted, fontSize: 12.5, margin: "4px 0 10px" }}>{t("sage.grades.clickDrill")}</p>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", fontSize: 13.5, borderCollapse: "collapse", minWidth: 360 }}>
               <thead><tr style={{ textAlign: "left", color: C.muted }}>
-                <th style={{ padding: "6px 8px" }}>Student</th>
+                <th style={{ padding: "6px 8px" }}>{t("sage.grades.thStudent")}</th>
                 {g.quizzes.map((q) => <th key={q.id} style={{ padding: "6px 8px" }}>{q.title}</th>)}
-                <th style={{ padding: "6px 8px" }}>Needs review</th>
+                <th style={{ padding: "6px 8px" }}>{t("sage.grades.thNeeds")}</th>
               </tr></thead>
               <tbody>
                 {(g.rows || []).map((r) => (
@@ -1129,7 +1138,7 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
               </tbody>
             </table>
           </div>
-          {(g.rows || []).length === 0 && <p style={{ color: C.muted }}>No students yet.</p>}
+          {(g.rows || []).length === 0 && <p style={{ color: C.muted }}>{t("sage.grades.noStudents")}</p>}
         </Card>
       </div>
     );
@@ -1144,15 +1153,15 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
         <Card style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <Donut v={overall} />
           <div>
-            <div style={{ fontSize: 12.5, color: C.muted }}>Overall mastery</div>
+            <div style={{ fontSize: 12.5, color: C.muted }}>{t("sage.grades.overall")}</div>
             <div style={{ fontSize: 15, color: C.ink, marginTop: 2 }}>
-              across {scored.length} quiz{scored.length === 1 ? "" : "zes"}</div>
+              {t(scored.length === 1 ? "sage.grades.across_one" : "sage.grades.across", { count: scored.length })}</div>
           </div>
         </Card>
       )}
       <Card>
-        <h3 style={{ marginTop: 0, fontSize: 17 }}>My grades</h3>
-        {g.quizzes.length === 0 && <p style={{ color: C.muted }}>No quizzes yet.</p>}
+        <h3 style={{ marginTop: 0, fontSize: 17 }}>{t("sage.grades.my")}</h3>
+        {g.quizzes.length === 0 && <p style={{ color: C.muted }}>{t("sage.grades.noQuizzes")}</p>}
         {g.quizzes.map((q) => {
           const v = g.scores?.[String(q.id)];
           return (
@@ -1168,7 +1177,7 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
         {(g.open_remediation || 0) > 0 && (
           <div style={{ background: C.infoBg, color: C.info, borderRadius: 10, padding: "10px 14px",
             marginTop: 12, fontSize: 14 }}>
-            You have {g.open_remediation} guided practice session(s) waiting under “Needs review”.</div>
+            {t("sage.grades.waiting", { count: g.open_remediation })}</div>
         )}
       </Card>
     </div>
@@ -1177,6 +1186,7 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
 
 // --------------------------------------------------------------- Profile
 function Profile({ onName, onBack }: { onName: (n: string) => void; onBack: () => void }) {
+  const { t } = useTranslation();
   const [p, setP] = useState<SageProfile | null>(null);
   const [name, setName] = useState(""); const [title, setTitle] = useState(""); const [bio, setBio] = useState("");
   const [busy, setBusy] = useState(false); const [msg, setMsg] = useState<string | null>(null);
@@ -1186,30 +1196,29 @@ function Profile({ onName, onBack }: { onName: (n: string) => void; onBack: () =
   }, []);
   async function save(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setMsg(null);
-    try { const r = await sageApi.updateProfile({ full_name: name.trim(), title, bio }); onName(r.full_name); setMsg("Saved."); }
+    try { const r = await sageApi.updateProfile({ full_name: name.trim(), title, bio }); onName(r.full_name); setMsg(t("sage.profile.saved")); }
     catch (e) { setMsg((e as Error).message); } finally { setBusy(false); }
   }
   const lbl: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: C.muted };
   return (
     <div style={{ maxWidth: 520, margin: "0 auto" }}>
-      <GhostBtn onClick={onBack}><Icon name="back" size={16} /> Back</GhostBtn>
-      <h2 style={{ color: C.brand, fontSize: 22, marginTop: 12 }}>Your profile</h2>
+      <GhostBtn onClick={onBack}><Icon name="back" size={16} /> {t("sage.back")}</GhostBtn>
+      <h2 style={{ color: C.brand, fontSize: 22, marginTop: 12 }}>{t("sage.profile.title")}</h2>
       <p style={{ color: C.muted, fontSize: 14, marginTop: 0 }}>
-        A few details your students will see on the course page.</p>
+        {t("sage.profile.subtitle")}</p>
       <Card>
         <form onSubmit={save} style={{ display: "grid", gap: 6 }}>
-          <label style={lbl}>Name</label>
+          <label style={lbl}>{t("sage.profile.name")}</label>
           <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} />
-          <label style={lbl}>Title (optional)</label>
-          <input style={inputStyle} placeholder="e.g. Professor of CS, NYU" value={title}
+          <label style={lbl}>{t("sage.profile.titleField")}</label>
+          <input style={inputStyle} value={title}
             onChange={(e) => setTitle(e.target.value)} />
-          <label style={lbl}>About you (optional)</label>
+          <label style={lbl}>{t("sage.profile.bio")}</label>
           <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} value={bio}
-            placeholder="A sentence or two — what you teach, office hours, anything friendly."
             onChange={(e) => setBio(e.target.value)} />
-          <div style={{ marginTop: 8 }}><PrimaryBtn type="submit" disabled={busy}>{busy ? "Saving…" : "Save profile"}</PrimaryBtn></div>
-          {msg && <div style={{ fontSize: 13, color: msg === "Saved." ? C.success : C.danger }}>{msg}</div>}
-          {p && <div style={{ fontSize: 12, color: C.muted }}>Signed in as {p.email}</div>}
+          <div style={{ marginTop: 8 }}><PrimaryBtn type="submit" disabled={busy}>{busy ? t("sage.profile.saving") : t("sage.profile.save")}</PrimaryBtn></div>
+          {msg && <div style={{ fontSize: 13, color: msg === t("sage.profile.saved") ? C.success : C.danger }}>{msg}</div>}
+          {p && <div style={{ fontSize: 12, color: C.muted }}>{p.email}</div>}
         </form>
       </Card>
     </div>
@@ -1219,6 +1228,7 @@ function Profile({ onName, onBack }: { onName: (n: string) => void; onBack: () =
 // --------------------------------------------------------------- Syllabus
 function Syllabus({ course, instr, detail, onSaved }:
   { course: SageCourseSummary; instr: boolean; detail: SageCourseDetail | null; onSaved: () => void }) {
+  const { t } = useTranslation();
   const [edit, setEdit] = useState(false);
   const [text, setText] = useState(""); const [busy, setBusy] = useState(false);
   useEffect(() => { setText(detail?.syllabus || ""); }, [detail]);
@@ -1231,10 +1241,10 @@ function Syllabus({ course, instr, detail, onSaved }:
       <Card>
         <textarea style={{ ...inputStyle, minHeight: 240, resize: "vertical", fontFamily: "inherit" }}
           value={text} onChange={(e) => setText(e.target.value)}
-          placeholder="Course overview, schedule, grading, policies…" />
+          placeholder={t("sage.syllabus.phEdit")} />
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <PrimaryBtn onClick={save} disabled={busy}>{busy ? "Saving…" : "Save syllabus"}</PrimaryBtn>
-          <GhostBtn onClick={() => { setEdit(false); setText(detail?.syllabus || ""); }}>Cancel</GhostBtn>
+          <PrimaryBtn onClick={save} disabled={busy}>{busy ? t("sage.profile.saving") : t("sage.syllabus.save")}</PrimaryBtn>
+          <GhostBtn onClick={() => { setEdit(false); setText(detail?.syllabus || ""); }}>{t("sage.cancel")}</GhostBtn>
         </div>
       </Card>
     );
@@ -1245,10 +1255,10 @@ function Syllabus({ course, instr, detail, onSaved }:
         ? <div className="sage-md" style={{ fontSize: 14.5 }}
             dangerouslySetInnerHTML={{ __html: renderMarkdown(detail.syllabus) }} />
         : <div style={{ color: C.muted }}>{instr
-            ? "No syllabus yet — add one so students know what the course covers."
-            : "No syllabus posted yet."}</div>}
+            ? t("sage.syllabus.emptyInstr")
+            : t("sage.syllabus.emptyStudent")}</div>}
       {instr && <div style={{ marginTop: 14 }}>
-        <GhostBtn onClick={() => setEdit(true)}><Icon name="edit" size={15} /> {detail?.syllabus ? "Edit syllabus" : "Add syllabus"}</GhostBtn>
+        <GhostBtn onClick={() => setEdit(true)}><Icon name="edit" size={15} /> {detail?.syllabus ? t("sage.syllabus.edit") : t("sage.syllabus.add")}</GhostBtn>
       </div>}
     </Card>
   );
@@ -1256,6 +1266,7 @@ function Syllabus({ course, instr, detail, onSaved }:
 
 // --------------------------------------------------------------- Materials
 function Materials({ course, instr }: { course: SageCourseSummary; instr: boolean }) {
+  const { t } = useTranslation();
   const [mats, setMats] = useState<SageMaterial[]>([]);
   const [form, setForm] = useState<null | "note" | "code" | "file">(null);
   const load = () => sageApi.materials(course.id).then(setMats).catch(() => setMats([]));
@@ -1264,15 +1275,15 @@ function Materials({ course, instr }: { course: SageCourseSummary; instr: boolea
     <div style={{ display: "grid", gap: 12 }}>
       {instr && (
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <GhostBtn onClick={() => setForm(form === "note" ? null : "note")}><Icon name="note" size={16} /> Add note</GhostBtn>
-          <GhostBtn onClick={() => setForm(form === "code" ? null : "code")}><Icon name="code" size={16} /> Add code</GhostBtn>
-          <GhostBtn onClick={() => setForm(form === "file" ? null : "file")}><Icon name="file" size={16} /> Upload file</GhostBtn>
+          <GhostBtn onClick={() => setForm(form === "note" ? null : "note")}><Icon name="note" size={16} /> {t("sage.materials.addNote")}</GhostBtn>
+          <GhostBtn onClick={() => setForm(form === "code" ? null : "code")}><Icon name="code" size={16} /> {t("sage.materials.addCode")}</GhostBtn>
+          <GhostBtn onClick={() => setForm(form === "file" ? null : "file")}><Icon name="file" size={16} /> {t("sage.materials.upload")}</GhostBtn>
         </div>
       )}
       {form && <MaterialForm courseId={course.id} kind={form} onDone={() => { setForm(null); load(); }} />}
       {mats.length === 0 && !form && (
         <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
-          No materials yet.{instr ? " Add notes, code snippets, or upload files for your students." : " Check back soon."}
+          {t("sage.materials.empty")}
         </Card>
       )}
       {mats.map((m) => <MaterialRow key={m.id} m={m} instr={instr} onChange={load} />)}
@@ -1282,6 +1293,7 @@ function Materials({ course, instr }: { course: SageCourseSummary; instr: boolea
 
 function MaterialForm({ courseId, kind, onDone }:
   { courseId: number; kind: "note" | "code" | "file"; onDone: () => void }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState(""); const [body, setBody] = useState("");
   const [language, setLanguage] = useState(""); const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null);
@@ -1303,7 +1315,7 @@ function MaterialForm({ courseId, kind, onDone }:
   return (
     <Card style={{ background: C.soft }}>
       <input style={{ ...inputStyle, marginBottom: 8 }}
-        placeholder={kind === "code" ? "File name (e.g. adder.py)" : "Title"}
+        placeholder={t("sage.materials.phTitle")}
         value={title} onChange={(e) => setTitle(e.target.value)} />
       {kind === "file" ? (
         <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
@@ -1313,13 +1325,12 @@ function MaterialForm({ courseId, kind, onDone }:
             value={language} onChange={(e) => setLanguage(e.target.value)} />}
           <textarea style={{ ...inputStyle, minHeight: 140, resize: "vertical",
             fontFamily: kind === "code" ? "var(--font-mono, monospace)" : "inherit" }}
-            placeholder={kind === "code" ? "Paste code here…"
-              : "Write your note here…  (Markdown: # heading, **bold**, - list, `code`)"}
+            placeholder={kind === "code" ? t("sage.materials.phCode") : t("sage.materials.phNote")}
             value={body} onChange={(e) => setBody(e.target.value)} />
         </>
       )}
       <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-        <PrimaryBtn onClick={save} disabled={busy}>{busy ? "Saving…" : "Add"}</PrimaryBtn>
+        <PrimaryBtn onClick={save} disabled={busy}>{busy ? t("sage.materials.saving") : t("sage.materials.save")}</PrimaryBtn>
       </div>
       {err && <div style={{ color: C.danger, fontSize: 13, marginTop: 8 }}>{err}</div>}
     </Card>
@@ -1331,6 +1342,7 @@ function fmtSize(n: number) {
 }
 
 function MaterialRow({ m, instr, onChange }: { m: SageMaterial; instr: boolean; onChange: () => void }) {
+  const { t } = useTranslation();
   const [body, setBody] = useState<string | null>(null);
   const [openB, setOpenB] = useState(false);
   const isText = m.kind === "note" || m.kind === "code";
@@ -1353,9 +1365,9 @@ function MaterialRow({ m, instr, onChange }: { m: SageMaterial; instr: boolean; 
         <div style={{ display: "flex", gap: 6 }}>
           {isText && <GhostBtn onClick={view}>{openB ? "Hide" : "View"}</GhostBtn>}
           {m.kind === "file" && <GhostBtn onClick={() => api.authedDownload(`/sage/materials/${m.id}/download`, m.filename)}>
-            <Icon name="download" size={15} /> Download</GhostBtn>}
+            <Icon name="download" size={15} /> {t("sage.materials.download")}</GhostBtn>}
           {instr && <button onClick={() => sageApi.deleteMaterial(m.id).then(onChange)}
-            title="Delete" style={{ background: "none", border: "none", cursor: "pointer", color: C.danger,
+            title={t("common.delete")} style={{ background: "none", border: "none", cursor: "pointer", color: C.danger,
               display: "inline-flex", alignItems: "center", padding: 6 }}><Icon name="trash" size={16} /></button>}
         </div>
       </div>
@@ -1378,6 +1390,7 @@ function MaterialRow({ m, instr, onChange }: { m: SageMaterial; instr: boolean; 
 
 // --------------------------------------------------------------- Needs review (student)
 function NeedsReview({ course }: { course: SageCourseSummary }) {
+  const { t } = useTranslation();
   const [mods, setMods] = useState<RemediationModule[]>([]);
   const [active, setActive] = useState<number | null>(null);
   const load = () => api.myModules().then((m) => setMods(m.filter((x) => x.course_id === course.id)))
@@ -1393,11 +1406,11 @@ function NeedsReview({ course }: { course: SageCourseSummary }) {
   const open = mods.filter((m) => m.status !== "completed");
   return (
     <div style={{ display: "grid", gap: 12 }}>
-      <h3 style={{ margin: 0, fontSize: 17 }}>Needs review</h3>
+      <h3 style={{ margin: 0, fontSize: 17 }}>{t("sage.needs.title")}</h3>
       {open.length === 0 && (
         <Card style={{ textAlign: "center", color: C.muted, background: C.successBg, border: "none" }}>
           <Icon name="check" size={24} color={C.success} />
-          <div style={{ marginTop: 6 }}>All caught up — nothing to review right now. Nice work!</div>
+          <div style={{ marginTop: 6 }}>{t("sage.needs.allCaught")}</div>
         </Card>
       )}
       {open.map((m) => (
@@ -1408,10 +1421,10 @@ function NeedsReview({ course }: { course: SageCourseSummary }) {
               <div>
                 <b style={{ fontSize: 15 }}>{m.title}</b>
                 {m.rationale && <div style={{ color: C.muted, fontSize: 13 }}>{m.rationale}</div>}
-                <div style={{ color: C.muted, fontSize: 13 }}>A short guided practice, built for what you missed.</div>
+                <div style={{ color: C.muted, fontSize: 13 }}>{t("sage.needs.builtFor")}</div>
               </div>
             </div>
-            <PrimaryBtn onClick={() => setActive(m.id)}><Icon name="play" size={16} /> Start practice</PrimaryBtn>
+            <PrimaryBtn onClick={() => setActive(m.id)}><Icon name="play" size={16} /> {t("sage.needs.start")}</PrimaryBtn>
           </div>
         </Card>
       ))}
