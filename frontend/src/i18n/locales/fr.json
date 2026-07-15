@@ -46,7 +46,13 @@
     "stepsMeta": "{{count}} étapes courtes · environ {{min}} min",
     "topicsOverview": "Vos sujets en un coup d'œil",
     "whyIntro": "Vos réponses récentes suggèrent que ce concept n'est pas encore tout à fait solide. Cette courte session utilise la récupération active et des questions socratiques pour le renforcer avant qu'il n'affecte les sujets suivants.",
-    "whyTitle": "Pourquoi vous voyez ceci"
+    "whyTitle": "Pourquoi vous voyez ceci",
+    "whyBody": "Les résultats récents des évaluations révèlent une lacune en {{concept}}. Cette courte session utilise la récupération en mémoire et des questions socratiques pour révéler et corriger l’erreur de compréhension sous-jacente avant qu’elle ne s’aggrave.",
+    "strategy": {
+      "retrieval_practice": "récupération en mémoire",
+      "socratic_scaffolding": "étayage socratique",
+      "mastery_progression": "progression par maîtrise"
+    }
   },
   "status": {
     "at_risk": "à risque",

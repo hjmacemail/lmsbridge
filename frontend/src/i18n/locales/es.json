@@ -46,7 +46,13 @@
     "stepsMeta": "{{count}} pasos cortos · unos {{min}} min",
     "topicsOverview": "Tus temas de un vistazo",
     "whyIntro": "Las respuestas recientes sugieren que este concepto aún no está del todo sólido. Esta breve sesión usa práctica de recuperación y preguntas socráticas para reforzarlo antes de que afecte a temas posteriores.",
-    "whyTitle": "Por qué ves esto"
+    "whyTitle": "Por qué ves esto",
+    "whyBody": "La evidencia reciente de las evaluaciones sugiere una brecha en {{concept}}. Esta breve sesión usa práctica de recuperación y preguntas socráticas para detectar y corregir el error conceptual de fondo antes de que se agrave.",
+    "strategy": {
+      "retrieval_practice": "práctica de recuperación",
+      "socratic_scaffolding": "andamiaje socrático",
+      "mastery_progression": "progresión por dominio"
+    }
   },
   "status": {
     "at_risk": "en riesgo",

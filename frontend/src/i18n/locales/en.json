@@ -46,7 +46,13 @@
     "groupNeeds": "Needs attention",
     "groupImproving": "Improving",
     "groupMastered": "Mastered",
-    "recoveredMeta": "{{done}} of {{total}} recovered"
+    "recoveredMeta": "{{done}} of {{total}} recovered",
+    "whyBody": "Recent assessment evidence suggests a gap in {{concept}}. This short session uses retrieval practice and Socratic prompts to surface and fix the underlying misconception before it compounds.",
+    "strategy": {
+      "retrieval_practice": "retrieval practice",
+      "socratic_scaffolding": "Socratic scaffolding",
+      "mastery_progression": "mastery progression"
+    }
   },
   "status": {
     "at_risk": "at risk",

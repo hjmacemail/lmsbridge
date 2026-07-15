@@ -178,10 +178,10 @@ export default function StudentDashboard(
                           {t.modules.map((m) => (
                             <div key={m.id} style={{ marginBottom: t.modules.length > 1 ? 12 : 0 }}>
                               <p className="muted" style={{ fontSize: 13, margin: "0 0 6px" }}>
-                                {m.rationale || tr("student.whyIntro")}</p>
+                                {tr("student.whyBody", { concept: t.name })}</p>
                               <div className="row">
                                 <span className="muted" style={{ fontSize: 12 }}>
-                                  💬 {tr("student.interactiveTutor")} · {m.strategy.replace(/_/g, " ")} ·{" "}
+                                  💬 {tr("student.interactiveTutor")} · {tr("student.strategy." + m.strategy, { defaultValue: m.strategy.replace(/_/g, " ") })} ·{" "}
                                   {tr("student.stepsMeta", { count: m.activities?.length || steps,
                                     min: estMinutes(m.activities?.length || steps) })}
                                 </span>
