@@ -168,6 +168,27 @@
   .mrow .dot{width:20px;height:20px;border-radius:6px;background:rgba(124,108,245,.16);display:inline-flex;align-items:center;justify-content:center;font-size:11px;margin-right:8px}
   .mrow b{color:var(--ink);font-weight:600}
   .donut{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+  /* instructor console preview */
+  .mtabs{display:flex;gap:16px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:12px;overflow:hidden}
+  .mtabs .on{color:var(--accent);font-weight:600;border-bottom:2px solid var(--primary);padding-bottom:9px;margin-bottom:-11px}
+  .copilot{background:rgba(124,108,245,.08);border:1px solid rgba(124,108,245,.22);border-radius:11px;padding:12px 13px}
+  .copilot .cl{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--accent);margin-bottom:9px}
+  .cstats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:9px}
+  .cstats b{font-size:22px;font-weight:800}
+  .cstats em{font-size:11px;font-weight:700;font-style:normal}
+  .cstats span{display:block;font-size:10.5px;color:var(--muted)}
+  .cbrief{font-size:12px;color:var(--muted);margin:0 0 9px;line-height:1.5}
+  .cbrief b{color:var(--ink)}
+  .crec{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11.5px;font-weight:600;color:var(--accent)}
+  .risk{margin-top:14px}
+  .risk .rh{font-size:12.5px;font-weight:700;margin-bottom:8px}
+  .rrow{display:grid;grid-template-columns:1.5fr 1fr auto auto auto;gap:8px;align-items:center;font-size:11.5px;padding:6px 0;border-top:1px solid var(--line)}
+  .rrow .rn{font-weight:600}
+  .rbar{height:7px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}
+  .rbar i{display:block;height:100%;border-radius:999px}
+  .rrow .rp{color:var(--muted)}
+  .rrow .rc{color:var(--muted2)}
+  .tag{font-size:10px;font-weight:600;color:#f87171;background:rgba(239,68,68,.12);border-radius:999px;padding:2px 8px}
 
   /* timeline */
   .tl{position:relative;margin-top:20px}
@@ -274,42 +295,37 @@
 
   <div>
     <div class="mock">
-      <div class="mock-bar"><span class="brand" style="font-size:14px"><span class="mark" style="width:20px;height:20px;font-size:11px">📘</span> LMS Bridge</span></div>
-      <div class="dash">
-        <div class="dash-side">
-          <div class="it on">▦ Overview</div>
-          <div class="it">🔔 Needs review</div>
-          <div class="it">👥 Students</div>
-          <div class="it">📝 Quizzes</div>
-          <div class="it">📦 Modules</div>
-          <div class="it">📈 Analytics</div>
-          <div class="it">⚙ Settings</div>
+      <div class="mock-bar">
+        <span style="opacity:.7">▦ CS 101</span><span style="opacity:.5">›</span>
+        <span class="brand" style="font-size:13.5px"><span class="mark" style="width:18px;height:18px;font-size:10px">📘</span> LMS Bridge</span>
+        <span style="margin-left:auto;font-size:11.5px;opacity:.7">CS-UY 2110 · Computer Architecture</span>
+      </div>
+      <div class="dash-main" style="padding:15px 16px">
+        <div class="mtabs"><span class="on">Overview</span><span>Students</span><span>Assessments</span><span>Course Material</span><span>Remediation</span></div>
+
+        <div class="copilot">
+          <div class="cl">✨ AI Copilot — what to do before your next class</div>
+          <div class="cstats">
+            <div><b>72%</b> <em style="color:var(--green)">↑ 6%</em><span>class health · vs last week</span></div>
+            <div><b style="color:#f87171">8</b><span>of 24 students need attention</span></div>
+            <div><b style="color:var(--green)">18/22</b><span>AI sessions completed</span></div>
+          </div>
+          <p class="cbrief">Class mastery is around 58% across the tracked concepts. <b>Binary Representation</b> is the biggest gap at 46%, with 5 students at risk. The tutor has run 22 sessions (18 completed).</p>
+          <div class="crec">🎯 Spend ~10 minutes reviewing Binary Representation before your next lecture — the highest-impact fix, affecting 5 students.</div>
         </div>
-        <div class="dash-main">
-          <div style="font-weight:700;margin-bottom:10px">Overview</div>
-          <div class="kgrid">
-            <div class="kbox"><div class="kl">Students at risk</div><div class="kv">17</div><div class="ks">22% of class</div></div>
-            <div class="kbox"><div class="kl">Misconceptions</div><div class="kv">61</div><div class="ks">Across 8 topics</div></div>
-            <div class="kbox"><div class="kl">Practice sessions</div><div class="kv">23</div><div class="ks">This week</div></div>
-            <div class="kbox"><div class="kl">Avg. improvement</div><div class="kv up">+42%</div><div class="ks">After practice</div></div>
-          </div>
-          <div class="drow">
-            <div class="panel"><h4>Recent misconceptions <a>View all</a></h4>
-              <div class="mrow"><span><span class="dot">🧩</span>Conditional Probability</span><b>12 students</b></div>
-              <div class="mrow"><span><span class="dot">📊</span>Binomial Distribution</span><b>9 students</b></div>
-              <div class="mrow"><span><span class="dot">🧪</span>Hypothesis Testing</span><b>7 students</b></div>
-              <div class="mrow"><span><span class="dot">📐</span>Central Limit Theorem</span><b>5 students</b></div>
-            </div>
-            <div class="panel donut"><h4 style="align-self:stretch">Recovery rate</h4>
-              <svg viewBox="0 0 120 120" width="118" height="118">
-                <circle cx="60" cy="60" r="48" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="12"/>
-                <circle cx="60" cy="60" r="48" fill="none" stroke="#7c6cf5" stroke-width="12" stroke-linecap="round"
-                  stroke-dasharray="301.6" stroke-dashoffset="33" transform="rotate(-90 60 60)"/>
-                <text x="60" y="66" text-anchor="middle" fill="#f8fafc" font-size="24" font-weight="800">89%</text>
-              </svg>
-              <div style="color:var(--green);font-size:11.5px">+18% vs last week</div>
-            </div>
-          </div>
+
+        <div class="kgrid" style="grid-template-columns:repeat(3,1fr);margin-top:12px">
+          <div class="kbox"><div class="kl">Enrolled students</div><div class="kv">24</div></div>
+          <div class="kbox"><div class="kl">Modules generated</div><div class="kv">22</div></div>
+          <div class="kbox"><div class="kl">Modules completed</div><div class="kv">5</div></div>
+        </div>
+
+        <div class="risk">
+          <div class="rh">Concepts ranked by class risk</div>
+          <div class="rrow"><span class="rn">Binary Representation</span><span class="rbar"><i style="width:46%;background:#ef4444"></i></span><span class="rp">46%</span><span class="rc">5/8</span><span class="tag">Needs attention</span></div>
+          <div class="rrow"><span class="rn">Machine-Level Computation</span><span class="rbar"><i style="width:52%;background:#ef4444"></i></span><span class="rp">52%</span><span class="rc">6/8</span><span class="tag">Needs attention</span></div>
+          <div class="rrow"><span class="rn">Boolean Logic</span><span class="rbar"><i style="width:60%;background:#f59e0b"></i></span><span class="rp">60%</span><span class="rc">4/8</span><span class="tag">Needs attention</span></div>
+          <div class="rrow"><span class="rn">Binary Arithmetic</span><span class="rbar"><i style="width:65%;background:#f59e0b"></i></span><span class="rp">65%</span><span class="rc">4/8</span><span class="tag">Needs attention</span></div>
         </div>
       </div>
     </div>
