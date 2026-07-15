@@ -102,6 +102,30 @@ function GhostBtn({ children, onClick }: { children: React.ReactNode; onClick?: 
 const inputStyle: React.CSSProperties = { width: "100%", padding: "11px 13px", border: `1px solid ${C.line}`,
   borderRadius: 10, fontSize: 14.5, fontFamily: "inherit", boxSizing: "border-box", background: "#fff" };
 
+// Mastery/score visuals (matches the mockup's green/amber/red scale + progress bars).
+function scoreColor(v: number) { return v <= 0.7 ? C.danger : v < 0.85 ? "#d97706" : C.success; }
+function Bar({ v, width }: { v: number; width?: number | string }) {
+  const p = Math.round(Math.max(0, Math.min(1, v)) * 100);
+  return <div style={{ height: 7, width: width ?? "100%", background: C.soft, borderRadius: 999,
+    overflow: "hidden", flexShrink: 0 }}>
+    <div style={{ width: `${p}%`, height: "100%", background: scoreColor(v), borderRadius: 999 }} /></div>;
+}
+// A compact SVG donut for a single percentage (mockup's "practice impact" style).
+function Donut({ v, size = 92 }: { v: number; size?: number }) {
+  const p = Math.max(0, Math.min(1, v));
+  const r = (size - 12) / 2, c = 2 * Math.PI * r;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.soft} strokeWidth={10} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={C.primary} strokeWidth={10}
+        strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - p)}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`} />
+      <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle"
+        fontSize={size * 0.24} fontWeight={800} fill={C.ink}>{Math.round(p * 100)}%</text>
+    </svg>
+  );
+}
+
 export default function SageApp() {
   const [user, setUser] = useState<SageAuth | null>(loadUser());
   const [view, setView] = useState<"auth" | "courses" | "course" | "profile">(
@@ -154,7 +178,7 @@ export default function SageApp() {
 
 // --------------------------------------------------------------- Auth
 function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
-  const [mode, setMode] = useState<"signup" | "join" | "login">("signup");
+  const [mode, setMode] = useState<"pick" | "signup" | "join" | "login">("pick");
   const [name, setName] = useState(""); const [email, setEmail] = useState("");
   const [pw, setPw] = useState(""); const [code, setCode] = useState("");
   const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
@@ -181,23 +205,59 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
       } else onAuth(await sageApi.guestJoin(code.trim().toUpperCase(), name));
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   }
-  const tab = (m: typeof mode, label: string) => (
-    <button onClick={() => { setMode(m); setErr(null); }} style={{ flex: 1, padding: "9px 0",
-      border: "none", cursor: "pointer", background: mode === m ? C.brand : "transparent",
-      color: mode === m ? "#fff" : C.accentInk, borderRadius: 9, fontWeight: 600, fontSize: 14 }}>{label}</button>
-  );
-  return (
-    <div style={{ maxWidth: 440, margin: "16px auto" }}>
-      <h1 style={{ textAlign: "center", color: BRAND.accent || C.brand, marginBottom: 6, fontSize: 28 }}>
-        Welcome to {BRAND.name}</h1>
-      <p style={{ textAlign: "center", color: C.muted, marginTop: 0, fontSize: 14.5, lineHeight: 1.5 }}>
-        {BRAND.tagline}
-      </p>
-      <Card style={{ marginTop: 18 }}>
-        <div style={{ display: "flex", gap: 6, marginBottom: 16, background: C.soft, padding: 5, borderRadius: 11 }}>
-          {tab("signup", "Teach")}{tab("join", "Join a course")}{tab("login", "Log in")}
+
+  // Role-picker landing.
+  if (mode === "pick") {
+    const roleCard = (opts: { icon: string; title: string; sub: string; onClick: () => void }) => (
+      <button onClick={opts.onClick} style={{ textAlign: "left", cursor: "pointer", background: "#fff",
+        border: `1px solid ${C.line}`, borderRadius: 14, padding: "18px 18px", boxShadow: C.shadow,
+        display: "flex", gap: 13, alignItems: "center", width: "100%" }}>
+        <div style={{ width: 44, height: 44, borderRadius: 12, background: C.accentBg, color: C.primary,
+          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <Icon name={opts.icon} size={22} color={C.primary} /></div>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 15.5, color: C.ink }}>{opts.title}</div>
+          <div style={{ fontSize: 13, color: C.muted, marginTop: 2 }}>{opts.sub}</div>
         </div>
-        <form onSubmit={go} style={{ display: "grid", gap: 10 }}>
+      </button>
+    );
+    return (
+      <div style={{ maxWidth: 560, margin: "24px auto", textAlign: "center" }}>
+        <h1 style={{ color: C.ink, marginBottom: 8, fontSize: 30 }}>Welcome to {BRAND.name}</h1>
+        <p style={{ color: C.muted, marginTop: 0, fontSize: 15, lineHeight: 1.55, maxWidth: 460,
+          margin: "0 auto 22px" }}>{BRAND.tagline}</p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          {roleCard({ icon: "edit", title: "I'm an instructor", sub: "Create a course",
+            onClick: () => { setMode("signup"); setErr(null); } })}
+          {roleCard({ icon: "school", title: "I'm a student", sub: "Join a course",
+            onClick: () => { setMode("join"); setErr(null); } })}
+        </div>
+        <p style={{ color: C.muted, fontSize: 13.5, marginTop: 20 }}>
+          Already have an account?{" "}
+          <button onClick={() => { setMode("login"); setErr(null); }} style={{ background: "none",
+            border: "none", color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 13.5,
+            padding: 0 }}>Log in</button>
+        </p>
+        <p style={{ color: C.muted, fontSize: 12.5, marginTop: 24 }}>
+          No LMS required. Just great teaching and learning.
+        </p>
+      </div>
+    );
+  }
+
+  const heading = mode === "signup" ? "Create your instructor account"
+    : mode === "login" ? "Welcome back" : "Join a course";
+  const subhead = mode === "signup" ? `Start building courses with ${BRAND.name}.`
+    : mode === "login" ? "Log in to continue." : "Enter the course code your instructor shared.";
+  return (
+    <div style={{ maxWidth: 420, margin: "24px auto" }}>
+      <button onClick={() => { setMode("pick"); setErr(null); }} style={{ display: "inline-flex",
+        alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer",
+        color: C.muted, fontSize: 13, marginBottom: 10 }}><Icon name="back" size={15} /> Back</button>
+      <Card>
+        <h1 style={{ textAlign: "center", color: C.ink, margin: "2px 0 4px", fontSize: 23 }}>{heading}</h1>
+        <p style={{ textAlign: "center", color: C.muted, marginTop: 0, marginBottom: 18, fontSize: 14 }}>{subhead}</p>
+        <form onSubmit={go} style={{ display: "grid", gap: 11 }}>
           {mode === "join" && <input style={inputStyle} placeholder="Course join code (e.g. 7QK4PD)"
             value={code} onChange={(e) => setCode(e.target.value)} />}
           {mode !== "login" && <input style={inputStyle} placeholder="Your name"
@@ -207,15 +267,31 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
           {mode !== "join" && <input style={inputStyle} placeholder="Password" type="password"
             value={pw} onChange={(e) => setPw(e.target.value)} />}
           <PrimaryBtn type="submit" disabled={busy}>
-            {busy ? "…" : mode === "signup" ? "Create instructor account"
+            {busy ? "…" : mode === "signup" ? "Create account"
               : mode === "login" ? "Log in" : "Join course"}
           </PrimaryBtn>
           {err && <div style={{ color: C.danger, fontSize: 13 }}>{err}</div>}
         </form>
+        {mode === "signup" && (
+          <p style={{ textAlign: "center", color: C.muted, fontSize: 13, marginTop: 14, marginBottom: 0 }}>
+            Already have an account?{" "}
+            <button onClick={() => { setMode("login"); setErr(null); }} style={{ background: "none",
+              border: "none", color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 13, padding: 0 }}>Log in</button>
+          </p>
+        )}
+        {mode === "login" && (
+          <p style={{ textAlign: "center", color: C.muted, fontSize: 13, marginTop: 14, marginBottom: 0 }}>
+            Don't have an account?{" "}
+            <button onClick={() => { setMode("signup"); setErr(null); }} style={{ background: "none",
+              border: "none", color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 13, padding: 0 }}>Create one</button>
+          </p>
+        )}
+        {mode === "join" && (
+          <p style={{ textAlign: "center", color: C.muted, fontSize: 12.5, marginTop: 14, marginBottom: 0 }}>
+            No account or email required. Need a code? Ask your instructor.
+          </p>
+        )}
       </Card>
-      <p style={{ textAlign: "center", color: C.muted, fontSize: 12.5, marginTop: 14 }}>
-        Joining a class? Just pick “Join a course” — no account or email required.
-      </p>
     </div>
   );
 }
@@ -904,7 +980,11 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
                   <tr key={r.student_id} style={{ borderTop: `1px solid ${C.line}`, cursor: "pointer" }}
                     onClick={() => setDrill(r.student_id)}>
                     <td style={{ padding: "8px", fontWeight: 600, color: C.accentInk }}>{r.full_name}</td>
-                    {g.quizzes.map((q) => <td key={q.id} style={{ padding: "8px" }}>{pct(r.scores[String(q.id)])}</td>)}
+                    {g.quizzes.map((q) => {
+                      const v = r.scores[String(q.id)];
+                      return <td key={q.id} style={{ padding: "8px", fontWeight: 600,
+                        color: v == null ? C.muted : scoreColor(v) }}>{pct(v)}</td>;
+                    })}
                     <td style={{ padding: "8px" }}>{r.open_remediation > 0
                       ? <span style={{ background: C.dangerBg, color: C.danger, padding: "2px 9px",
                         borderRadius: 999, fontWeight: 600 }}>{r.open_remediation}</span> : "0"}</td>
@@ -918,22 +998,44 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
       </div>
     );
   }
+  const scored = g.quizzes
+    .map((q) => g.scores?.[String(q.id)])
+    .filter((v): v is number => v != null);
+  const overall = scored.length ? scored.reduce((a, b) => a + b, 0) / scored.length : null;
   return (
-    <Card>
-      <h3 style={{ marginTop: 0, fontSize: 17 }}>My grades</h3>
-      {g.quizzes.length === 0 && <p style={{ color: C.muted }}>No quizzes yet.</p>}
-      {g.quizzes.map((q) => (
-        <div key={q.id} style={{ display: "flex", justifyContent: "space-between",
-          padding: "10px 0", borderTop: `1px solid ${C.line}` }}>
-          <span>{q.title}</span><b>{pct(g.scores?.[String(q.id)])}</b>
-        </div>
-      ))}
-      {(g.open_remediation || 0) > 0 && (
-        <div style={{ background: C.infoBg, color: C.info, borderRadius: 10, padding: "10px 14px",
-          marginTop: 12, fontSize: 14 }}>
-          You have {g.open_remediation} guided practice session(s) waiting under “Needs review”.</div>
+    <div style={{ display: "grid", gap: 14 }}>
+      {overall != null && (
+        <Card style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <Donut v={overall} />
+          <div>
+            <div style={{ fontSize: 12.5, color: C.muted }}>Overall mastery</div>
+            <div style={{ fontSize: 15, color: C.ink, marginTop: 2 }}>
+              across {scored.length} quiz{scored.length === 1 ? "" : "zes"}</div>
+          </div>
+        </Card>
       )}
-    </Card>
+      <Card>
+        <h3 style={{ marginTop: 0, fontSize: 17 }}>My grades</h3>
+        {g.quizzes.length === 0 && <p style={{ color: C.muted }}>No quizzes yet.</p>}
+        {g.quizzes.map((q) => {
+          const v = g.scores?.[String(q.id)];
+          return (
+            <div key={q.id} style={{ display: "flex", alignItems: "center", gap: 12,
+              padding: "11px 0", borderTop: `1px solid ${C.line}` }}>
+              <span style={{ flex: 1, minWidth: 0 }}>{q.title}</span>
+              {v != null && <Bar v={v} width={110} />}
+              <b style={{ minWidth: 42, textAlign: "right",
+                color: v == null ? C.muted : scoreColor(v) }}>{pct(v)}</b>
+            </div>
+          );
+        })}
+        {(g.open_remediation || 0) > 0 && (
+          <div style={{ background: C.infoBg, color: C.info, borderRadius: 10, padding: "10px 14px",
+            marginTop: 12, fontSize: 14 }}>
+            You have {g.open_remediation} guided practice session(s) waiting under “Needs review”.</div>
+        )}
+      </Card>
+    </div>
   );
 }
 
