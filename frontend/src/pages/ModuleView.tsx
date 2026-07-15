@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
 import { renderMarkdown } from "../lib/richtext";
@@ -15,11 +15,14 @@ export default function ModuleView(
 ) {
   const { id } = useParams();
   const nav = useNavigate();
+  const [params] = useSearchParams();
+  // When launched from Sage (or any host), `home` says where "back"/"done" should return.
+  const home = params.get("home");
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const moduleId = moduleIdProp ?? Number(id);
-  const goBack = onBack ?? (() => nav(-1));
-  const goDashboard = onBack ?? (() => nav("/dashboard"));
+  const goBack = onBack ?? (() => (home ? nav(home) : nav(-1)));
+  const goDashboard = onBack ?? (() => nav(home || "/dashboard"));
 
   const [session, setSession] = useState<SessionState | null>(null);
   const [messages, setMessages] = useState<TutorMessage[]>([]);

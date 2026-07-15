@@ -51,6 +51,15 @@ def test_sage_minilms_end_to_end(client):
     mods = client.get("/api/v1/remediation/modules", headers=sh)
     assert mods.status_code == 200 and len(mods.json()) >= 1
 
+    # LMS Bridge is fully wired: the student can open the generated module and start the
+    # AI tutor session on it (the same tutor used across the platform).
+    mid = mods.json()[0]["id"]
+    got = client.get(f"/api/v1/remediation/modules/{mid}", headers=sh)
+    assert got.status_code == 200, got.text
+    started = client.post(f"/api/v1/remediation/modules/{mid}/session/start", headers=sh)
+    assert started.status_code == 200, started.text
+    assert (started.json().get("messages") or started.json().get("tutor_message"))
+
     # Instructor grades view shows the student + their open remediation.
     g = client.get(f"/api/v1/sage/courses/{cid}/grades", headers=ih).json()
     assert g["is_instructor"] is True and len(g["rows"]) == 1

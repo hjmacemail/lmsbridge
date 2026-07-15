@@ -7,7 +7,8 @@ import {
   type SageGrades, type SageQuestionDraft, type SageMaterial, type SageProfile,
   type SageQType, type SageAnswerIn, type SageAnnouncement,
 } from "../api/client";
-import type { RemediationModule, InstructorAnalytics } from "../types";
+import type { RemediationModule, InstructorAnalytics, AuthToken, Role } from "../types";
+import { useAuth } from "../context/AuthContext";
 import { renderMarkdown, highlightCode } from "../lib/richtext";
 import { resolveBrand } from "../lib/brand";
 
@@ -146,9 +147,19 @@ export default function SageApp() {
   const [course, setCourse] = useState<SageCourseSummary | null>(null);
   const [courseTab, setCourseTab] = useState("Home");
   const [detail, setDetail] = useState<SageCourseDetail | null>(null);
+  // Keep the shared AuthContext in sync so the LMS Bridge tutor route (/modules/:id,
+  // a Protected route) recognises the Sage session instead of bouncing to /login.
+  const { adoptToken, logout: ctxLogout } = useAuth();
 
-  function onAuth(a: SageAuth) { persist(a); setUser(a); setView("courses"); }
-  function signOut() { clearToken(); sessionStorage.removeItem(USER_KEY); setUser(null); setView("auth"); }
+  function onAuth(a: SageAuth) {
+    persist(a);
+    adoptToken({ access_token: a.access_token, token_type: a.token_type,
+      role: a.role as Role, user_id: a.user_id, full_name: a.full_name } as AuthToken);
+    setUser(a); setView("courses");
+  }
+  function signOut() {
+    clearToken(); sessionStorage.removeItem(USER_KEY); ctxLogout(); setUser(null); setView("auth");
+  }
   function openCourse(c: SageCourseSummary) {
     setCourse(c); setCourseTab("Home"); setDetail(null);
     sageApi.courseDetail(c.id).then(setDetail).catch(() => setDetail(null));
@@ -1068,7 +1079,7 @@ function StudentDrill({ course, studentId, onClose }:
         <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
           padding: "7px 0", borderTop: `1px solid ${C.line}` }}>
           <span style={{ fontSize: 14 }}>{m.concept || m.title}</span>
-          <GhostBtn onClick={() => nav(`/modules/${m.id}`)}>View session</GhostBtn>
+          <GhostBtn onClick={() => nav(`/modules/${m.id}?home=/sage`)}>View session</GhostBtn>
         </div>
       ))}
     </Card>
@@ -1393,7 +1404,7 @@ function NeedsReview({ course }: { course: SageCourseSummary }) {
                 <div style={{ color: C.muted, fontSize: 13 }}>A short guided practice, built for what you missed.</div>
               </div>
             </div>
-            <PrimaryBtn onClick={() => nav(`/modules/${m.id}`)}><Icon name="play" size={16} /> Start practice</PrimaryBtn>
+            <PrimaryBtn onClick={() => nav(`/modules/${m.id}?home=/sage`)}><Icon name="play" size={16} /> Start practice</PrimaryBtn>
           </div>
         </Card>
       ))}
