@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import { setReauthHandler } from "../api/client";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import LmsFrame, { LMS_CONFIG, type LmsId, type LmsPage } from "../components/LmsFrame";
 import SimPage from "../components/SimPage";
@@ -54,6 +55,18 @@ export default function DemoPage() {
       .catch(() => { if (!cancel) setErr(t("demo.wakingUp")); });
     return () => { cancel = true; };
   }, [role, auth?.role, adoptToken]);
+
+  // Recover automatically from an expired/invalid demo token (60-min expiry, a redeploy
+  // that rotated SECRET_KEY, or a reseeded demo DB): on any 401, silently re-authenticate
+  // as the demo account and let the failed request retry once — no "Could not validate
+  // credentials" error surfaced to the visitor.
+  useEffect(() => {
+    setReauthHandler(async () => {
+      try { adoptToken(await api.demoLogin(role)); return true; }
+      catch { return false; }
+    });
+    return () => setReauthHandler(null);
+  }, [role, adoptToken]);
 
   // Open a tutor session inside the demo (so it stays within the simulated LMS frame),
   // rather than routing to /modules/:id which would leave the frame.

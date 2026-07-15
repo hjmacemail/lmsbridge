@@ -68,7 +68,19 @@ export function errorMessage(body: unknown, status: number): string {
   return `Request failed (${status})`;
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+// Optional recovery hook: when a request comes back 401 (token expired, key rotated on
+// redeploy, or the demo DB was reseeded), a host (e.g. the demo) can register a handler
+// that silently re-authenticates. If it returns true, the original request is retried once.
+let reauthHandler: (() => Promise<boolean>) | null = null;
+export function setReauthHandler(fn: (() => Promise<boolean>) | null) { reauthHandler = fn; }
+
+// Paths that must never trigger reauth-and-retry (they ARE the auth, or are public).
+function isAuthPath(path: string) {
+  return path.startsWith("/auth/") || path.startsWith("/leads") || path.startsWith("/sage/signup")
+    || path.startsWith("/sage/join") || path.startsWith("/sage/guest");
+}
+
+async function request<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
   const token = loadToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -76,6 +88,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   };
   if (token) headers["Authorization"] = `Bearer ${token.access_token}`;
   const res = await fetch(`${BASE}${path}`, { ...init, headers });
+  if (res.status === 401 && retry && reauthHandler && !isAuthPath(path)) {
+    const recovered = await reauthHandler();
+    if (recovered) return request<T>(path, init, false);
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(errorMessage(body, res.status));
