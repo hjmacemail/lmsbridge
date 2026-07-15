@@ -9,6 +9,7 @@ import {
 } from "../api/client";
 import type { RemediationModule, InstructorAnalytics, AuthToken, Role } from "../types";
 import { useAuth } from "../context/AuthContext";
+import ModuleView from "./ModuleView";
 import { renderMarkdown, highlightCode } from "../lib/richtext";
 import { resolveBrand } from "../lib/brand";
 
@@ -1378,11 +1379,17 @@ function MaterialRow({ m, instr, onChange }: { m: SageMaterial; instr: boolean; 
 // --------------------------------------------------------------- Needs review (student)
 function NeedsReview({ course }: { course: SageCourseSummary }) {
   const [mods, setMods] = useState<RemediationModule[]>([]);
-  const nav = useNavigate();
-  useEffect(() => {
-    api.myModules().then((m) => setMods(m.filter((x) => x.course_id === course.id)))
-      .catch(() => setMods([]));
-  }, [course.id]);
+  const [active, setActive] = useState<number | null>(null);
+  const load = () => api.myModules().then((m) => setMods(m.filter((x) => x.course_id === course.id)))
+    .catch(() => setMods([]));
+  useEffect(() => { load(); setActive(null); }, [course.id]);
+
+  // Launch the LMS Bridge tutor embedded inside Sage — the same way it appears inside
+  // Canvas/Blackboard/Moodle — rather than navigating away to the standalone page.
+  if (active != null) {
+    return <ModuleView moduleId={active} onBack={() => { setActive(null); load(); }} />;
+  }
+
   const open = mods.filter((m) => m.status !== "completed");
   return (
     <div style={{ display: "grid", gap: 12 }}>
@@ -1404,7 +1411,7 @@ function NeedsReview({ course }: { course: SageCourseSummary }) {
                 <div style={{ color: C.muted, fontSize: 13 }}>A short guided practice, built for what you missed.</div>
               </div>
             </div>
-            <PrimaryBtn onClick={() => nav(`/modules/${m.id}?home=/sage`)}><Icon name="play" size={16} /> Start practice</PrimaryBtn>
+            <PrimaryBtn onClick={() => setActive(m.id)}><Icon name="play" size={16} /> Start practice</PrimaryBtn>
           </div>
         </Card>
       ))}
