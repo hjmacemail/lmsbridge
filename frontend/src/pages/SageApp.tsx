@@ -22,10 +22,12 @@ const LMSBRIDGE_HOME =
   "https://www.lmsbridge.app";
 
 const C = {
-  brand: "#3C3489", primary: "#534AB7", accentBg: "#EEEDFE", accentInk: "#3C3489",
-  pageBg: "#faf9ff", line: "#e7e3f5", ink: "#2b2740", muted: "#6b6585",
-  success: "#15803d", successBg: "#e9f8ef", danger: "#c0392b", dangerBg: "#fdecea",
-  info: "#2563eb", infoBg: "#eaf1fe", soft: "#f5f3fc",
+  brand: "#4f46e5", primary: "#6355e6", primaryDark: "#5346d6",
+  accentBg: "#EEECFD", accentInk: "#4b3fce",
+  pageBg: "#f4f4fb", line: "#e8e6f2", ink: "#1f2340", muted: "#6b7183",
+  success: "#16a34a", successBg: "#e8f7ee", danger: "#dc2626", dangerBg: "#fdeaea",
+  info: "#2563eb", infoBg: "#eaf1fe", soft: "#f5f4fc",
+  sidebar: "#ffffff", shadow: "0 1px 2px rgba(31,35,64,.05), 0 6px 18px rgba(31,35,64,.05)",
 };
 
 function loadUser(): SageAuth | null {
@@ -81,15 +83,16 @@ function Icon({ name, size = 18, color = "currentColor" }: { name: string; size?
 }
 
 function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
-  return <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 14,
-    padding: "18px 20px", ...style }}>{children}</div>;
+  return <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16,
+    padding: "18px 20px", boxShadow: C.shadow, ...style }}>{children}</div>;
 }
 function PrimaryBtn({ children, onClick, disabled, type }:
   { children: React.ReactNode; onClick?: () => void; disabled?: boolean; type?: "submit" | "button" }) {
   return <button type={type || "button"} onClick={onClick} disabled={disabled}
     style={{ background: C.primary, color: "#fff", border: "none", borderRadius: 10,
       padding: "10px 18px", fontSize: 14, fontWeight: 600, cursor: disabled ? "default" : "pointer",
-      opacity: disabled ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 7 }}>{children}</button>;
+      opacity: disabled ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 7,
+      boxShadow: "0 1px 2px rgba(99,85,230,.35)" }}>{children}</button>;
 }
 function GhostBtn({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
   return <button onClick={onClick} style={{ background: "#fff", color: C.ink, border: `1px solid ${C.line}`,
@@ -111,7 +114,7 @@ export default function SageApp() {
   return (
     <div style={{ minHeight: "100vh", background: C.pageBg, color: C.ink }}>
       <header style={{ background: BRAND.accent || C.brand, color: "#fff", padding: "14px 0" }}>
-        <div style={{ maxWidth: 940, margin: "0 auto", padding: "0 16px", display: "flex",
+        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 16px", display: "flex",
           justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <div style={{ cursor: "pointer", fontWeight: 800, fontSize: 19, display: "flex", alignItems: "center", gap: 9 }}
@@ -137,7 +140,7 @@ export default function SageApp() {
           )}
         </div>
       </header>
-      <div style={{ maxWidth: 940, margin: "0 auto", padding: "24px 16px 56px" }}>
+      <div style={{ maxWidth: 1120, margin: "0 auto", padding: "24px 16px 56px" }}>
         {view === "auth" && <Auth onAuth={onAuth} />}
         {view === "profile" && <Profile onName={(n) => user && setUser({ ...user, full_name: n })}
           onBack={() => setView("courses")} />}
@@ -298,6 +301,11 @@ function CopyChip({ code }: { code: string | null }) {
   );
 }
 
+const TAB_ICON: Record<string, string> = {
+  Home: "spark", Syllabus: "note", Materials: "file", Quizzes: "check",
+  Students: "school", Grades: "download", "Needs review": "alert",
+};
+
 function CourseView({ course, onBack }: { course: SageCourseSummary; onBack: () => void }) {
   const instr = course.role === "instructor";
   const tabs = instr ? ["Home", "Syllabus", "Materials", "Quizzes", "Students", "Grades"]
@@ -308,29 +316,50 @@ function CourseView({ course, onBack }: { course: SageCourseSummary; onBack: () 
   useEffect(() => { loadDetail(); }, [course.id]);
 
   return (
-    <div>
-      <GhostBtn onClick={onBack}><Icon name="back" size={16} /> Courses</GhostBtn>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexWrap: "wrap", gap: 10, margin: "12px 0 4px" }}>
-        <h2 style={{ color: C.brand, margin: 0, fontSize: 22 }}>{course.name}</h2>
-        {instr && <CopyChip code={course.join_code} />}
+    <div style={{ display: "grid", gridTemplateColumns: "216px 1fr", gap: 22, alignItems: "start" }}>
+      {/* left sidebar */}
+      <aside style={{ background: C.sidebar, border: `1px solid ${C.line}`, borderRadius: 16,
+        boxShadow: C.shadow, padding: 12, position: "sticky", top: 20 }}>
+        <button onClick={onBack} style={{ width: "100%", display: "flex", alignItems: "center", gap: 8,
+          background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: 13,
+          padding: "6px 10px", marginBottom: 6 }}>
+          <Icon name="back" size={15} /> All courses</button>
+        <div style={{ padding: "6px 10px 10px", borderBottom: `1px solid ${C.line}`, marginBottom: 8 }}>
+          <div style={{ fontWeight: 700, fontSize: 14.5, color: C.ink, lineHeight: 1.3 }}>{course.name}</div>
+          <div style={{ fontSize: 11.5, color: C.muted, marginTop: 3, textTransform: "capitalize" }}>{course.role}</div>
+        </div>
+        <nav style={{ display: "grid", gap: 2 }}>
+          {tabs.map((tName) => {
+            const on = tab === tName;
+            return (
+              <button key={tName} onClick={() => setTab(tName)} style={{ display: "flex", alignItems: "center",
+                gap: 10, width: "100%", textAlign: "left", cursor: "pointer", padding: "9px 11px",
+                fontSize: 13.5, borderRadius: 9, border: "none",
+                fontWeight: on ? 700 : 500, color: on ? C.primary : C.muted,
+                background: on ? C.accentBg : "transparent" }}>
+                <Icon name={TAB_ICON[tName] || "note"} size={17} color={on ? C.primary : C.muted} />
+                {tName}
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* content */}
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+          flexWrap: "wrap", gap: 10, margin: "2px 0 16px" }}>
+          <h2 style={{ color: C.ink, margin: 0, fontSize: 23 }}>{tab === "Home" ? course.name : tab}</h2>
+          {instr && <CopyChip code={course.join_code} />}
+        </div>
+        {tab === "Home" && <Home course={course} instr={instr} detail={detail} />}
+        {tab === "Syllabus" && <Syllabus course={course} instr={instr} detail={detail} onSaved={loadDetail} />}
+        {tab === "Materials" && <Materials course={course} instr={instr} />}
+        {tab === "Quizzes" && (instr ? <QuizzesInstructor course={course} /> : <QuizzesStudent course={course} />)}
+        {tab === "Students" && <Students course={course} />}
+        {tab === "Grades" && <GradesTab course={course} />}
+        {tab === "Needs review" && <NeedsReview course={course} />}
       </div>
-      <div style={{ display: "flex", gap: 6, borderBottom: `2px solid ${C.line}`, marginBottom: 18,
-        overflowX: "auto" }}>
-        {tabs.map((t) => (
-          <button key={t} onClick={() => setTab(t)} style={{ border: "none", background: "none",
-            cursor: "pointer", padding: "9px 14px", fontSize: 14, whiteSpace: "nowrap",
-            fontWeight: tab === t ? 700 : 500, color: tab === t ? C.brand : C.muted,
-            borderBottom: tab === t ? `2px solid ${C.primary}` : "2px solid transparent", marginBottom: -2 }}>{t}</button>
-        ))}
-      </div>
-      {tab === "Home" && <Home course={course} instr={instr} detail={detail} />}
-      {tab === "Syllabus" && <Syllabus course={course} instr={instr} detail={detail} onSaved={loadDetail} />}
-      {tab === "Materials" && <Materials course={course} instr={instr} />}
-      {tab === "Quizzes" && (instr ? <QuizzesInstructor course={course} /> : <QuizzesStudent course={course} />)}
-      {tab === "Students" && <Students course={course} />}
-      {tab === "Grades" && <GradesTab course={course} />}
-      {tab === "Needs review" && <NeedsReview course={course} />}
     </div>
   );
 }
@@ -338,9 +367,11 @@ function CourseView({ course, onBack }: { course: SageCourseSummary; onBack: () 
 function Stat({ label, value, tone }: { label: string; value: number; tone?: "danger" }) {
   const danger = tone === "danger" && value > 0;
   return (
-    <div style={{ background: danger ? C.dangerBg : C.soft, borderRadius: 12, padding: "14px 16px" }}>
-      <div style={{ fontSize: 13, color: danger ? C.danger : C.muted }}>{label}</div>
-      <div style={{ fontSize: 26, fontWeight: 700, color: danger ? C.danger : C.ink }}>{value}</div>
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 14,
+      padding: "16px 18px", boxShadow: C.shadow }}>
+      <div style={{ fontSize: 30, fontWeight: 800, lineHeight: 1.05,
+        color: danger ? C.danger : C.ink }}>{value}</div>
+      <div style={{ fontSize: 13, marginTop: 5, color: danger ? C.danger : C.muted }}>{label}</div>
     </div>
   );
 }
