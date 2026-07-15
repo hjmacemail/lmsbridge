@@ -147,6 +147,26 @@
   .card p{margin:0;color:var(--muted);font-size:14.5px}
   .ico{width:40px;height:40px;border-radius:10px;background:#eef2ff;color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
   .alt{background:var(--soft)}
+  /* Lifecycle flow */
+  .flow{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .flow-step{flex:1 1 150px;min-width:150px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 18px;position:relative}
+  .flow-step.feat{border:2px solid var(--primary)}
+  .flow-step .fn{position:absolute;top:-10px;left:14px;width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .flow-step .fi{font-size:24px;margin:6px 0 8px}
+  .flow-step b{display:block;font-size:15px;margin-bottom:4px}
+  .flow-step span{color:var(--muted);font-size:13.5px;line-height:1.5}
+  .flow-arrow{align-self:center;color:var(--muted);font-size:20px;font-weight:700}
+  @media(max-width:900px){.flow-arrow{display:none}.flow-step{flex-basis:100%}}
+  /* Comparison table */
+  .compare{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+  .compare table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:560px}
+  .compare th,.compare td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line)}
+  .compare thead th{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .compare thead th:last-child{color:var(--primary)}
+  .compare tbody td:first-child{font-weight:600}
+  .compare td.no{color:var(--muted)}
+  .compare td.yes{color:var(--green);font-weight:600}
+  .compare tbody tr:last-child td{border-bottom:none}
   /* Steps */
   .steps{counter-reset:s}
   .step{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
@@ -222,7 +242,7 @@
 <header class="hero"><div class="wrap hero-grid">
  <div class="hero-copy">
   <span class="pill">Open-source AI tutoring for your LMS</span>
-  <h1>An AI teaching assistant that catches struggling students — inside your LMS.</h1>
+  <h1>Your LMS tells you who failed. LMS Bridge tells you why — and fixes it.</h1>
   <p class="tagline">Bridge early gaps before they widen.</p>
   <p class="sub">LMS Bridge turns the quiz and assignment results your LMS already collects into
   personalized, AI-guided tutoring. It pinpoints each student's specific misconception from their
@@ -292,6 +312,30 @@
   FERPA-aware · bring-your-own AI model · <b>free &amp; open source (AGPL-3.0)</b>.
 </div></div>
 
+<section id="lifecycle" class="alt"><div class="wrap">
+  <h2>See LMS Bridge in action</h2>
+  <p class="lead">From a single wrong answer to a recovered student — automatically, inside your course.</p>
+  <div class="flow">
+    <div class="flow-step"><div class="fn">1</div><div class="fi">📝</div>
+      <b>Student submits a quiz</b><span>In your LMS, exactly as they do today.</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="fn">2</div><div class="fi">🔎</div>
+      <b>The exact misconception is found</b><span>From the <em>specific</em> wrong option they chose — not just the score.</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="fn">3</div><div class="fi">💬</div>
+      <b>A tutoring session is generated</b><span>Personalized and Socratic — automatically, with no instructor effort.</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="fn">4</div><div class="fi">✅</div>
+      <b>The student recovers</b><span>Guided to fix the gap — the tutor never just hands over the answer.</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="fn">5</div><div class="fi">📊</div>
+      <b>The instructor sees the recovery</b><span>Who was at risk, who bounced back — on a live class dashboard.</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step feat"><div class="fn">6</div><div class="fi">🎓</div>
+      <b>Fewer gaps by exam time</b><span>A shaky week-3 concept never becomes a failed course in week 10.</span></div>
+  </div>
+</div></section>
+
 <section id="problem"><div class="wrap">
   <h2>Early misconceptions quietly compound</h2>
   <p class="lead">In cumulative STEM courses, a shaky grasp of binary arithmetic or conditional
@@ -329,7 +373,26 @@
   </div>
 </div></section>
 
-<section id="how"><div class="wrap">
+<section id="why"><div class="wrap">
+  <h2>“Why can't we just use ChatGPT?”</h2>
+  <p class="lead">Because a general chatbot doesn't know your class — and isn't built to be trusted in a graded course.</p>
+  <div class="compare">
+    <table>
+      <thead><tr><th></th><th>A general AI chatbot</th><th>LMS Bridge</th></tr></thead>
+      <tbody>
+        <tr><td>Knows the student's actual answers</td><td class="no">✗ generic</td><td class="yes">✓ reads the specific wrong option</td></tr>
+        <tr><td>Targets the real misconception</td><td class="no">✗ one-size-fits-all</td><td class="yes">✓ concept-level diagnosis</td></tr>
+        <tr><td>Lives inside your LMS</td><td class="no">✗ separate tab</td><td class="yes">✓ native via LTI 1.3</td></tr>
+        <tr><td>Gives instructors class analytics</td><td class="no">✗ none</td><td class="yes">✓ live dashboard + AI brief</td></tr>
+        <tr><td>Measures who actually recovered</td><td class="no">✗ no tracking</td><td class="yes">✓ mastery + recovery over time</td></tr>
+        <tr><td>Won't just hand over the answer</td><td class="no">✗ does the homework</td><td class="yes">✓ Socratic, pedagogically constrained</td></tr>
+        <tr><td>Your data, your AI key, your rules</td><td class="no">✗ vendor cloud</td><td class="yes">✓ self-host, FERPA-aware, BYO key</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div></section>
+
+<section id="how" class="alt"><div class="wrap">
   <h2>How it works</h2>
   <p class="lead">From inside your existing course — no separate logins, no new gradebook.</p>
   <div class="steps">
@@ -503,6 +566,26 @@
     <p>GNU AGPL-3.0. You can run, modify, and deploy it freely; if you modify it and offer it as a
     network service, AGPL asks you to share your changes. Internal institutional use carries no extra
     obligation. See <code>LICENSE</code> and <code>COMMERCIAL.md</code> in the repository.</p></details>
+  <details><summary>Which AI models can we use — and can we run a local one?</summary>
+    <p>Bring your own key: Anthropic (Claude), OpenAI (GPT), and Azure OpenAI are supported out of the
+    box, and each institution or course chooses its own provider and model. Because it's a standard
+    provider interface, a local/self-hosted model behind an OpenAI-compatible endpoint works too — so
+    you can run entirely on-premise with no third-party API.</p></details>
+  <details><summary>How much does the AI cost?</summary>
+    <p>Only what your own provider charges for the tokens you use — there's no per-student LMS Bridge
+    fee. Costs scale with usage; a small, fast model keeps it low, and you can set a hard spend cap in
+    your provider's console. The non-AI features work without any AI spend.</p></details>
+  <details><summary>Can instructors edit or customize the remediation?</summary>
+    <p>Yes. Instructors control course content, concepts, and which assessments feed the adaptive
+    engine, and the tutoring is grounded in the instructor's own uploaded materials. Prompt templates
+    are course-configurable for departments that want to tune tone or approach.</p></details>
+  <details><summary>Does it work for large classes?</summary>
+    <p>Yes — that's the point. The whole design is to give personalized, concept-level help at a scale
+    where individual feedback is otherwise impossible. Roster and grades sync automatically via LTI
+    Advantage (NRPS/AGS).</p></details>
+  <details><summary>Can we connect our grading rubric?</summary>
+    <p>Yes. LMS Bridge ingests rubric-level results from the LMS gradebook and uses that
+    criterion-by-concept signal (alongside multiple-choice answers) to target remediation.</p></details>
 </div></section>
 
 <section id="usedby" class="alt"><div class="wrap">
