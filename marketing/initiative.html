@@ -38,6 +38,15 @@
   }
 }
 </script>
+<script>
+  // Honour the language chosen on the main site (shared localStorage key) before paint.
+  (function(){ try{
+    var l = localStorage.getItem("lmsb-lang") || (navigator.language || "en").slice(0,2).toLowerCase();
+    if (["es","fr","ar"].indexOf(l) < 0) l = "en";
+    document.documentElement.lang = l;
+    document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+  }catch(e){} })();
+</script>
 <style>
   :root{
     --bg:#0b1020; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --soft:#f8fafc;
@@ -86,15 +95,27 @@
 
   footer{border-top:1px solid var(--line);padding:28px 0 48px;color:var(--muted);font-size:14px;text-align:center}
   @media (max-width:560px){ header.hero{padding:52px 0 44px} main{padding:40px 0 10px} }
+
+  .topbar{display:flex;justify-content:flex-end;margin-bottom:12px}
+  .langsel{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;
+    padding:5px 9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+  .langsel option{color:#0f172a}
+  html[dir="rtl"] body{text-align:right}
 </style>
 </head>
 <body>
 
 <header class="hero">
   <div class="wrap">
-    <span class="eyebrow">Since 2014</span>
-    <h1>Knowledge in Service of Society Initiative</h1>
-    <p class="lede">Harnessing knowledge to empower people, solve real-world challenges, and create
+    <div class="topbar">
+      <select class="langsel" id="langSel" aria-label="Language">
+        <option value="en">EN</option><option value="es">ES</option>
+        <option value="fr">FR</option><option value="ar">AR</option>
+      </select>
+    </div>
+    <span class="eyebrow" data-i18n="k1">Since 2014</span>
+    <h1 data-i18n="k2">Knowledge in Service of Society Initiative</h1>
+    <p class="lede" data-i18n="k3">Harnessing knowledge to empower people, solve real-world challenges, and create
     lasting social impact.</p>
   </div>
 </header>
@@ -102,11 +123,11 @@
 <main class="wrap">
 
   <section>
-    <h2><span class="dot"></span>Our mission</h2>
-    <p>The Knowledge in Service of Society Initiative was founded in 2014 by
+    <h2><span class="dot"></span><span data-i18n="k4">Our mission</span></h2>
+    <p data-i18n="k5">The Knowledge in Service of Society Initiative was founded in 2014 by
     <a href="https://cs.nyu.edu/~ha2285">Prof. Hasan Aljabbouli</a> with a simple belief:
     knowledge has its greatest value when it is shared, applied, and used to improve society.</p>
-    <p>Our mission is to make knowledge accessible, practical, and impactful by removing barriers
+    <p data-i18n="k6">Our mission is to make knowledge accessible, practical, and impactful by removing barriers
     such as cost, language, and limited access to quality educational resources. We believe that
     every individual should have the opportunity not only to learn but also to apply their knowledge
     to improve their lives, strengthen their communities, and contribute to solving local and global
@@ -114,45 +135,134 @@
   </section>
 
   <section>
-    <h2><span class="dot"></span>What we do</h2>
+    <h2><span class="dot"></span><span data-i18n="k7">What we do</span></h2>
     <ul class="do">
-      <li><span class="ic">🌍</span><div><b>Free, high-quality resources</b><span>Create free,
+      <li><span class="ic">🌍</span><div><b data-i18n="k8">Free, high-quality resources</b><span data-i18n="k9">Create free,
         high-quality educational resources that are openly accessible to everyone.</span></div></li>
-      <li><span class="ic">🛠️</span><div><b>Knowledge into impact</b><span>Develop practical tools and
+      <li><span class="ic">🛠️</span><div><b data-i18n="k10">Knowledge into impact</b><span data-i18n="k11">Develop practical tools and
         learning experiences that help people transform knowledge into real-world impact.</span></div></li>
-      <li><span class="ic">🌱</span><div><b>Lifelong learning</b><span>Promote lifelong learning,
+      <li><span class="ic">🌱</span><div><b data-i18n="k12">Lifelong learning</b><span data-i18n="k13">Promote lifelong learning,
         innovation, and continuous personal and professional development.</span></div></li>
-      <li><span class="ic">🤝</span><div><b>Knowledge for community needs</b><span>Encourage the
+      <li><span class="ic">🤝</span><div><b data-i18n="k14">Knowledge for community needs</b><span data-i18n="k15">Encourage the
         application of knowledge to address community needs and societal challenges.</span></div></li>
-      <li><span class="ic">🎓</span><div><b>Support the knowledge community</b><span>Support students,
+      <li><span class="ic">🎓</span><div><b data-i18n="k16">Support the knowledge community</b><span data-i18n="k17">Support students,
         educators, researchers, and professionals in sharing knowledge for the benefit of
         others.</span></div></li>
-      <li><span class="ic">✨</span><div><b>Collaboration for social change</b><span>Foster
+      <li><span class="ic">✨</span><div><b data-i18n="k18">Collaboration for social change</b><span data-i18n="k19">Foster
         collaboration, volunteerism, and initiatives that use knowledge as a force for positive
         social change.</span></div></li>
     </ul>
   </section>
 
   <section class="project">
-    <h2><span class="dot"></span>How LMS-Bridge fits in this initiative</h2>
-    <p>LMS-Bridge is a direct expression of this mission: it takes something normally scarce and
+    <h2><span class="dot"></span><span data-i18n="k20">How LMS-Bridge fits in this initiative</span></h2>
+    <p data-i18n="k21">LMS-Bridge is a direct expression of this mission: it takes something normally scarce and
     expensive — a patient, one-on-one tutor — and makes it freely available to any student, in any
     course, regardless of their institution's budget. It turns the assessment data schools already
     collect into just-in-time, AI-guided tutoring that helps learners understand and apply
     foundational concepts, rather than simply handing over answers.</p>
-    <p>By removing the barriers of cost, language, and access — running inside any major learning
+    <p data-i18n="k22">By removing the barriers of cost, language, and access — running inside any major learning
     platform or standalone, in multiple languages, without costly infrastructure — it puts practical
     knowledge to work improving real learning outcomes for the students who need it most. It is
     knowledge, shared and applied, in the service of the people it reaches.</p>
-    <p style="margin-bottom:0"><a href="index.html">Explore LMS-Bridge →</a></p>
+    <p style="margin-bottom:0"><a href="index.html" data-i18n="k23">Explore LMS-Bridge →</a></p>
   </section>
 
 
 </main>
 
-<footer class="wrap">
+<footer class="wrap" data-i18n="k24">
   Knowledge in Service of Society Initiative · Since 2014
 </footer>
+
+<script id="i18n-data" type="application/json">
+{
+ "es": {
+  "k1":"Desde 2014",
+  "k2":"Iniciativa Conocimiento al Servicio de la Sociedad",
+  "k3":"Aprovechar el conocimiento para empoderar a las personas, resolver desafíos reales y crear un impacto social duradero.",
+  "k4":"Nuestra misión",
+  "k5":"La Iniciativa Conocimiento al Servicio de la Sociedad fue fundada en 2014 por <a href=\"https://cs.nyu.edu/~ha2285\">el Prof. Hasan Aljabbouli</a> con una creencia sencilla: el conocimiento alcanza su mayor valor cuando se comparte, se aplica y se usa para mejorar la sociedad.",
+  "k6":"Nuestra misión es hacer que el conocimiento sea accesible, práctico e impactante eliminando barreras como el costo, el idioma y el acceso limitado a recursos educativos de calidad. Creemos que cada persona debe tener la oportunidad no solo de aprender, sino también de aplicar su conocimiento para mejorar su vida, fortalecer su comunidad y contribuir a resolver desafíos locales y globales.",
+  "k7":"Lo que hacemos",
+  "k8":"Recursos gratuitos y de alta calidad","k9":"Crear recursos educativos gratuitos y de alta calidad, abiertamente accesibles para todos.",
+  "k10":"Del conocimiento al impacto","k11":"Desarrollar herramientas prácticas y experiencias de aprendizaje que ayuden a transformar el conocimiento en impacto real.",
+  "k12":"Aprendizaje permanente","k13":"Promover el aprendizaje permanente, la innovación y el desarrollo personal y profesional continuo.",
+  "k14":"Conocimiento para las necesidades de la comunidad","k15":"Fomentar la aplicación del conocimiento para atender las necesidades de la comunidad y los desafíos sociales.",
+  "k16":"Apoyar a la comunidad del conocimiento","k17":"Apoyar a estudiantes, docentes, investigadores y profesionales para que compartan conocimiento en beneficio de los demás.",
+  "k18":"Colaboración para el cambio social","k19":"Impulsar la colaboración, el voluntariado y las iniciativas que usan el conocimiento como fuerza para un cambio social positivo.",
+  "k20":"Cómo encaja LMS-Bridge en esta iniciativa",
+  "k21":"LMS-Bridge es una expresión directa de esta misión: toma algo normalmente escaso y costoso — un tutor paciente y personalizado — y lo pone gratuitamente a disposición de cualquier estudiante, en cualquier curso, sin importar el presupuesto de su institución. Convierte los datos de evaluación que las escuelas ya recopilan en tutoría guiada por IA y disponible justo a tiempo, que ayuda a los estudiantes a comprender y aplicar conceptos fundamentales, en lugar de simplemente dar las respuestas.",
+  "k22":"Al eliminar las barreras de costo, idioma y acceso — funcionando dentro de cualquier plataforma de aprendizaje importante o de forma independiente, en varios idiomas y sin infraestructura costosa — pone el conocimiento práctico a trabajar para mejorar los resultados de aprendizaje reales de los estudiantes que más lo necesitan. Es conocimiento, compartido y aplicado, al servicio de las personas a las que llega.",
+  "k23":"Descubre LMS-Bridge →",
+  "k24":"Iniciativa Conocimiento al Servicio de la Sociedad · Desde 2014"
+ },
+ "fr": {
+  "k1":"Depuis 2014",
+  "k2":"Initiative Le Savoir au Service de la Société",
+  "k3":"Mettre le savoir au service des personnes, résoudre des défis concrets et créer un impact social durable.",
+  "k4":"Notre mission",
+  "k5":"L’Initiative Le Savoir au Service de la Société a été fondée en 2014 par <a href=\"https://cs.nyu.edu/~ha2285\">le Pr Hasan Aljabbouli</a> avec une conviction simple : le savoir prend toute sa valeur lorsqu’il est partagé, appliqué et utilisé pour améliorer la société.",
+  "k6":"Notre mission est de rendre le savoir accessible, pratique et porteur d’impact en supprimant les obstacles tels que le coût, la langue et l’accès limité à des ressources éducatives de qualité. Nous pensons que chacun doit avoir la possibilité non seulement d’apprendre, mais aussi d’appliquer ses connaissances pour améliorer sa vie, renforcer sa communauté et contribuer à résoudre des défis locaux et mondiaux.",
+  "k7":"Ce que nous faisons",
+  "k8":"Des ressources gratuites et de qualité","k9":"Créer des ressources éducatives gratuites et de qualité, librement accessibles à tous.",
+  "k10":"Du savoir à l’impact","k11":"Développer des outils pratiques et des expériences d’apprentissage qui aident à transformer le savoir en impact concret.",
+  "k12":"Apprentissage tout au long de la vie","k13":"Favoriser l’apprentissage tout au long de la vie, l’innovation et le développement personnel et professionnel continu.",
+  "k14":"Le savoir au service des besoins de la communauté","k15":"Encourager l’application du savoir pour répondre aux besoins de la communauté et aux défis sociétaux.",
+  "k16":"Soutenir la communauté du savoir","k17":"Soutenir les étudiants, les enseignants, les chercheurs et les professionnels dans le partage du savoir au bénéfice des autres.",
+  "k18":"La collaboration au service du changement social","k19":"Encourager la collaboration, le bénévolat et les initiatives qui font du savoir un moteur de changement social positif.",
+  "k20":"Comment LMS-Bridge s’inscrit dans cette initiative",
+  "k21":"LMS-Bridge est une expression directe de cette mission : il prend une ressource habituellement rare et coûteuse — un tuteur patient et individuel — et la rend librement accessible à tout étudiant, dans n’importe quel cours, quel que soit le budget de son établissement. Il transforme les données d’évaluation que les écoles collectent déjà en un tutorat guidé par IA et disponible au bon moment, qui aide les apprenants à comprendre et à appliquer les concepts fondamentaux, plutôt que de simplement livrer les réponses.",
+  "k22":"En supprimant les obstacles liés au coût, à la langue et à l’accès — en fonctionnant au sein de toute grande plateforme d’apprentissage ou de façon autonome, en plusieurs langues et sans infrastructure coûteuse — il met le savoir pratique au service de l’amélioration réelle des résultats d’apprentissage des étudiants qui en ont le plus besoin. C’est le savoir, partagé et appliqué, au service des personnes qu’il touche.",
+  "k23":"Découvrir LMS-Bridge →",
+  "k24":"Initiative Le Savoir au Service de la Société · Depuis 2014"
+ },
+ "ar": {
+  "k1":"منذ 2014",
+  "k2":"مبادرة المعرفة في خدمة المجتمع",
+  "k3":"تسخير المعرفة لتمكين الناس، وحلّ التحديات الواقعية، وإحداث أثر اجتماعي دائم.",
+  "k4":"مهمتنا",
+  "k5":"تأسّست مبادرة المعرفة في خدمة المجتمع عام 2014 على يد <a href=\"https://cs.nyu.edu/~ha2285\">الأستاذ حسن الجبولي</a> بإيمان بسيط: تبلغ المعرفة أعظم قيمتها حين تُشارَك وتُطبَّق وتُستخدَم لتحسين المجتمع.",
+  "k6":"مهمتنا هي جعل المعرفة متاحة وعملية ومؤثّرة عبر إزالة العوائق كالتكلفة واللغة ومحدودية الوصول إلى موارد تعليمية جيدة. ونؤمن بأن لكل فرد الحقّ ليس في التعلّم فحسب، بل في تطبيق معرفته لتحسين حياته وتعزيز مجتمعه والإسهام في حلّ التحديات المحلية والعالمية.",
+  "k7":"ما نقوم به",
+  "k8":"موارد مجانية عالية الجودة","k9":"إنشاء موارد تعليمية مجانية عالية الجودة، متاحة للجميع بحرّية.",
+  "k10":"من المعرفة إلى الأثر","k11":"تطوير أدوات عملية وتجارب تعلّم تساعد الناس على تحويل المعرفة إلى أثر واقعي.",
+  "k12":"التعلّم مدى الحياة","k13":"تعزيز التعلّم مدى الحياة والابتكار والتطوّر الشخصي والمهني المستمر.",
+  "k14":"المعرفة لاحتياجات المجتمع","k15":"تشجيع تطبيق المعرفة لتلبية احتياجات المجتمع ومواجهة التحديات المجتمعية.",
+  "k16":"دعم مجتمع المعرفة","k17":"دعم الطلاب والمعلّمين والباحثين والمهنيين في مشاركة المعرفة لمنفعة الآخرين.",
+  "k18":"التعاون من أجل التغيير الاجتماعي","k19":"تعزيز التعاون والتطوّع والمبادرات التي تجعل المعرفة قوّةً للتغيير الاجتماعي الإيجابي.",
+  "k20":"كيف يندرج LMS-Bridge ضمن هذه المبادرة",
+  "k21":"يُعدّ LMS-Bridge تعبيرًا مباشرًا عن هذه المهمة: فهو يأخذ ما هو عادةً نادر ومكلف — مُعلّمًا صبورًا فرديًا — ويتيحه مجانًا لأي طالب، في أي مقرّر، بغضّ النظر عن ميزانية مؤسسته. ويحوّل بيانات التقييم التي تجمعها المدارس أصلًا إلى دعمٍ تعليمي موجَّه بالذكاء الاصطناعي في الوقت المناسب، يساعد المتعلّمين على فهم المفاهيم الأساسية وتطبيقها، بدلًا من مجرّد تقديم الإجابات.",
+  "k22":"وبإزالة عوائق التكلفة واللغة والوصول — إذ يعمل داخل أي منصّة تعلّم كبرى أو بشكل مستقل، وبعدّة لغات، ودون بنية تحتية مكلفة — يضع المعرفة العملية في خدمة تحسين نتائج التعلّم الحقيقية للطلاب الأكثر حاجة. إنها المعرفة، مُشارَكةً ومُطبَّقةً، في خدمة الناس الذين تصل إليهم.",
+  "k23":"استكشف LMS-Bridge ←",
+  "k24":"مبادرة المعرفة في خدمة المجتمع · منذ 2014"
+ }
+}
+</script>
+<script>
+(function(){
+  var I18N = JSON.parse(document.getElementById("i18n-data").textContent);
+  var nodes = document.querySelectorAll("[data-i18n]");
+  function apply(lang){
+    var d = I18N[lang];
+    nodes.forEach(function(el){
+      var k = el.getAttribute("data-i18n");
+      if (el.dataset.en === undefined) el.dataset.en = el.innerHTML;
+      el.innerHTML = (lang === "en" || !d || d[k] === undefined) ? el.dataset.en : d[k];
+    });
+    document.documentElement.setAttribute("lang", lang);
+    document.documentElement.setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
+    var sel = document.getElementById("langSel"); if (sel) sel.value = lang;
+    try { localStorage.setItem("lmsb-lang", lang); } catch(e){}
+  }
+  var saved; try { saved = localStorage.getItem("lmsb-lang"); } catch(e){}
+  var nav = (navigator.language || "en").slice(0,2).toLowerCase();
+  var init = saved || (["es","fr","ar"].indexOf(nav) >= 0 ? nav : "en");
+  var sel = document.getElementById("langSel");
+  if (sel) sel.addEventListener("change", function(){ apply(this.value); });
+  apply(init);
+})();
+</script>
 
 </body>
 </html>
