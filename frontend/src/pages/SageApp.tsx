@@ -80,8 +80,11 @@ function Icon({ name, size = 18, color = "currentColor" }: { name: string; size?
     chart: "M4 21V10h4v11H4zm6 0V3h4v18h-4zm6 0v-7h4v7h-4z",
   };
   const fillStroke = name === "back" ? { fill: "none", stroke: color, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const } : { fill: color };
+  // Directional icons must mirror in right-to-left languages (e.g. "back" points the other way).
+  const directional = name === "back" || name === "arrow";
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flexShrink: 0 }}>
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true"
+      className={directional ? "dir-flip" : undefined} style={{ flexShrink: 0 }}>
       <path d={p[name]} {...fillStroke} />
     </svg>
   );

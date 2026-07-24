@@ -12,6 +12,8 @@
   --text: #0f172a;
 }
 * { box-sizing: border-box; }
+/* Mirror directional icons (back/forward arrows, chevrons) in right-to-left languages. */
+html[dir="rtl"] .dir-flip { transform: scaleX(-1); }
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;

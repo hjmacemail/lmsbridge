@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LMS Bridge — demo reel</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --bg2:#0c111f; --card:#111726; --line:rgba(255,255,255,.10);
+    --ink:#f8fafc; --muted:#94a3b8; --primary:#7c6cf5; --accent:#a5b4fc; --green:#22c55e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:#05070d;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+
+  /* 16:9 stage, centered */
+  .stage{position:relative;width:100vw;height:56.25vw;max-height:100vh;max-width:177.78vh;margin:auto;
+    background:radial-gradient(1200px 600px at 78% -10%,rgba(124,108,245,.18),transparent 55%),var(--bg);
+    overflow:hidden}
+  .stage.center{position:absolute;inset:0}
+
+  /* progress bar */
+  .prog{position:absolute;top:0;left:0;right:0;height:4px;background:rgba(255,255,255,.08);z-index:40}
+  .prog > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .12s linear}
+
+  /* scene */
+  .scene{position:absolute;inset:0;opacity:0;transition:opacity .6s ease;display:flex;align-items:center;justify-content:center}
+  .scene.on{opacity:1}
+
+  /* screenshot slides */
+  .shot{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:4.5% 5% 15%}
+  .shot-img{padding:0}
+  .shot-img .frame{position:absolute;top:2.6%;left:4%;right:4%;bottom:16.5%;transform:none}
+  .frame{position:relative;border-radius:14px;overflow:hidden;
+    border:1px solid var(--line);box-shadow:0 40px 90px rgba(0,0,0,.55);background:#0e1422}
+  .imgwrap{position:absolute;left:0;right:0;top:34px;bottom:0;overflow:hidden}
+  .imgwrap img{position:absolute;top:0;left:0;width:100%;height:auto;display:block;will-change:transform}
+  .phfill{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#94a3b8;text-align:center;padding:20px}
+  .phfill .big{color:#a5b4fc;font-weight:700;font-size:20px}
+  .phfill code{background:rgba(255,255,255,.08);padding:3px 8px;border-radius:6px;color:#dfe6f5}
+  .frame.kb img{animation:kb 12s ease forwards}
+  @keyframes kb{from{transform:scale(1.02)}to{transform:scale(1.08)}}
+  .browserbar{display:flex;align-items:center;gap:8px;padding:9px 13px;background:#0b1120;border-bottom:1px solid var(--line)}
+  .browserbar .dot{width:10px;height:10px;border-radius:50%;background:#33405e}
+  .browserbar .url{margin-left:8px;font-size:12px;color:var(--muted);background:#0e1626;border:1px solid var(--line);border-radius:6px;padding:3px 12px}
+
+  /* placeholder when screenshot missing */
+  .ph{width:70vw;max-width:1100px;height:60vh;border:2px dashed rgba(165,180,252,.4);border-radius:16px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;
+    background:rgba(124,108,245,.06);color:var(--muted);padding:24px}
+  .ph .big{font-size:22px;color:var(--accent);font-weight:700}
+  .ph code{background:rgba(255,255,255,.08);padding:4px 10px;border-radius:6px;color:#dfe6f5;font-size:14px}
+  .ph small{max-width:560px;line-height:1.5}
+
+  /* lower third caption */
+  .caption{position:absolute;left:0;right:0;bottom:0;padding:5% 6% 6%;z-index:30;
+    background:linear-gradient(0deg,rgba(5,7,13,.92) 0,rgba(5,7,13,.75) 55%,transparent 100%)}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:clamp(11px,1.2vw,14px);font-weight:700;
+    letter-spacing:.10em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  .kicker .n{background:rgba(124,108,245,.2);border:1px solid rgba(124,108,245,.4);border-radius:999px;padding:2px 10px}
+  .title{font-size:clamp(22px,3.2vw,44px);font-weight:800;line-height:1.08;letter-spacing:-.02em;max-width:80%}
+  .title .hl{color:var(--accent)}
+  .sub{font-size:clamp(13px,1.5vw,20px);color:var(--muted);margin-top:10px;max-width:70%;line-height:1.5}
+
+  /* branded (no-screenshot) scenes */
+  .brand-scene{flex-direction:column;text-align:center;padding:6%}
+  .logo{display:inline-flex;align-items:center;gap:12px;font-weight:900;font-size:clamp(24px,3.4vw,46px);letter-spacing:-.02em}
+  .logo .mark{width:clamp(38px,4vw,60px);height:clamp(38px,4vw,60px);border-radius:14px;
+    background:linear-gradient(135deg,#7c6cf5,#5b4df5);display:inline-flex;align-items:center;justify-content:center;font-size:clamp(20px,2.2vw,30px)}
+  .brand-scene .tag{color:var(--muted);font-size:clamp(15px,1.8vw,24px);margin-top:16px;max-width:760px;line-height:1.45}
+  .chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:26px}
+  .chip{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:8px 16px;font-size:clamp(12px,1.3vw,16px);color:var(--ink)}
+  .chip b{color:var(--accent)}
+  .cta{margin-top:30px;font-size:clamp(16px,1.9vw,26px);font-weight:700}
+  .cta .u{color:var(--accent)}
+
+  /* controls */
+  .controls{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:8px;
+    background:rgba(10,14,26,.72);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:999px;padding:7px 10px;
+    transition:opacity .3s}
+  .controls.hidden{opacity:0;pointer-events:none}
+  .controls button{background:transparent;border:none;color:var(--ink);cursor:pointer;font-size:16px;width:34px;height:34px;
+    border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+  .controls button:hover{background:rgba(255,255,255,.10)}
+  .controls .dots{display:flex;gap:6px;padding:0 8px}
+  .controls .dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:transform .15s,background .15s}
+  .controls .dots i.on{background:var(--accent);transform:scale(1.3)}
+  .hint{position:absolute;top:12px;right:14px;z-index:60;font-size:12px;color:var(--muted);background:rgba(10,14,26,.6);
+    border:1px solid var(--line);border-radius:8px;padding:6px 10px;transition:opacity .3s}
+  .hint.hidden{opacity:0}
+  body.present .controls,body.present .hint{opacity:0;pointer-events:none}
+
+  /* recreated "screenshot" mock screens (light UI, like the real product) */
+  .ms{background:#f4f4fb;color:#1f2340;width:1000px;padding:16px;
+    display:flex;gap:14px;text-align:left;font-size:13px}
+  .ms *{box-sizing:border-box}
+  .ms.rtl{direction:rtl}
+  .ms-side{width:170px;flex:none;background:#fff;border:1px solid #e8e6f2;border-radius:12px;padding:10px;color:#6b7183;font-size:12.5px}
+  .ms-side .lg{display:flex;align-items:center;gap:8px;font-weight:800;color:#1f2340;font-size:14px;padding:4px 6px 10px;border-bottom:1px solid #eee;margin-bottom:8px}
+  .ms-side .lg .m{width:22px;height:22px;border-radius:7px;background:#6355e6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px}
+  .ms-side .b{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:8px;margin-bottom:1px}
+  .ms-side .b.on{background:#eeecfd;color:#6355e6;font-weight:700}
+  .ms-main{flex:1;min-width:0;overflow:hidden}
+  .ms h2{font-size:19px;margin:0 0 3px;color:#1f2340}
+  .ms h3{font-size:15px;margin:0 0 8px;color:#1f2340}
+  .ms .subt{color:#6b7183;font-size:13px;margin:0 0 12px}
+  .ms .card{background:#fff;border:1px solid #e8e6f2;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 2px rgba(31,35,64,.05)}
+  .ms .muted{color:#6b7183}
+  .ms .rw{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .ms .bar{height:8px;background:#edecf6;border-radius:999px;overflow:hidden;flex:1}
+  .ms .bar>i{display:block;height:100%;border-radius:999px}
+  .ms .btn{background:#6355e6;color:#fff;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;display:inline-block}
+  .ms .pill{font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px}
+  .ms .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+  .ms .stat{background:#fff;border:1px solid #e8e6f2;border-radius:12px;padding:11px 13px}
+  .ms .stat b{font-size:22px;display:block;line-height:1.1}
+  .ms .stat span{font-size:11.5px;color:#6b7183}
+  .ms .bub{max-width:80%;padding:9px 12px;border-radius:12px;font-size:12.5px;margin-bottom:8px;line-height:1.5}
+  .ms .bub.t{background:#fff;border:1px solid #e8e6f2}
+  .ms .bub.s{background:#6355e6;color:#fff;margin-left:auto}
+  .ms .opt{border:1px solid #cfc9f5;color:#4b3fce;border-radius:8px;padding:6px 11px;font-size:12px;margin-top:6px;display:inline-block}
+  .ms code{background:#eeecfd;border-radius:5px;padding:1px 6px;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#4b3fce}
+  .ms .goal{background:#eef0fb;border:1px solid #d5daf3;border-radius:10px;padding:10px 12px;margin-bottom:10px}
+  .ms .lang{background:#4f46e5;color:#fff;border-radius:8px;padding:4px 9px;font-size:12px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="stage center" id="stage">
+  <div class="prog"><i id="prog"></i></div>
+  <div id="scenes"></div>
+  <div class="hint" id="hint">Space = play/pause · ← → = navigate · P = present (hide UI) · F = fullscreen</div>
+  <div class="controls" id="controls">
+    <button id="restart" title="Restart">⟲</button>
+    <button id="prev" title="Previous">⏮</button>
+    <button id="play" title="Play/Pause">⏸</button>
+    <button id="next" title="Next">⏭</button>
+    <span class="dots" id="dots"></span>
+    <button id="present" title="Hide UI (present mode)">⛶</button>
+  </div>
+</div>
+
+<script>
+// ---- Scene definitions. `img` maps to shots/<file>. Branded scenes use `html`. ----
+const BRAND = { name: "LMS Bridge" };
+const S = [
+  { t: 5.5, vo: `Every LMS can tell you who's failing. LMS Bridge tells you why — and does something about it.`, brand: `
+      <div class="logo"><span class="mark">📘</span> LMS <span class="hl" style="color:var(--accent)">Bridge</span></div>
+      <div class="tag">AI tutoring built into your LMS — it catches struggling students early, pinpoints the misconception, and coaches them to fix it.</div>
+      <div class="chips"><span class="chip">Works in <b>Canvas · Moodle · Blackboard · Brightspace</b></span><span class="chip">Free &amp; open source</span></div>` },
+
+  { t: 9, mock: `<div class="ms" style="flex-direction:column;padding:14px 18px"><div class="rw" style="margin-bottom:10px"><h2 style="font-size:18px">Instructor console</h2><div class="muted" style="font-size:12px">CS-UY 2110 — Computer Architecture &amp; Digital Logic</div></div><div style="display:flex;gap:16px;font-size:12.5px;color:#6b7183;border-bottom:1px solid #e8e6f2;padding-bottom:8px;margin-bottom:10px"><span>Overview</span><span style="color:#6355e6;font-weight:700;border-bottom:2px solid #6355e6;padding-bottom:8px">Students</span><span>Assessments &amp; Rubrics</span><span>Course Material</span><span>Remediation</span></div><div class="card" style="margin:0;padding:12px 14px"><div class="rw" style="margin-bottom:8px"><b style="font-size:13px">Roster (8) — click a student to drill down</b><span class="btn">Sync roster from LMS</span></div><div class="rw muted" style="font-size:10px;letter-spacing:.4px;padding-bottom:6px"><span style="flex:1.5">STUDENT</span><span style="flex:1.3">AVG MASTERY</span><span style="flex:.8">AT-RISK</span><span style="width:40px">OPEN</span><span style="width:74px">COMPLETED</span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Ava Chen</b></span><span style="flex:1.3;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:88px"><i style="width:37%;background:#dc2626"></i></span>37%</span><span style="flex:.8"><span class="pill" style="background:#fdeaea;color:#dc2626">3</span></span><span style="width:40px">3</span><span style="width:74px">1</span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Diego Santos</b></span><span style="flex:1.3;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:88px"><i style="width:74%;background:#d97706"></i></span>74%</span><span style="flex:.8"><span class="pill" style="background:#fdeaea;color:#dc2626">1</span></span><span style="width:40px">2</span><span style="width:74px">0</span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Grace Kim</b></span><span style="flex:1.3;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:88px"><i style="width:56%;background:#dc2626"></i></span>56%</span><span style="flex:.8"><span class="pill" style="background:#fdeaea;color:#dc2626">2</span></span><span style="width:40px">2</span><span style="width:74px">0</span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Lena Müller</b></span><span style="flex:1.3;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:88px"><i style="width:62%;background:#dc2626"></i></span>62%</span><span style="flex:.8"><span class="pill" style="background:#fdeaea;color:#dc2626">2</span></span><span style="width:40px">4</span><span style="width:74px">0</span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Marcus Lopez</b></span><span style="flex:1.3;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:88px"><i style="width:55%;background:#dc2626"></i></span>55%</span><span style="flex:.8"><span class="pill" style="background:#fdeaea;color:#dc2626">3</span></span><span style="width:40px">3</span><span style="width:74px">0</span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Noah Williams</b></span><span style="flex:1.3;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:88px"><i style="width:59%;background:#dc2626"></i></span>59%</span><span style="flex:.8"><span class="pill" style="background:#fdeaea;color:#dc2626">2</span></span><span style="width:40px">2</span><span style="width:74px">0</span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Omar Haddad</b></span><span style="flex:1.3;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:88px"><i style="width:42%;background:#dc2626"></i></span>42%</span><span style="flex:.8"><span class="pill" style="background:#fdeaea;color:#dc2626">3</span></span><span style="width:40px">3</span><span style="width:74px">0</span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Priya Patel</b></span><span style="flex:1.3;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:88px"><i style="width:54%;background:#dc2626"></i></span>54%</span><span style="flex:.8"><span class="pill" style="background:#fdeaea;color:#dc2626">3</span></span><span style="width:40px">3</span><span style="width:74px">0</span></div></div></div>`, img: "01-problem.png", url: "canvas.instructure.com", kicker: "The problem",
+    title: `Your LMS tells you <span class="hl">which students need help</span>, and how urgently?`,
+    sub: `It rarely tells you why — or does anything about it. Early gaps quietly compound into later failure.`,
+    vo: `In cumulative subjects, one early gap quietly compounds into later failure. By the time it shows up in grades, it is too late.` },
+
+  { t: 9, mock: `<div class="ms" style="flex-direction:column;padding:14px 16px"><div style="display:flex;gap:14px;font-size:11.5px;color:#6b7183;border-bottom:1px solid #e8e6f2;padding-bottom:7px;margin-bottom:9px"><span style="color:#6355e6;font-weight:700;border-bottom:2px solid #6355e6;padding-bottom:7px">Overview</span><span>Students</span><span>Assessments &amp; Rubrics</span><span>Course Material</span><span>Remediation</span></div><div class="card" style="background:#eef0fb;border-color:#d5daf3;padding:12px 14px"><div style="font-size:10.5px;font-weight:800;letter-spacing:.5px;color:#4b3fce;text-transform:uppercase">✨ AI Copilot — what to do before your next class</div><div style="display:flex;gap:22px;margin:9px 0;align-items:flex-start"><div><b style="font-size:24px;color:#4b3fce">55%</b><div class="muted" style="font-size:10.5px">class health</div></div><div><b style="font-size:24px;color:#c0392b">8</b><div class="muted" style="font-size:10.5px">of 8 need attention</div></div><div><b style="font-size:24px;color:#16a34a">1/23</b><div class="muted" style="font-size:10.5px">AI sessions completed</div></div></div><div class="muted" style="font-size:11.5px;line-height:1.5">Class health is at 55% with all 8 students needing attention. <b>Binary Representation</b> is the biggest gap at 46% mastery, with 5 students at risk; 21 of 23 remediation sessions have not started yet.</div><div class="card" style="margin:9px 0 0;background:#fff;padding:9px 12px"><b style="color:#4b3fce;font-size:11.5px">🎯 Spend ~15 minutes reviewing common Binary Representation misconceptions, then open class with a quick hands-on conversion activity.</b></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 10px"><div class="card" style="margin:0;padding:11px 14px"><div style="font-size:11px;color:#6b7183">Enrolled students</div><div style="font-size:22px;font-weight:800;margin-top:2px">8</div></div><div class="card" style="margin:0;padding:11px 14px"><div style="font-size:11px;color:#6b7183">Modules generated</div><div style="font-size:22px;font-weight:800;margin-top:2px">23</div></div><div class="card" style="margin:0;padding:11px 14px"><div style="font-size:11px;color:#6b7183">Modules completed</div><div style="font-size:22px;font-weight:800;margin-top:2px">1</div></div></div><div style="font-size:12.5px;font-weight:800;margin:2px 0 6px">Concepts ranked by class risk</div><div class="card" style="margin:0;padding:8px 12px"><div class="rw muted" style="font-size:10px;padding-bottom:4px"><span style="flex:1.5">CONCEPT</span><span style="flex:1.2">AVG MASTERY</span><span style="width:56px">AT RISK</span><span style="width:118px"></span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Binary Representation</b></span><span style="flex:1.2;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:100px"><i style="width:46%;background:#c0392b"></i></span>46%</span><span style="width:56px">5 / 8</span><span style="width:118px"><span class="pill" style="background:#fdeaea;color:#dc2626">Needs Attention</span></span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Machine-Level Computation</b></span><span style="flex:1.2;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:100px"><i style="width:52%;background:#c0392b"></i></span>52%</span><span style="width:56px">6 / 8</span><span style="width:118px"><span class="pill" style="background:#fdeaea;color:#dc2626">Needs Attention</span></span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Boolean Logic</b></span><span style="flex:1.2;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:100px"><i style="width:56%;background:#c0392b"></i></span>56%</span><span style="width:56px">4 / 8</span><span style="width:118px"><span class="pill" style="background:#fdeaea;color:#dc2626">Needs Attention</span></span></div><div class="rw" style="padding:5px 0;border-top:1px solid #f4f2fb;font-size:11.5px"><span style="flex:1.5"><b>Binary Arithmetic</b></span><span style="flex:1.2;display:flex;align-items:center;gap:8px"><span class="bar" style="max-width:100px"><i style="width:65%;background:#c0392b"></i></span>65%</span><span style="width:56px">4 / 8</span><span style="width:118px"><span class="pill" style="background:#fdeaea;color:#dc2626">Needs Attention</span></span></div></div></div>`, img: "07-instructor-copilot.png", url: "app.lmsbridge.app", kicker: "For instructors",
+    title: `Class health, learning gaps, and recommended next steps.`,
+    sub: ``,
+    vo: `For instructors, it is a copilot: the single highest-impact thing to review before the next class — grounded in real class data.` },
+
+  { t: 10, mock: `<div class="ms"><div class="ms-side"><div class="lg" style="color:#e2483d"><span class="m" style="background:#e2483d">C</span> CS 101</div><div class="b">Home</div><div class="b">Announcements</div><div class="b">Assignments</div><div class="b">Grades</div><div class="b">People</div><div class="b">Modules</div><div class="b on">📘 LMS Bridge</div></div><div class="ms-main"><div class="muted" style="font-size:11.5px;margin-bottom:10px">Canvas › CS 101 › LMS Bridge</div><div class="card"><h3>Welcome back, Ava 👋</h3><div class="subt">Signed in through your LMS — nothing new to install or log into.</div><div class="goal"><b>🎯 Focus:</b> Binary Representation · a short guided session is ready</div><span class="btn">▶ Start practice · 6 min</span></div></div></div>`, img: "02-launch-in-lms.png", url: "canvas.instructure.com/courses/101", kicker: "Inside your LMS",
+    title: `Launches right inside the course`,
+    sub: `Students open LMS Bridge from Canvas, Moodle, Blackboard, or Brightspace via LTI 1.3 — single sign-on, no new login.`,
+    vo: `LMS Bridge lives inside your LMS. Students open it from Canvas, Moodle, Blackboard, or Brightspace — single sign-on, no new account.` },
+
+  { t: 9, mock: `<div class="ms center"><div class="card" style="width:min(560px,82%)"><div class="rw"><div><h3 style="margin:0">Quiz: Probability Basics</h3><div class="muted" style="font-size:12px">10 questions · submitted</div></div><div style="width:66px;height:66px;border-radius:50%;background:#fdeaea;color:#dc2626;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px">58%</div></div><div class="rw" style="margin:14px 0;gap:8px"><div class="stat" style="flex:1;text-align:center"><b>10</b><span>Questions</span></div><div class="stat" style="flex:1;text-align:center"><b style="color:#16a34a">6</b><span>Correct</span></div><div class="stat" style="flex:1;text-align:center"><b style="color:#dc2626">4</b><span>Missed</span></div></div><div class="muted" style="font-size:12.5px">You have 2 concepts to review · <b style="color:#6355e6">Go to Needs review →</b></div></div></div>`, img: "03-quiz-result.png", url: "canvas.instructure.com", kicker: "A student slips",
+    title: `A quiz comes back low`,
+    sub: `The moment a formative assessment is submitted, LMS Bridge reads the per-question results.`,
+    vo: `The moment a quiz is submitted, LMS Bridge reads the results — question by question.` },
+
+  { t: 10, mock: `<div class="ms"><div class="ms-main"><h2>Needs review</h2><div class="card"><div class="rw"><div style="min-width:0"><b style="font-size:14px">Rebuilding your foundation in Binary Representation</b><div class="muted" style="font-size:12.5px;margin-top:5px">Recent quiz evidence suggests a gap here. This short session uses retrieval practice and Socratic prompts to fix the misconception before it compounds.</div><div class="muted" style="font-size:12px;margin-top:7px">💬 Interactive tutor · Socratic scaffolding · 3 steps · ~5 min</div></div><span class="btn" style="white-space:nowrap">▶ Start practice</span></div></div><div class="card"><div class="rw"><div><b style="font-size:14px">Boolean Logic</b><div class="muted" style="font-size:12px;margin-top:4px">Needs review · ~6 min</div></div><span class="btn">▶ Start</span></div></div></div></div>`, img: "04-needs-review.png", url: "app.lmsbridge.app", kicker: "Automatic detection",
+    title: `LMS Bridge finds the <span class="hl">root cause</span>`,
+    sub: `It maps wrong answers to concepts, detects the misconception, and builds a targeted practice session — automatically.`,
+    vo: `It maps the wrong answers to concepts, pinpoints the misconception, and builds a short, targeted practice session — automatically.` },
+
+  { t: 11, mock: `<div class="ms"><div class="ms-main"><div class="goal"><b>🎯 Goal:</b> Understand place value in binary &nbsp;·&nbsp; ⏱ ~6 min</div><div class="card"><div class="bub t"><b style="color:#6355e6">AI Tutor</b><br>Let us rebuild Binary Representation together. In <code>1011</code>, what is the leftmost bit worth?</div><div class="bub s">Is it 1?</div><div class="bub t"><b style="color:#6355e6">AI Tutor</b><br>Good instinct — but each position doubles as you move left. If the rightmost is 1, what is the next one worth?</div></div></div></div>`, img: "05-tutor-session.png", url: "app.lmsbridge.app", kicker: "AI tutoring",
+    title: `A patient, one-on-one AI tutor`,
+    sub: `Grounded in the course, it uses retrieval practice and Socratic questioning — it diagnoses and guides, and never just hands over the answer.`,
+    vo: `Then it tutors. Grounded in the course, using retrieval practice and Socratic questioning — it guides the student to the answer instead of handing it over.` },
+
+  { t: 9, mock: `<div class="ms"><div class="ms-main"><div class="goal"><b>🎯 Quick check</b></div><div class="card"><div class="bub t"><b style="color:#6355e6">AI Tutor</b><br>So in <code>1011</code>, what is the leftmost bit worth?</div><div><span class="opt">1</span> &nbsp;<span class="opt">2</span> &nbsp;<span class="opt" style="border-color:#16a34a;color:#16a34a">8 ✓</span></div><div class="bub t" style="margin-top:12px"><b style="color:#6355e6">AI Tutor</b><br>Exactly! That is place value clicking into place. 🎉</div></div></div></div>`, img: "06-tutor-check.png", url: "app.lmsbridge.app", kicker: "Active recall",
+    title: `Checks understanding as it goes`,
+    sub: `Multiple-choice checkpoints confirm the student actually got it before the session wraps up.`,
+    vo: `Quick checks confirm the concept actually landed before the session wraps up.` },
+
+  { t: 10, mock: `<div class="ms"><div class="ms-main"><h2 style="margin-bottom:10px">Analytics</h2><div class="stats"><div class="stat"><b>58%</b><span>Avg mastery</span></div><div class="stat"><b>24</b><span>Students</span></div><div class="stat"><b>22</b><span>Practice sessions</span></div><div class="stat"><b style="color:#dc2626">5</b><span>At risk</span></div></div><div class="card"><h3 style="font-size:14px">Concept mastery</h3><div class="rw" style="margin:9px 0"><span style="width:130px;font-size:12.5px">Binary Rep.</span><div class="bar"><i style="width:46%;background:#dc2626"></i></div><b style="width:40px;text-align:right;color:#dc2626">46%</b></div><div class="rw" style="margin:9px 0"><span style="width:130px;font-size:12.5px">Machine-Level</span><div class="bar"><i style="width:52%;background:#dc2626"></i></div><b style="width:40px;text-align:right;color:#dc2626">52%</b></div><div class="rw" style="margin:9px 0"><span style="width:130px;font-size:12.5px">Boolean Logic</span><div class="bar"><i style="width:60%;background:#d97706"></i></div><b style="width:40px;text-align:right;color:#d97706">60%</b></div><div class="rw" style="margin:9px 0"><span style="width:130px;font-size:12.5px">Binary Arith.</span><div class="bar"><i style="width:84%;background:#16a34a"></i></div><b style="width:40px;text-align:right;color:#16a34a">84%</b></div></div></div></div>`, img: "08-analytics.png", url: "app.lmsbridge.app", kicker: "Insight at scale",
+    title: `See exactly where the class is stuck`,
+    sub: `Concept-mastery bars, at-risk students, and practice impact — real numbers from real submissions, not guesses.`,
+    vo: `Concept-level mastery, at-risk students, and practice impact — real numbers from real submissions.` },
+
+  { t: 9, mock: `<div class="ms"><div class="ms-main"><h2>Install in your LMS</h2><div class="subt">A standard LTI 1.3 tool — four copy-ready URLs.</div><div class="card" style="font-family:ui-monospace,Menlo,monospace;font-size:11.5px;line-height:2.1"><div>Login &nbsp;&nbsp;<code>https://app.lmsbridge.app/lti/login</code></div><div>Launch &nbsp;<code>https://app.lmsbridge.app/lti/launch</code></div><div>JWKS &nbsp;&nbsp;<code>https://app.lmsbridge.app/lti/jwks</code></div><div>Redirect <code>https://app.lmsbridge.app/lti/callback</code></div></div><div class="rw" style="gap:8px"><div class="stat" style="flex:1"><b style="font-size:15px;color:#6355e6">1</b><span>Add the tool</span></div><div class="stat" style="flex:1"><b style="font-size:15px;color:#6355e6">2</b><span>Exchange keys</span></div><div class="stat" style="flex:1"><b style="font-size:15px;color:#6355e6">3</b><span>Place in a course</span></div></div></div></div>`, img: "09-install-lti.png", url: "app.lmsbridge.app/#install", kicker: "Install",
+    title: `A standard <span class="hl">LTI 1.3</span> tool`,
+    sub: `Your admin adds it once with four copy-ready URLs — or one-click Dynamic Registration. Roster and grades sync automatically.`,
+    vo: `Installing it is a one-time job: four copy-ready URLs, or one-click registration. Roster and grades sync on their own.` },
+
+  { t: 10, mock: `<div class="ms"><div class="ms-side"><div class="lg"><span class="m">📘</span> Sage</div><div class="b on">📊 Overview</div><div class="b">Quizzes</div><div class="b">Students</div><div class="b">Grades</div><div class="b">Analytics</div><div class="b">Materials</div></div><div class="ms-main"><h2>Good morning, Ava</h2><div class="subt">Here is what is happening in your courses.</div><div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat"><b>3</b><span>Courses</span></div><div class="stat"><b>24</b><span>Students</span></div><div class="stat"><b>7</b><span>Quizzes</span></div></div><div class="card"><h3 style="font-size:14px">No LMS required</h3><div class="muted" style="font-size:12.5px">Create a course, add quizzes, share a join code — the same AI tutor is built in, out of the box.</div></div></div></div>`, img: "10-sage.png", url: "app.lmsbridge.app/sage", kicker: "No LMS? No problem",
+    title: `Sage — a standalone mini-LMS`,
+    sub: `Create a course, add quizzes, share a join code. When a student misses a concept, the same AI tutor kicks in — built in.`,
+    vo: `No LMS? Sage is a standalone mini-LMS with the same tutor built in. Make a course, share a code, and adaptive remediation just works.` },
+
+  { t: 9, mock: `<div class="ms rtl"><div class="ms-side"><div class="lg"><span class="m">📘</span> LMS Bridge</div><div class="b on">الرئيسية</div><div class="b">الاختبارات</div><div class="b">الدرجات</div><div class="b">بحاجة لمراجعة</div></div><div class="ms-main"><div class="rw"><h2>بحاجة لمراجعة</h2><span class="lang">AR ▾</span></div><div class="card"><b style="font-size:14px">إعادة بناء أساسك في التمثيل الثنائي</b><div class="muted" style="font-size:12.5px;margin-top:6px">تشير أدلة التقييم الأخيرة إلى وجود فجوة هنا. جلسة قصيرة موجَّهة تستخدم التدريب الاسترجاعي والأسئلة السقراطية لتصحيح المفهوم الخاطئ.</div><div style="margin-top:10px"><span class="btn">▶ ابدأ التدريب</span></div></div></div></div>`, img: "11-multilanguage.png", url: "app.lmsbridge.app", kicker: "For every classroom",
+    title: `Speaks your students' language`,
+    sub: `English, Spanish, French, and Arabic — with full right-to-left support — across the whole platform and the tutor.`,
+    vo: `It speaks English, Spanish, French, and Arabic — right-to-left included — across the whole platform and the tutor.` },
+
+  { t: 8, vo: `It is FERPA-aware, runs on your own AI key, and it is open source — self-host the whole thing if you want.`, brand: `
+      <div class="kicker" style="justify-content:center"><span>Built for education</span></div>
+      <div class="title" style="max-width:900px;margin:0 auto">Private by design, <span class="hl">open</span> by default</div>
+      <div class="chips"><span class="chip">🔒 <b>FERPA-aware</b></span><span class="chip">🔑 Bring your own AI key</span><span class="chip">⚙️ <b>AGPL-3.0</b> — self-host it all</span></div>` },
+
+  { t: 6.5, vo: `LMS Bridge. Bridge early gaps before they widen.`, brand: `
+      <div class="logo"><span class="mark">📘</span> LMS <span class="hl" style="color:var(--accent)">Bridge</span></div>
+      <div class="cta" style="margin-top:22px">Bridge early gaps <span class="u">before they widen.</span></div>
+      <div class="tag" style="margin-top:14px"><span class="u" style="color:var(--accent)">www.lmsbridge.app</span></div>` }
+];
+
+const scenesEl = document.getElementById("scenes");
+const progEl = document.getElementById("prog");
+const dotsEl = document.getElementById("dots");
+
+S.forEach((s, i) => {
+  const sc = document.createElement("div");
+  sc.className = "scene" + (s.brand ? "" : "");
+  if (s.brand) {
+    sc.innerHTML = `<div class="scene-inner shot"><div class="brand-scene" style="display:flex;flex-direction:column;align-items:center;gap:6px">${s.brand}</div></div>`;
+  } else {
+    sc.innerHTML = `
+      <div class="shot shot-img">
+        <div class="frame" data-img="${s.img}">
+          <div class="browserbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">${s.url || "app.lmsbridge.app"}</span></div>
+          <div class="imgwrap"></div>
+        </div>
+      </div>
+      <div class="caption">
+        <div class="kicker"><span class="n">${String(i).padStart(2,"0")}</span> ${s.kicker || ""}</div>
+        <div class="title">${s.title || ""}</div>
+        ${s.sub ? `<div class="sub">${s.sub}</div>` : ""}
+      </div>`;
+  }
+  scenesEl.appendChild(sc);
+
+  const dot = document.createElement("i");
+  dot.addEventListener("click", () => go(i, true));
+  dotsEl.appendChild(dot);
+
+  // Real screenshot only. Shown at full width; tall shots pan to reveal every detail.
+  if (!s.brand) {
+    const wrap = sc.querySelector(".imgwrap");
+    const img = new Image();
+    img.className = "shot-photo";
+    img.onload = () => { wrap.innerHTML = ""; wrap.appendChild(img); if (scenes[idx] === sc) startPan(sc); };
+    img.onerror = () => {
+      wrap.innerHTML = `<div class="phfill"><div class="big">📸 ${s.img}</div>
+        <div>Drop your real screenshot into <code>shots/</code></div></div>`;
+    };
+    img.src = "shots/" + s.img;
+  }
+});
+
+const scenes = [...document.querySelectorAll(".scene")];
+const dots = [...dotsEl.children];
+let idx = 0, playing = true, t0 = 0, raf = 0, dur = S[0].t * 1000;
+
+function render(){
+  scenes.forEach((s,i)=>s.classList.toggle("on", i===idx));
+  dots.forEach((d,i)=>d.classList.toggle("on", i===idx));
+}
+function startPan(sc){
+  const im = sc.querySelector(".shot-photo"); if(!im) return;
+  const wrap = im.parentElement;
+  im.style.transition = "none"; im.style.transform = "translateY(0)";
+  const ov = im.offsetHeight - wrap.clientHeight;
+  if (ov > 8){ requestAnimationFrame(()=>{ im.style.transition = "transform " + Math.max(2, dur/1000 - 1.6) + "s linear"; im.style.transform = "translateY(-" + ov + "px)"; }); }
+}
+function go(i, user){
+  idx = (i + S.length) % S.length;
+  dur = S[idx].t * 1000; t0 = performance.now();
+  scenes.forEach(sc=>{ const im=sc.querySelector(".shot-photo"); if(im){ im.style.transition="none"; im.style.transform="translateY(0)"; }});
+  startPan(scenes[idx]);
+  render();
+  if (user && !playing) setPlaying(true);
+}
+function tick(now){
+  if (playing){
+    const p = Math.min(1, (now - t0) / dur);
+    progEl.style.width = (p*100) + "%";
+    if (p >= 1) go(idx + 1);
+  }
+  raf = requestAnimationFrame(tick);
+}
+function setPlaying(v){
+  playing = v; document.getElementById("play").textContent = v ? "⏸" : "▶";
+  if (v){ t0 = performance.now() - (parseFloat(progEl.style.width||0)/100)*dur; }
+}
+
+document.getElementById("play").addEventListener("click", ()=>setPlaying(!playing));
+document.getElementById("next").addEventListener("click", ()=>go(idx+1,true));
+document.getElementById("prev").addEventListener("click", ()=>go(idx-1,true));
+document.getElementById("restart").addEventListener("click", ()=>{ go(0,true); });
+document.getElementById("present").addEventListener("click", ()=>document.body.classList.toggle("present"));
+document.addEventListener("keydown", (e)=>{
+  if (e.code==="Space"){ e.preventDefault(); setPlaying(!playing); }
+  else if (e.code==="ArrowRight") go(idx+1,true);
+  else if (e.code==="ArrowLeft") go(idx-1,true);
+  else if (e.key.toLowerCase()==="p") document.body.classList.toggle("present");
+  else if (e.key.toLowerCase()==="f"){ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+});
+
+
+render(); go(0); setPlaying(true); requestAnimationFrame(tick);
+setTimeout(()=>document.getElementById("hint").classList.add("hidden"), 6000);
+</script>
+</body>
+</html>
