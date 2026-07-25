@@ -259,7 +259,9 @@
       "thText": "Texto",
       "noMaterials": "Aún no hay materiales.",
       "extracted": "extraído",
-      "none": "ninguno"
+      "none": "ninguno",
+      "importTag": "opcional · avanzado",
+      "importOptional": "No lo necesitas. Sube archivos arriba o deja que LMS Bridge trabaje con los datos de tus cuestionarios y tareas. Importar desde el LMS es una comodidad puntual — y normalmente una tarea del administrador del LMS, no tuya."
     },
     "setup": {
       "keyNameRequired": "La clave y el nombre son obligatorios.",

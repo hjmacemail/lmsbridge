@@ -123,9 +123,13 @@ export default function MaterialsPanel({
         </form>
       </div>
 
-      <div className="card" style={{ marginBottom: 18 }}>
-        <h3>{t("instructor.materials.importTitle")}</h3>
-        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+      <details className="card" style={{ marginBottom: 18 }}>
+        <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: 15, listStyle: "revert" }}>
+          {t("instructor.materials.importTitle")}{" "}
+          <span className="pill pending" style={{ fontWeight: 600, marginLeft: 4 }}>{t("instructor.materials.importTag")}</span>
+        </summary>
+        <div className="feedback" style={{ marginTop: 12, fontSize: 13 }}>{t("instructor.materials.importOptional")}</div>
+        <p className="muted" style={{ marginTop: 10, fontSize: 13 }}>
           {t("instructor.materials.importHelp")} <em>{TOKEN_HELP[cvProvider]}.</em>
         </p>
         <form onSubmit={importLms}>
@@ -159,7 +163,7 @@ export default function MaterialsPanel({
           </button>
           {cvNote && <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>{cvNote}</div>}
         </form>
-      </div>
+      </details>
 
       <div className="card">
         <h3>{t("instructor.materials.libraryTitle", { count: materials.length })}</h3>

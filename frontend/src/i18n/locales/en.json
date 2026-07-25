@@ -259,7 +259,9 @@
       "thText": "Text",
       "noMaterials": "No materials yet.",
       "extracted": "extracted",
-      "none": "none"
+      "none": "none",
+      "importTag": "optional · advanced",
+      "importOptional": "You don't need this. Upload files above, or just let LMS Bridge work from your quiz and assignment data. Importing from the LMS is a one-time convenience — and usually a task for your LMS admin, not you."
     },
     "setup": {
       "keyNameRequired": "Key and name are required.",

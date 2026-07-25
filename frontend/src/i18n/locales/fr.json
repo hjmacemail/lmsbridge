@@ -259,7 +259,9 @@
       "thText": "Texte",
       "noMaterials": "Aucun support pour l'instant.",
       "extracted": "extrait",
-      "none": "aucun"
+      "none": "aucun",
+      "importTag": "facultatif · avancé",
+      "importOptional": "Vous n'en avez pas besoin. Téléversez des fichiers ci-dessus, ou laissez simplement LMS Bridge s'appuyer sur les données de vos quiz et devoirs. L'import depuis le LMS est une commodité ponctuelle — et généralement une tâche de votre administrateur LMS, pas la vôtre."
     },
     "setup": {
       "keyNameRequired": "La clé et le nom sont obligatoires.",
