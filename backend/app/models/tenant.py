@@ -31,6 +31,13 @@ class Tenant(Base, TimestampMixin):
     ai_deployment: Mapped[str | None] = mapped_column(String(128))
     ai_api_key_encrypted: Mapped[str | None] = mapped_column(String(1024))
 
+    # --- LMS content API (admin-configured, ONE time) ---
+    # Lets instructors import course files with a single click — they never enter a token,
+    # URL, or course id. The stored credentials + the launch's course reference are used.
+    lms_provider: Mapped[str | None] = mapped_column(String(32))   # canvas | moodle | brightspace
+    lms_base_url: Mapped[str | None] = mapped_column(String(512))
+    lms_api_key_encrypted: Mapped[str | None] = mapped_column(String(2048))
+
     # --- Privacy policy ---
     # When False, live student content is never sent to an external commercial API
     # (the engine falls back to a local/self-hosted model or the safe mock).

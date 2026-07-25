@@ -20,6 +20,10 @@ class TenantOut(ORMModel):
     default_locale: str | None = None
     # Never expose the key — only whether one is set.
     ai_key_set: bool = False
+    # LMS content API (admin-set; lets instructors import files with no token). Never expose the key.
+    lms_provider: str | None = None
+    lms_base_url: str | None = None
+    lms_connected: bool = False
     # Licensing snapshot (read-only here; managed by the platform operator).
     subscription_status: str = "trial"
     plan: str = "pilot"
@@ -57,3 +61,11 @@ class TenantAiUpdate(BaseModel):
     external_ai_allowed: bool | None = None
     pii_minimization: bool | None = None
     default_locale: str | None = None    # "en"|"es"|"fr"|"ar"|"" (clear -> follow the LMS)
+
+
+class TenantLmsUpdate(BaseModel):
+    """Admin-configured LMS content API connection (set once; instructors never see tokens)."""
+
+    lms_provider: str | None = None       # canvas|moodle|brightspace|"" (clear)
+    lms_base_url: str | None = None
+    lms_api_key: str | None = None        # write-only; "" clears it

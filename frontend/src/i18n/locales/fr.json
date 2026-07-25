@@ -261,7 +261,11 @@
       "extracted": "extrait",
       "none": "aucun",
       "importTag": "facultatif · avancé",
-      "importOptional": "Vous n'en avez pas besoin. Téléversez des fichiers ci-dessus, ou laissez simplement LMS Bridge s'appuyer sur les données de vos quiz et devoirs. L'import depuis le LMS est une commodité ponctuelle — et généralement une tâche de votre administrateur LMS, pas la vôtre."
+      "importOptional": "Vous n'en avez pas besoin. Téléversez des fichiers ci-dessus, ou laissez simplement LMS Bridge s'appuyer sur les données de vos quiz et devoirs. L'import depuis le LMS est une commodité ponctuelle — et généralement une tâche de votre administrateur LMS, pas la vôtre.",
+      "importDesc": "Importez les fichiers de ce cours (PDF, DOCX, PPTX, TXT, MD, HTML, CSV) pour ancrer l'IA dans vos propres supports.",
+      "importOneClick": "Importer les fichiers de ce cours",
+      "importOpenFromLms": "Ouvrez LMS Bridge depuis votre cours dans le LMS une fois, puis vous pourrez importer ses fichiers ici en un clic.",
+      "importAdminNeeded": "Votre établissement n'a pas encore connecté son LMS. Une fois qu'un administrateur l'aura configuré dans les Paramètres, vous pourrez importer les fichiers du cours ici en un clic — sans jeton."
     },
     "setup": {
       "keyNameRequired": "La clé et le nom sont obligatoires.",

@@ -324,6 +324,9 @@ export interface TenantSettings {
   pii_minimization: boolean;
   default_locale?: string | null;
   ai_key_set: boolean;
+  lms_provider?: string | null;
+  lms_base_url?: string | null;
+  lms_connected: boolean;
   subscription_status: string;
   plan: string;
   seat_limit?: number | null;

@@ -19,6 +19,7 @@ from app.schemas.tenant import (
     TenantAiUpdate,
     TenantLicenseRow,
     TenantLicenseUpdate,
+    TenantLmsUpdate,
     TenantOut,
 )
 from app.services import license_service
@@ -36,6 +37,8 @@ def _to_out(t: Tenant) -> TenantOut:
         external_ai_allowed=t.external_ai_allowed, pii_minimization=t.pii_minimization,
         default_locale=t.default_locale,
         ai_key_set=bool(t.ai_api_key_encrypted),
+        lms_provider=t.lms_provider, lms_base_url=t.lms_base_url,
+        lms_connected=bool(t.lms_provider and t.lms_base_url and t.lms_api_key_encrypted),
         subscription_status=t.subscription_status, plan=t.plan,
         seat_limit=t.seat_limit, license_expires_at=t.license_expires_at,
     )
@@ -132,6 +135,27 @@ def update_ai(
             status_code=400,
             detail=f"Unsupported default_locale; choose one of {', '.join(SUPPORTED_LANGS)}",
         )
+    db.commit()
+    db.refresh(t)
+    return _to_out(t)
+
+
+@router.put("/me/lms", response_model=TenantOut)
+def update_lms(
+    payload: TenantLmsUpdate, db: Session = Depends(get_db), admin: User = Depends(require_admin)
+) -> TenantOut:
+    """Store the institution's LMS content-API connection ONCE. After this, instructors import
+    course files with a single click — they never enter a token, URL, or course id."""
+    t = _resolve_tenant(db, admin)
+    data = payload.model_dump(exclude_unset=True)
+    if "lms_api_key" in data:
+        key = data.pop("lms_api_key")
+        t.lms_api_key_encrypted = encrypt_secret(key) if key else None
+    for field in ("lms_provider", "lms_base_url"):
+        if field in data:
+            setattr(t, field, data[field] if data[field] != "" else None)
+    if t.lms_provider and t.lms_provider not in ("canvas", "moodle", "brightspace"):
+        raise HTTPException(status_code=400, detail="Unsupported lms_provider")
     db.commit()
     db.refresh(t)
     return _to_out(t)

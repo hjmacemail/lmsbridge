@@ -16,6 +16,11 @@ export default function SettingsPanel() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  // LMS content-API connection (set once so instructors import files with one click, no token).
+  const [lmsKey, setLmsKey] = useState("");
+  const [lmsBusy, setLmsBusy] = useState(false);
+  const [lmsNote, setLmsNote] = useState<string | null>(null);
+  const [lmsErr, setLmsErr] = useState<string | null>(null);
 
   useEffect(() => {
     api.getTenant().then(setT).catch((e) => setErr((e as Error).message));
@@ -46,6 +51,25 @@ export default function SettingsPanel() {
       setErr((e as Error).message);
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function saveLms() {
+    if (!t) return;
+    setLmsBusy(true); setLmsNote(null); setLmsErr(null);
+    try {
+      const payload: { lms_provider?: string; lms_base_url?: string; lms_api_key?: string } = {
+        lms_provider: t.lms_provider ?? "",
+        lms_base_url: t.lms_base_url ?? "",
+      };
+      if (lmsKey) payload.lms_api_key = lmsKey;
+      const updated = await api.updateTenantLms(payload);
+      setT(updated); setLmsKey("");
+      setLmsNote("Saved. Instructors can now import their course files with one click — no token needed.");
+    } catch (e) {
+      setLmsErr((e as Error).message);
+    } finally {
+      setLmsBusy(false);
     }
   }
 
@@ -115,6 +139,51 @@ export default function SettingsPanel() {
             </div>
           </>
         )}
+      </div>
+
+      <div className="card">
+        <h3>LMS file import{" "}
+          {t.lms_connected && <span className="pill mastered">connected</span>}</h3>
+        <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>
+          Connect your LMS's content API <strong>once</strong> here. After that, instructors pull
+          their own course files into LMS Bridge with a single click — they never see or enter a
+          token, URL, or course id. Optional: instructors can still upload files manually without it.
+        </p>
+        <div className="field">
+          <label>LMS</label>
+          <select value={t.lms_provider ?? ""} onChange={(e) => set("lms_provider", e.target.value || null)}>
+            <option value="">Not connected</option>
+            <option value="canvas">Canvas</option>
+            <option value="moodle">Moodle</option>
+            <option value="brightspace">Brightspace</option>
+          </select>
+        </div>
+        {t.lms_provider && (
+          <>
+            <div className="field">
+              <label>LMS base URL</label>
+              <input value={t.lms_base_url ?? ""} onChange={(e) => set("lms_base_url", e.target.value)}
+                placeholder="https://school.instructure.com" />
+            </div>
+            <div className="field">
+              <label>API token {t.lms_connected && <span className="pill mastered">set</span>}</label>
+              <input value={lmsKey} onChange={(e) => setLmsKey(e.target.value)} type="password"
+                placeholder={t.lms_connected ? "•••••••• (leave blank to keep)" : "Paste an admin/service API token"}
+                autoComplete="off" />
+              <p className="mini muted" style={{ marginTop: 6, fontSize: 12 }}>
+                Use a service or admin token scoped to read course files. Stored encrypted at rest;
+                we never display it back.
+              </p>
+            </div>
+          </>
+        )}
+        <div className="row" style={{ marginTop: 4 }}>
+          <button className="btn secondary" onClick={saveLms} disabled={lmsBusy}>
+            {lmsBusy ? "Saving…" : "Save LMS connection"}
+          </button>
+          {lmsNote && <span style={{ color: "var(--mastered)", fontSize: 14 }}>{lmsNote}</span>}
+          {lmsErr && <span className="error">{lmsErr}</span>}
+        </div>
       </div>
 
       <div className="card">

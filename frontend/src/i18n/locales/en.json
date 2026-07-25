@@ -261,7 +261,11 @@
       "extracted": "extracted",
       "none": "none",
       "importTag": "optional · advanced",
-      "importOptional": "You don't need this. Upload files above, or just let LMS Bridge work from your quiz and assignment data. Importing from the LMS is a one-time convenience — and usually a task for your LMS admin, not you."
+      "importOptional": "You don't need this. Upload files above, or just let LMS Bridge work from your quiz and assignment data. Importing from the LMS is a one-time convenience — and usually a task for your LMS admin, not you.",
+      "importDesc": "Pull this course's files (PDF, DOCX, PPTX, TXT, MD, HTML, CSV) to ground the AI in your own materials.",
+      "importOneClick": "Import files from this course",
+      "importOpenFromLms": "Open LMS Bridge from inside your LMS course once, then you can import its files here with one click.",
+      "importAdminNeeded": "Your institution hasn't connected its LMS yet. Once an admin sets it up in Settings, you can import course files here with one click — no token needed."
     },
     "setup": {
       "keyNameRequired": "Key and name are required.",

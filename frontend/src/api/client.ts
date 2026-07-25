@@ -195,6 +195,13 @@ export const api = {
         access_token: accessToken, lms_course_id: lmsCourseId,
       }) },
     ),
+  // One-click, tokenless import using the institution's admin-configured LMS connection.
+  lmsImportStatus: (courseId: number) =>
+    request<{ connected: boolean; provider: string | null; has_course_ref: boolean; can_import: boolean }>(
+      `/materials/import/lms/status?course_id=${courseId}`),
+  importLmsAuto: (courseId: number) =>
+    request<{ imported: number; skipped: number; total: number }>(
+      `/materials/import/lms/auto?course_id=${courseId}`, { method: "POST" }),
 
   // ---- Instructor detail views ----
   roster: (courseId: number) =>
@@ -245,6 +252,10 @@ export const api = {
   getTenant: () => request<TenantSettings>("/tenants/me"),
   updateTenantAi: (payload: Partial<TenantSettings> & { ai_api_key?: string }) =>
     request<TenantSettings>("/tenants/me/ai", {
+      method: "PUT", body: JSON.stringify(payload),
+    }),
+  updateTenantLms: (payload: { lms_provider?: string; lms_base_url?: string; lms_api_key?: string }) =>
+    request<TenantSettings>("/tenants/me/lms", {
       method: "PUT", body: JSON.stringify(payload),
     }),
   courseRemediation: (courseId: number) =>

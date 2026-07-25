@@ -18,11 +18,9 @@ export default function MaterialsPanel({
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // LMS file import
-  const [cvProvider, setCvProvider] = useState("canvas");
-  const [cvBase, setCvBase] = useState("");
-  const [cvToken, setCvToken] = useState("");
-  const [cvCourse, setCvCourse] = useState("");
+  // One-click LMS import: the institution admin connects the LMS once; the instructor enters nothing.
+  const [lms, setLms] = useState<
+    { connected: boolean; provider: string | null; has_course_ref: boolean; can_import: boolean } | null>(null);
   const [cvBusy, setCvBusy] = useState(false);
   const [cvNote, setCvNote] = useState<string | null>(null);
 
@@ -31,34 +29,15 @@ export default function MaterialsPanel({
   }
   useEffect(load, [courseId]);
 
-  // Prefill provider + course id from the LTI launch context.
   useEffect(() => {
-    api.lmsContext(courseId).then((c) => {
-      if (c.provider) setCvProvider(c.provider);
-      if (c.lms_course_ref) setCvCourse(c.lms_course_ref);
-    }).catch(() => {});
+    api.lmsImportStatus(courseId).then(setLms).catch(() => setLms(null));
   }, [courseId]);
 
-  const ID_LABEL: Record<string, string> = {
-    canvas: t("instructor.materials.idCanvas"), moodle: t("instructor.materials.idMoodle"),
-    brightspace: t("instructor.materials.idBrightspace"),
-  };
-  const TOKEN_HELP: Record<string, string> = {
-    canvas: t("instructor.materials.tokenCanvas"),
-    moodle: t("instructor.materials.tokenMoodle"),
-    brightspace: t("instructor.materials.tokenBrightspace"),
-  };
-
-  async function importLms(e: React.FormEvent) {
-    e.preventDefault();
-    if (!cvBase || !cvToken || !cvCourse) {
-      setCvNote(t("instructor.materials.enterLmsFields")); return;
-    }
+  async function importLmsAuto() {
     setCvBusy(true); setCvNote(null);
     try {
-      const r = await api.importLmsFiles(courseId, cvProvider, cvBase, cvToken, cvCourse);
+      const r = await api.importLmsAuto(courseId);
       setCvNote(t("instructor.materials.importedFiles", { imported: r.imported, skipped: r.skipped, total: r.total }));
-      setCvToken("");
       load();
     } catch (e) {
       setCvNote((e as Error).message);
@@ -123,47 +102,27 @@ export default function MaterialsPanel({
         </form>
       </div>
 
-      <details className="card" style={{ marginBottom: 18 }}>
-        <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: 15, listStyle: "revert" }}>
-          {t("instructor.materials.importTitle")}{" "}
-          <span className="pill pending" style={{ fontWeight: 600, marginLeft: 4 }}>{t("instructor.materials.importTag")}</span>
-        </summary>
-        <div className="feedback" style={{ marginTop: 12, fontSize: 13 }}>{t("instructor.materials.importOptional")}</div>
-        <p className="muted" style={{ marginTop: 10, fontSize: 13 }}>
-          {t("instructor.materials.importHelp")} <em>{TOKEN_HELP[cvProvider]}.</em>
-        </p>
-        <form onSubmit={importLms}>
-          <div className="grid cols-2" style={{ alignItems: "end" }}>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>{t("instructor.materials.lmsLabel")}</label>
-              <select value={cvProvider} onChange={(e) => setCvProvider(e.target.value)}>
-                <option value="canvas">Canvas</option>
-                <option value="moodle">Moodle</option>
-                <option value="brightspace">Brightspace</option>
-              </select>
-            </div>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>{t("instructor.materials.lmsUrl")}</label>
-              <input value={cvBase} onChange={(e) => setCvBase(e.target.value)}
-                placeholder="https://school.instructure.com" />
-            </div>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>{t("instructor.materials.accessToken")}</label>
-              <input type="password" value={cvToken} onChange={(e) => setCvToken(e.target.value)}
-                placeholder={t("instructor.materials.pasteToken")} autoComplete="off" />
-            </div>
-            <div className="field" style={{ marginBottom: 0 }}>
-              <label>{ID_LABEL[cvProvider]}</label>
-              <input value={cvCourse} onChange={(e) => setCvCourse(e.target.value)}
-                placeholder="e.g. 12345" />
-            </div>
-          </div>
-          <button className="btn" style={{ marginTop: 14 }} disabled={cvBusy}>
-            {cvBusy ? t("instructor.materials.importing") : t("instructor.materials.importBtn")}
-          </button>
-          {cvNote && <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>{cvNote}</div>}
-        </form>
-      </details>
+      {lms && (
+        <div className="card" style={{ marginBottom: 18 }}>
+          <h3 style={{ marginBottom: 6 }}>
+            {t("instructor.materials.importTitle")}{" "}
+            <span className="pill pending" style={{ fontWeight: 600, marginLeft: 4 }}>{t("instructor.materials.importTag")}</span>
+          </h3>
+          <p className="muted" style={{ marginTop: 0, fontSize: 13 }}>{t("instructor.materials.importDesc")}</p>
+          {lms.can_import ? (
+            <>
+              <button className="btn" onClick={importLmsAuto} disabled={cvBusy}>
+                {cvBusy ? t("instructor.materials.importing") : t("instructor.materials.importOneClick")}
+              </button>
+              {cvNote && <div className="muted" style={{ fontSize: 13, marginTop: 8 }}>{cvNote}</div>}
+            </>
+          ) : lms.connected ? (
+            <div className="feedback" style={{ fontSize: 13 }}>{t("instructor.materials.importOpenFromLms")}</div>
+          ) : (
+            <div className="feedback" style={{ fontSize: 13 }}>{t("instructor.materials.importAdminNeeded")}</div>
+          )}
+        </div>
+      )}
 
       <div className="card">
         <h3>{t("instructor.materials.libraryTitle", { count: materials.length })}</h3>
