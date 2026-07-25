@@ -156,6 +156,7 @@ export default function SettingsPanel() {
             <option value="canvas">Canvas</option>
             <option value="moodle">Moodle</option>
             <option value="brightspace">Brightspace</option>
+            {t.lms_provider === "sample" && <option value="sample">Demo sample content</option>}
           </select>
         </div>
         {t.lms_provider && (

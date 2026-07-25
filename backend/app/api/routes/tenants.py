@@ -154,7 +154,7 @@ def update_lms(
     for field in ("lms_provider", "lms_base_url"):
         if field in data:
             setattr(t, field, data[field] if data[field] != "" else None)
-    if t.lms_provider and t.lms_provider not in ("canvas", "moodle", "brightspace"):
+    if t.lms_provider and t.lms_provider not in ("canvas", "moodle", "brightspace", "sample"):
         raise HTTPException(status_code=400, detail="Unsupported lms_provider")
     db.commit()
     db.refresh(t)

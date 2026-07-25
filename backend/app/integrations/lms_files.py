@@ -8,11 +8,14 @@ from __future__ import annotations
 from app.integrations.brightspace import files as brightspace_files
 from app.integrations.canvas import files as canvas_files
 from app.integrations.moodle import files as moodle_files
+from app.integrations.sample import files as sample_files
 
 PROVIDERS = {
     "canvas": canvas_files,
     "moodle": moodle_files,
     "brightspace": brightspace_files,
+    # Offline demo provider: serves bundled sample study notes with no external LMS or token.
+    "sample": sample_files,
 }
 
 

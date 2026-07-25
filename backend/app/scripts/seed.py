@@ -209,6 +209,13 @@ def seed(reset: bool = False, if_empty: bool = False) -> None:
             )
             db.add(tenant)
             db.flush()
+        # Wire the demo institution to the offline 'sample' LMS so the one-click "Import
+        # course files" flow is live in the demo (no external LMS or token needed).
+        from app.core.crypto import encrypt_secret
+        tenant.lms_provider = "sample"
+        tenant.lms_base_url = "sample://demo-university"
+        if not tenant.lms_api_key_encrypted:
+            tenant.lms_api_key_encrypted = encrypt_secret("demo-sample-token")
         admin.tenant_id = tenant.id
         instructor.tenant_id = tenant.id
 
@@ -219,6 +226,9 @@ def seed(reset: bool = False, if_empty: bool = False) -> None:
                                 brightspace_course_id=bs_id, tenant_id=tenant.id)
                 db.add(course)
                 db.flush()
+            # Course reference the one-click import uses (normally captured at LTI launch).
+            if not course.lms_course_ref:
+                course.lms_course_ref = bs_id
             db.add(Enrollment(user_id=instructor.id, course_id=course.id, role=UserRole.instructor))
 
             key_to_concept: dict[str, Concept] = {}
