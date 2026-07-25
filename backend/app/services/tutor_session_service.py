@@ -145,9 +145,15 @@ def session_context(db: Session, module: RemediationModule) -> dict:
 
 
 def _history(module: RemediationModule) -> list[LLMMessage]:
+    # Replay the tutor's turns in the SAME JSON envelope the model must produce. If we feed
+    # them back as plain prose, the model mimics that and stops returning JSON — which then
+    # trips the parser and forces a generic fallback reply on every subsequent turn.
     out: list[LLMMessage] = []
     for m in module.messages:
-        out.append(LLMMessage("assistant" if m.role == "tutor" else "user", m.content))
+        if m.role == "tutor":
+            out.append(LLMMessage("assistant", json.dumps({"reply": m.content}, ensure_ascii=False)))
+        else:
+            out.append(LLMMessage("user", m.content))
     return out
 
 
@@ -184,7 +190,8 @@ def start_session(
         reply = data.get("reply") or _fallback_opening(module)
         choices = _clean_choices(data)
     except Exception:  # noqa: BLE001
-        reply = _fallback_opening(module)
+        txt = (resp.text or "").strip()
+        reply = txt if (txt and not txt.lstrip().startswith("{")) else _fallback_opening(module)
     _add(db, module, "tutor", reply, choices)
     if module.status == RemediationStatus.pending:
         module.status = RemediationStatus.in_progress
@@ -217,7 +224,12 @@ def post_message(
         complete = bool(data.get("complete"))
         choices = None if at_limit else _clean_choices(data)
     except Exception:  # noqa: BLE001
-        reply, complete = "Keep going — walk me through your reasoning step by step.", False
+        # If the model answered in prose instead of JSON, use its real reply rather than a
+        # canned line (which would otherwise repeat and derail the whole conversation).
+        txt = (resp.text or "").strip()
+        reply = txt if (txt and not txt.lstrip().startswith("{")) \
+            else "Keep going — walk me through your reasoning step by step."
+        complete = False
 
     if at_limit:
         complete = True  # enforce the cap even if the model doesn't comply
