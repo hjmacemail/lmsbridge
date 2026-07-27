@@ -7,6 +7,7 @@ learning checkpoints are met; completing a session raises the student's concept 
 from __future__ import annotations
 
 import json
+import re
 from datetime import datetime, timezone
 
 from sqlalchemy import select
@@ -43,6 +44,58 @@ def _clean_choices(data: dict) -> list[str] | None:
         return None
     opts = [str(c).strip() for c in raw if str(c).strip()]
     return opts[:4] if len(opts) >= 2 else None
+
+
+_RETRY_NUDGE = (
+    "Your previous reply was not a single valid JSON object. Reply again with ONLY valid JSON "
+    'like {"reply": "...", "complete": false}. Escape any double-quotes and newlines inside '
+    "string values. Do not include prose or code fences."
+)
+
+
+def _salvage_reply(text: str) -> str | None:
+    """Best-effort recovery when the model's JSON won't parse.
+
+    Real models occasionally emit a "reply" whose string value contains an unescaped quote or
+    newline, which trips json.loads. Rather than fall back to a generic canned line, pull the
+    reply text out directly. Also handles the case where the model answered in plain prose.
+    """
+    if not text:
+        return None
+    m = re.search(r'"reply"\s*:\s*"(.*?)"\s*(?:,\s*"(?:complete|choices)"|\})', text, re.DOTALL)
+    if m:
+        val = m.group(1).replace('\\"', '"').replace("\\n", "\n").strip()
+        if val:
+            return val
+    stripped = text.strip()
+    # Pure prose (the model ignored the JSON instruction) is still a usable tutor reply.
+    if stripped and not stripped.lstrip().startswith("{"):
+        return stripped
+    return None
+
+
+def _tutor_turn(llm, messages: list[LLMMessage], *, at_limit: bool) -> tuple[str, bool, list[str] | None]:
+    """Get one tutor turn as (reply, complete, choices), robust to malformed model JSON.
+
+    Strategy: parse the JSON; if that fails, retry once with a firmer instruction; if it still
+    fails, salvage the reply text out of the raw output; only if everything fails do we use a
+    genuinely helpful fallback (never a dismissive canned line that could loop)."""
+    resp = llm.complete(messages, json_mode=True)
+    try:
+        data = extract_json(resp.text)
+    except Exception:  # noqa: BLE001
+        # One firm retry — real models almost always comply the second time.
+        try:
+            retry = llm.complete([*messages, LLMMessage("system", _RETRY_NUDGE)], json_mode=True)
+            data = extract_json(retry.text)
+        except Exception:  # noqa: BLE001
+            salvaged = _salvage_reply(resp.text)
+            return (salvaged or "", False, None)  # empty -> caller supplies helpful fallback
+
+    reply = (data.get("reply") or "").strip()
+    complete = bool(data.get("complete"))
+    choices = None if at_limit else _clean_choices(data)
+    return (reply, complete, choices)
 
 
 def _has_wrong_mcq(result: AssessmentResult | None, concept_key: str) -> bool:
@@ -177,21 +230,16 @@ def start_session(
     if module.messages:
         return module
     llm = resolve_provider(db, course_id=module.course_id)
-    resp = llm.complete(
+    reply, _complete, choices = _tutor_turn(
+        llm,
         [
             LLMMessage("system", _system_prompt(db, module, language)),
             LLMMessage("user", build_tutor_opening_user_prompt()),
         ],
-        json_mode=True,
+        at_limit=False,
     )
-    choices = None
-    try:
-        data = extract_json(resp.text)
-        reply = data.get("reply") or _fallback_opening(module)
-        choices = _clean_choices(data)
-    except Exception:  # noqa: BLE001
-        txt = (resp.text or "").strip()
-        reply = txt if (txt and not txt.lstrip().startswith("{")) else _fallback_opening(module)
+    if not reply:
+        reply = _fallback_opening(module)
     _add(db, module, "tutor", reply, choices)
     if module.status == RemediationStatus.pending:
         module.status = RemediationStatus.in_progress
@@ -216,20 +264,12 @@ def post_message(
             "SESSION LIMIT REACHED: this must be the FINAL turn. Give a brief, encouraging "
             "wrap-up that summarizes the key idea. Do NOT ask another question or include "
             "choices. Set \"complete\": true."))
-    resp = llm.complete(messages, json_mode=True)
-    choices = None
-    try:
-        data = extract_json(resp.text)
-        reply = data.get("reply") or "Keep going — tell me more about your reasoning."
-        complete = bool(data.get("complete"))
-        choices = None if at_limit else _clean_choices(data)
-    except Exception:  # noqa: BLE001
-        # If the model answered in prose instead of JSON, use its real reply rather than a
-        # canned line (which would otherwise repeat and derail the whole conversation).
-        txt = (resp.text or "").strip()
-        reply = txt if (txt and not txt.lstrip().startswith("{")) \
-            else "Keep going — walk me through your reasoning step by step."
-        complete = False
+
+    reply, complete, choices = _tutor_turn(llm, messages, at_limit=at_limit)
+    if not reply:
+        # Last resort only (parse + retry + salvage all failed). Give a genuinely helpful,
+        # non-repeating nudge tied to the concept — never a dismissive canned line.
+        reply = _help_fallback(module)
 
     if at_limit:
         complete = True  # enforce the cap even if the model doesn't comply
@@ -259,4 +299,16 @@ def _fallback_opening(module: RemediationModule) -> str:
     return (
         f"Hi! Let's work through {module.concept.name} together. To start, tell me in your own "
         "words what you understand so far — and where you think it got tricky."
+    )
+
+
+def _help_fallback(module: RemediationModule) -> str:
+    """Used only when the model output can't be parsed or salvaged. Unlike a dismissive canned
+    line, this acknowledges the student (who may have just asked for help) and offers a concrete
+    way forward on the actual concept, so the conversation never stalls in a loop."""
+    concept = module.concept.name
+    return (
+        f"No problem — let's take {concept} one small step at a time. Tell me the very first "
+        "part you're unsure about, and we'll work through just that together. Even a rough "
+        "guess is a great place to start."
     )
