@@ -30,6 +30,8 @@ export default function ModuleView(
   const [busy, setBusy] = useState(false);
   const [complete, setComplete] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [chatErr, setChatErr] = useState<string | null>(null);
+  const [ending, setEnding] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,6 +52,7 @@ export default function ModuleView(
     const val = text.trim();
     if (!val || busy || complete) return;
     setInput("");
+    setChatErr(null);
     setBusy(true);
     const nextSeq = messages.length;
     setMessages((m) => [...m, { id: -1, sequence: nextSeq, role: "student", content: val }]);
@@ -59,16 +62,24 @@ export default function ModuleView(
         content: turn.reply, choices: turn.choices }]);
       if (turn.complete) setComplete(true);
     } catch (e) {
-      setErr((e as Error).message);
+      // Roll back the optimistic student bubble (the last message we just appended;
+      // `busy` prevents concurrent sends) and surface the error inline so the
+      // transcript stays mounted and the user can retry.
+      setMessages((m) => m.slice(0, -1));
+      setInput(val);
+      setChatErr((e as Error).message);
     } finally {
       setBusy(false);
     }
   }
 
   async function endSession() {
-    if (busy || complete) return;
+    if (busy || ending || complete) return;
+    setChatErr(null);
+    setEnding(true);
     try { await api.completeModule(moduleId); setComplete(true); }
-    catch (e) { setErr((e as Error).message); }
+    catch (e) { setChatErr((e as Error).message); }
+    finally { setEnding(false); }
   }
 
   if (err) return <div className="container"><div className="card error">{err}</div></div>;
@@ -110,10 +121,10 @@ export default function ModuleView(
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2F9D5B" }} />
                 {t("tutor.activeStatus")}
               </span>
-              <button onClick={endSession} disabled={busy}
+              <button onClick={endSession} disabled={busy || ending}
                 style={{ border: "1px solid var(--line,#e2e2ea)", background: "#fff",
                   color: "var(--muted,#666)", borderRadius: 8, padding: "4px 12px", fontSize: 12.5,
-                  cursor: busy ? "default" : "pointer" }}>
+                  cursor: (busy || ending) ? "default" : "pointer" }}>
                 {t("tutor.endSession")}
               </button>
             </>
@@ -231,6 +242,12 @@ export default function ModuleView(
                   <Chip label={t("tutor.quickGuessed")} />
                   <Chip label={t("tutor.quickWalk")} />
                 </div>
+              </div>
+            )}
+
+            {chatErr && (
+              <div className="card error" role="alert" style={{ margin: "8px 4px 0", padding: "8px 12px" }}>
+                {chatErr}
               </div>
             )}
 

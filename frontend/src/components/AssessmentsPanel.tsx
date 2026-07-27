@@ -33,6 +33,8 @@ export default function AssessmentsPanel({ courseId }: { courseId: number }) {
       const r = await api.recompute(courseId);
       setNote(t("instructor.assessments.recomputed", { results: r.results_replayed, modules: r.modules_triggered }));
       load();
+    } catch (e) {
+      setNote((e as Error).message);
     } finally {
       setBusy(false);
     }

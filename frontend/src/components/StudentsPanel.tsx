@@ -141,8 +141,12 @@ export default function StudentsPanel({ courseId }: { courseId: number }) {
   const [open, setOpen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
 
-  const load = () => api.roster(courseId).then(setRoster).catch(() => setRoster([]));
+  const load = () =>
+    api.roster(courseId)
+      .then((r) => { setRoster(r); setErr(null); })
+      .catch((e) => { setRoster([]); setErr((e as Error).message); });
   useEffect(() => { load(); setOpen(null); setNote(null); }, [courseId]);
 
   async function sync() {
@@ -167,6 +171,7 @@ export default function StudentsPanel({ courseId }: { courseId: number }) {
         </button>
       </div>
       {note && <p className="muted" style={{ fontSize: 13, margin: "8px 0 0" }}>{note}</p>}
+      {err && <div className="error" style={{ marginTop: 8 }}>{err}</div>}
       <div style={{ height: 12 }} />
       <table>
         <thead>
@@ -174,6 +179,9 @@ export default function StudentsPanel({ courseId }: { courseId: number }) {
             <th>{t("instructor.students.thOpen")}</th><th>{t("instructor.students.thCompleted")}</th></tr>
         </thead>
         <tbody>
+          {roster.length === 0 && !err && (
+            <tr><td colSpan={5} className="muted">{t("instructor.students.noStudents", { defaultValue: "No students yet." })}</td></tr>
+          )}
           {roster.map((s) => (
             <Fragment key={s.student_id}>
               <tr style={{ cursor: "pointer" }}

@@ -295,8 +295,12 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
       if (mode === "signup") onAuth(await sageApi.signup(name.trim(), email.trim(), pw));
       else if (mode === "login") {
         const tok = await sageApi.login(email, pw);
+        // Persist the token first so the authenticated profile call is authorized,
+        // then populate the real identity instead of hard-coding role/name/id.
+        saveToken(tok);
+        const me = await api.me();
         onAuth({ access_token: tok.access_token, token_type: tok.token_type,
-          user_id: 0, full_name: email, role: "instructor" });
+          user_id: me.id, full_name: me.full_name, role: me.role });
       } else onAuth(await sageApi.guestJoin(code.trim().toUpperCase(), name));
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   }
@@ -445,7 +449,14 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
         {courses.map((c) => (
           <Card key={c.id} style={{ cursor: "pointer", display: "flex", justifyContent: "space-between",
             alignItems: "center", gap: 12 }}>
-            <div onClick={() => onOpen(c)} style={{ flex: 1 }}>
+            <div onClick={() => onOpen(c)} role="button" tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  if (e.key === " ") e.preventDefault();
+                  onOpen(c);
+                }
+              }}
+              style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 16.5 }}>{c.name}</div>
               <div style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>
                 {t("sage.courses.meta", { students: c.student_count, quizzes: c.quiz_count })}
@@ -463,9 +474,16 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
         <Card>
           <h3 style={{ marginTop: 0, fontSize: 16 }}>{t("sage.courses.createTitle")}</h3>
           <form onSubmit={create} style={{ display: "grid", gap: 9 }}>
-            <input style={inputStyle} placeholder={t("sage.courses.phName")} value={name} onChange={(e) => setName(e.target.value)} />
-            <input style={inputStyle} placeholder={t("sage.courses.phSubject")} value={subject}
-              onChange={(e) => setSubject(e.target.value)} />
+            <label htmlFor="sage-course-name" style={{ position: "absolute", width: 1, height: 1,
+              padding: 0, margin: -1, overflow: "hidden", clip: "rect(0 0 0 0)", border: 0 }}>
+              {t("sage.courses.phName")}</label>
+            <input id="sage-course-name" style={inputStyle} placeholder={t("sage.courses.phName")}
+              value={name} onChange={(e) => setName(e.target.value)} />
+            <label htmlFor="sage-course-subject" style={{ position: "absolute", width: 1, height: 1,
+              padding: 0, margin: -1, overflow: "hidden", clip: "rect(0 0 0 0)", border: 0 }}>
+              {t("sage.courses.phSubject")}</label>
+            <input id="sage-course-subject" style={inputStyle} placeholder={t("sage.courses.phSubject")}
+              value={subject} onChange={(e) => setSubject(e.target.value)} />
             <PrimaryBtn type="submit"><Icon name="plus" size={16} /> {t("sage.courses.createBtn")}</PrimaryBtn>
           </form>
         </Card>
@@ -615,6 +633,11 @@ function Announcements({ course, instr }: { course: SageCourseSummary; instr: bo
     try { await sageApi.createAnnouncement(course.id, title.trim(), body); setTitle(""); setBody(""); setOpen(false); load(); }
     finally { setBusy(false); }
   }
+  async function remove(id: number) {
+    if (!window.confirm(t("sage.ann.deleteConfirm", { defaultValue: "Delete this announcement?" }))) return;
+    try { await sageApi.deleteAnnouncement(id); load(); }
+    catch (e) { window.alert((e as Error).message); }
+  }
   return (
     <Card>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
@@ -638,7 +661,7 @@ function Announcements({ course, instr }: { course: SageCourseSummary; instr: bo
               <b style={{ fontSize: 14.5 }}>{a.title}</b>
               <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <span style={{ color: C.muted, fontSize: 12 }}>{fmtDateTime(a.created_at)}</span>
-                {instr && <button onClick={() => sageApi.deleteAnnouncement(a.id).then(load)} title="Delete"
+                {instr && <button onClick={() => remove(a.id)} title="Delete"
                   style={{ background: "none", border: "none", color: C.danger, cursor: "pointer" }}>
                   <Icon name="trash" size={14} /></button>}
               </span>
@@ -705,7 +728,11 @@ function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
     setInitial({ title: q.title, questions: q.questions, due_at: q.due_at });
     setEditId(id); setBuild(true);
   }
-  async function dup(id: number) { await sageApi.duplicateQuiz(id); load(); }
+  async function dup(id: number) {
+    if (!window.confirm(t("sage.quiz.duplicateConfirm", { defaultValue: "Duplicate this quiz?" }))) return;
+    try { await sageApi.duplicateQuiz(id); load(); }
+    catch (e) { window.alert((e as Error).message); }
+  }
   async function del(id: number) {
     if (!window.confirm(t("sage.quiz.deleteConfirm"))) return;
     await sageApi.deleteQuiz(id); load();
@@ -900,10 +927,15 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
   const [taking, setTaking] = useState<SageTakeQuiz | null>(null);
   const [result, setResult] = useState<SageSubmitResult | null>(null);
   const [answers, setAnswers] = useState<Record<number, { choice?: string; choices?: string[] }>>({});
+  const [busy, setBusy] = useState(false);
   const load = () => sageApi.quizzes(course.id).then(setQuizzes).catch(() => setQuizzes([]));
   useEffect(() => { load(); }, [course.id]);
 
-  async function open(id: number) { setResult(null); setAnswers({}); setTaking(await sageApi.takeQuiz(id)); }
+  async function open(id: number) {
+    setResult(null); setAnswers({});
+    try { setTaking(await sageApi.takeQuiz(id)); }
+    catch (e) { window.alert((e as Error).message); }
+  }
   function setChoice(qid: number, choice: string) { setAnswers((a) => ({ ...a, [qid]: { choice } })); }
   function toggleMulti(qid: number, choice: string) {
     setAnswers((a) => {
@@ -917,9 +949,12 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
     return !!v && (!!v.choice?.trim() || (v.choices && v.choices.length > 0));
   }
   async function submit() {
-    if (!taking) return;
+    if (!taking || busy) return;
     const payload: SageAnswerIn[] = taking.questions.map((q) => ({ question_id: q.id, ...answers[q.id] }));
-    setResult(await sageApi.submitQuiz(taking.id, payload)); load();
+    setBusy(true);
+    try { setResult(await sageApi.submitQuiz(taking.id, payload)); load(); }
+    catch (e) { window.alert((e as Error).message); }
+    finally { setBusy(false); }
   }
 
   if (taking && result) {
@@ -993,7 +1028,8 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
         ))}
         <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
           <GhostBtn onClick={() => setTaking(null)}>{t("sage.cancel")}</GhostBtn>
-          <PrimaryBtn onClick={submit}>{t("sage.quiz.submit")}</PrimaryBtn>
+          <PrimaryBtn onClick={submit} disabled={busy}>
+            {busy ? t("sage.quiz.submitting", { defaultValue: "Submitting…" }) : t("sage.quiz.submit")}</PrimaryBtn>
         </div>
       </Card>
     );
@@ -1065,8 +1101,12 @@ function StudentDrill({ course, studentId, onClose }:
   { course: SageCourseSummary; studentId: number; onClose: () => void }) {
   const { t } = useTranslation();
   const [d, setD] = useState<import("../api/client").SageStudentDetail | null>(null);
+  const [err, setErr] = useState<string | null>(null);
   const nav = useNavigate();
-  useEffect(() => { sageApi.studentDetail(course.id, studentId).then(setD).catch(() => setD(null)); }, [course.id, studentId]);
+  useEffect(() => { setD(null); setErr(null);
+    sageApi.studentDetail(course.id, studentId).then(setD)
+      .catch((e: Error) => setErr(e.message)); }, [course.id, studentId]);
+  if (err) return <Card><p style={{ color: C.danger, margin: 0 }}>{err}</p></Card>;
   if (!d) return <Card><p style={{ color: C.muted, margin: 0 }}>{t("sage.loading")}</p></Card>;
   const open = d.remediation.filter((m) => m.status !== "completed");
   return (
@@ -1101,8 +1141,11 @@ function StudentDrill({ course, studentId, onClose }:
 function GradesTab({ course }: { course: SageCourseSummary }) {
   const { t } = useTranslation();
   const [g, setG] = useState<SageGrades | null>(null);
+  const [err, setErr] = useState<string | null>(null);
   const [drill, setDrill] = useState<number | null>(null);
-  useEffect(() => { sageApi.grades(course.id).then(setG).catch(() => setG(null)); }, [course.id]);
+  useEffect(() => { setG(null); setErr(null);
+    sageApi.grades(course.id).then(setG).catch((e: Error) => setErr(e.message)); }, [course.id]);
+  if (err) return <Card><p style={{ color: C.danger, margin: 0 }}>{err}</p></Card>;
   if (!g) return <p style={{ color: C.muted }}>{t("sage.loading")}</p>;
   const pct = (v?: number) => v == null ? "—" : `${Math.round(v * 100)}%`;
   if (g.is_instructor) {
@@ -1353,6 +1396,11 @@ function MaterialRow({ m, instr, onChange }: { m: SageMaterial; instr: boolean; 
     if (!openB && body === null) { const d = await sageApi.material(m.id); setBody(d.body || ""); }
     setOpenB((o) => !o);
   }
+  async function remove() {
+    if (!window.confirm(t("sage.materials.deleteConfirm", { defaultValue: "Delete this material?" }))) return;
+    try { await sageApi.deleteMaterial(m.id); onChange(); }
+    catch (e) { window.alert((e as Error).message); }
+  }
   return (
     <Card>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -1369,7 +1417,7 @@ function MaterialRow({ m, instr, onChange }: { m: SageMaterial; instr: boolean; 
           {isText && <GhostBtn onClick={view}>{openB ? "Hide" : "View"}</GhostBtn>}
           {m.kind === "file" && <GhostBtn onClick={() => api.authedDownload(`/sage/materials/${m.id}/download`, m.filename)}>
             <Icon name="download" size={15} /> {t("sage.materials.download")}</GhostBtn>}
-          {instr && <button onClick={() => sageApi.deleteMaterial(m.id).then(onChange)}
+          {instr && <button onClick={remove}
             title={t("common.delete")} style={{ background: "none", border: "none", cursor: "pointer", color: C.danger,
               display: "inline-flex", alignItems: "center", padding: 6 }}><Icon name="trash" size={16} /></button>}
         </div>

@@ -130,7 +130,7 @@
   html[data-theme="light"]{
     --bg:#fbfaf7; --bg2:#f3f0ea; --card:#ffffff; --card2:#f6f3ee; --nested:#faf8f4;
     --line:#e9e5db; --line2:#ded9cd;
-    --ink:#21201c; --muted:#6b675f; --muted2:#928d82;
+    --ink:#21201c; --muted:#6b675f; --muted2:#6f6a61;
     --primary:#6d5ef4; --primary-d:#5a4be8; --accent:#6d5ef4;
     --shadow:0 18px 40px rgba(33,32,28,.09); --shadow-sm:0 8px 20px rgba(33,32,28,.07);
     --hero-glow:radial-gradient(1100px 480px at 78% -8%,rgba(109,94,244,.16) 0,transparent 55%);
@@ -142,6 +142,9 @@
   html[data-theme="light"] .tag{color:#dc2626}
   html[data-theme="light"] .ok{color:#15803d}
   html[data-theme="light"] .err{color:#dc2626}
+  /* a11y: darker success + accent TEXT for WCAG AA (light theme only) */
+  html[data-theme="light"] .compare td.yes,html[data-theme="light"] .kbox .kv.up{color:#15803d}
+  html[data-theme="light"] .pill,html[data-theme="light"] .crec,html[data-theme="light"] .mtabs .on,html[data-theme="light"] .panel h4 a{color:var(--primary-d)}
   /* theme toggle */
   .themebtn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;background:var(--tint);border:1px solid var(--line2);color:var(--ink);cursor:pointer;font-size:16px;line-height:1;transition:background .15s}
   .themebtn:hover{background:var(--tint2)}
@@ -172,7 +175,7 @@
   nav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
   nav .links{display:flex;gap:26px;font-size:14px;color:var(--muted)}
   nav .links a:hover{color:var(--ink)}
-  nav .navbtns{display:flex;gap:10px;align-items:center}
+  nav .navbtns{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
   @media(max-width:900px){nav .links{display:none}}
 
   /* section rhythm */
@@ -431,6 +434,7 @@
 <div class="workswith" data-i18n="k017" style="justify-content:center;margin-top:16px">No data leaves your system. · FERPA-aware · Built for education</div>
 </div>
 </div></header>
+<main>
 <section id="how"><div class="wrap">
 <div class="sec-head"><h2 data-i18n="k018">See LMS Bridge in action</h2><p data-i18n="k019">From student struggle to mastery — in minutes.</p></div>
 <div class="tl">
@@ -598,12 +602,12 @@
 <div class="ok" data-i18n="k154" id="okmsg" style="display:none">Thanks! Your request was received — we'll reach out shortly.</div>
 <form id="leadForm">
 <input id="kind" name="kind" type="hidden" value="contact"/>
-<div class="field"><label data-i18n="k155">Full name</label><input name="name" required=""/></div>
-<div class="field"><label data-i18n="k156">Work email</label><input name="email" required="" type="email"/></div>
-<div class="field"><label data-i18n="k157">Institution / organization</label><input name="organization"/></div>
-<div class="field"><label data-i18n="k158">Your role</label>
-<select name="role"><option data-i18n="k159" value="">Select…</option><option data-i18n="k160">Instructor / Faculty</option><option data-i18n="k161">Department chair</option><option data-i18n="k162">Instructional designer</option><option data-i18n="k163">LMS administrator</option><option data-i18n="k164">Dean / Provost office</option><option data-i18n="k165">Other</option></select></div>
-<div class="field"><label data-i18n="k166">What can we help with?</label><textarea data-i18n-ph="ph01" name="message" placeholder="e.g. Installing in our intro CS course on Canvas, or commercial support"></textarea></div>
+<div class="field"><label data-i18n="k155" for="cf-name">Full name</label><input id="cf-name" name="name" required=""/></div>
+<div class="field"><label data-i18n="k156" for="cf-email">Work email</label><input id="cf-email" name="email" required="" type="email"/></div>
+<div class="field"><label data-i18n="k157" for="cf-organization">Institution / organization</label><input id="cf-organization" name="organization"/></div>
+<div class="field"><label data-i18n="k158" for="cf-role">Your role</label>
+<select id="cf-role" name="role"><option data-i18n="k159" value="">Select…</option><option data-i18n="k160">Instructor / Faculty</option><option data-i18n="k161">Department chair</option><option data-i18n="k162">Instructional designer</option><option data-i18n="k163">LMS administrator</option><option data-i18n="k164">Dean / Provost office</option><option data-i18n="k165">Other</option></select></div>
+<div class="field"><label data-i18n="k166" for="cf-message">What can we help with?</label><textarea data-i18n-ph="ph01" id="cf-message" name="message" placeholder="e.g. Installing in our intro CS course on Canvas, or commercial support"></textarea></div>
 <button class="btn primary" data-i18n="k167" id="submitBtn" type="submit">Send message</button>
 <div class="err" id="errmsg" style="display:none"></div>
 </form>
@@ -643,6 +647,7 @@
 <div><div class="ic">⚙️</div><b data-i18n="k190">Open source</b><p data-i18n="k191">Transparent, extensible, community driven.</p></div>
 </div>
 </div></section>
+</main>
 <footer><div class="wrap" style="flex-direction:column;align-items:flex-start;gap:14px">
 <div class="wrap" style="width:100%;margin:0;padding:0">
 <span class="brand" style="font-size:16px"><span class="mark" style="width:22px;height:22px;font-size:12px">📘</span> LMS Bridge <small data-i18n="k192">· © 2025 · AGPL-3.0</small></span>

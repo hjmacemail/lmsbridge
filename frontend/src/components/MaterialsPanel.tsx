@@ -64,8 +64,14 @@ export default function MaterialsPanel({
   }
 
   async function remove(id: number) {
-    await api.deleteMaterial(id);
-    load();
+    if (!window.confirm(t("instructor.materials.confirmDelete", { defaultValue: "Delete this material? This cannot be undone." }))) return;
+    setErr(null);
+    try {
+      await api.deleteMaterial(id);
+      load();
+    } catch (e) {
+      setErr((e as Error).message);
+    }
   }
 
   return (
@@ -78,21 +84,21 @@ export default function MaterialsPanel({
         <form onSubmit={upload}>
           <div className="grid cols-3" style={{ alignItems: "end" }}>
             <div className="field" style={{ marginBottom: 0 }}>
-              <label>{t("instructor.materials.titleOptional")}</label>
-              <input value={title} onChange={(e) => setTitle(e.target.value)}
+              <label htmlFor="material-title">{t("instructor.materials.titleOptional")}</label>
+              <input id="material-title" value={title} onChange={(e) => setTitle(e.target.value)}
                 placeholder={t("instructor.materials.titlePlaceholder")} />
             </div>
             <div className="field" style={{ marginBottom: 0 }}>
-              <label>{t("instructor.materials.conceptOptional")}</label>
-              <select value={conceptId} onChange={(e) =>
+              <label htmlFor="material-concept">{t("instructor.materials.conceptOptional")}</label>
+              <select id="material-concept" value={conceptId} onChange={(e) =>
                 setConceptId(e.target.value === "" ? "" : Number(e.target.value))}>
                 <option value="">{t("instructor.materials.wholeCourse")}</option>
                 {concepts.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div className="field" style={{ marginBottom: 0 }}>
-              <label>{t("instructor.materials.fileLabel")}</label>
-              <input ref={fileRef} type="file" accept=".pdf,.docx,.md,.markdown,.txt" />
+              <label htmlFor="material-file">{t("instructor.materials.fileLabel")}</label>
+              <input id="material-file" ref={fileRef} type="file" accept=".pdf,.docx,.md,.markdown,.txt" />
             </div>
           </div>
           <button className="btn" style={{ marginTop: 14 }} disabled={busy}>

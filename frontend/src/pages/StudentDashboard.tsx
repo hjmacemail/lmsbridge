@@ -49,7 +49,7 @@ export default function StudentDashboard(
     api.myCourses().then((cs) => {
       setCourses(cs);
       if (cs.length) setCourseId(cs[0].id);
-      else api.myDashboard().then(setDash);
+      else api.myDashboard().then(setDash).catch((e) => setErr((e as Error).message));
     }).catch((e) => setErr((e as Error).message));
   }, []);
 

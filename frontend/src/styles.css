@@ -12,6 +12,7 @@
   --text: #0f172a;
 }
 * { box-sizing: border-box; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 /* Mirror directional icons (back/forward arrows, chevrons) in right-to-left languages. */
 html[dir="rtl"] .dir-flip { transform: scaleX(-1); }
 body {
@@ -49,6 +50,8 @@ a { color: var(--primary); text-decoration: none; }
 @media (max-width: 980px) { .grid.cols-4 { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 760px) {
   .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; }
+  /* Wide data tables scroll horizontally on phones instead of overflowing the page. */
+  .card > table { display: block; overflow-x: auto; white-space: nowrap; }
 }
 h1 { font-size: 24px; margin: 0 0 4px; }
 h2 { font-size: 18px; margin: 0 0 12px; }
@@ -67,7 +70,7 @@ h3 { font-size: 15px; margin: 0 0 6px; }
 .bar { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
 .bar > span { display: block; height: 100%; border-radius: 999px; }
 .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-.login-card { width: 380px; }
+.login-card { width: 100%; max-width: 380px; }
 .field { margin-bottom: 14px; }
 .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
 .field input, textarea, select {
@@ -91,7 +94,8 @@ th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: upp
 .demo-creds { font-size: 12px; color: var(--muted); margin-top: 16px; line-height: 1.6; }
 .kpi { font-size: 28px; font-weight: 700; }
 .stack { display: flex; flex-direction: column; gap: 6px; }
-.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.tablewrap { overflow-x: auto; width: 100%; }
 
 /* Instructor tabs */
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }

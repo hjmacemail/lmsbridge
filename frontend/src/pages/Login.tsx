@@ -37,12 +37,12 @@ export default function Login() {
         <p className="muted" style={{ marginTop: 0 }}>{t("login.subtitle")}</p>
         <form onSubmit={submit}>
           <div className="field">
-            <label>{t("login.email")}</label>
-            <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
+            <label htmlFor="login-email">{t("login.email")}</label>
+            <input id="login-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
           </div>
           <div className="field">
-            <label>{t("login.password")}</label>
-            <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
+            <label htmlFor="login-password">{t("login.password")}</label>
+            <input id="login-password" value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
           </div>
           <button className="btn" style={{ width: "100%" }} disabled={busy}>
             {busy ? t("login.signingIn") : t("common.signIn")}
