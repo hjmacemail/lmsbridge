@@ -119,8 +119,8 @@ function Canvas({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
   const nav = ["Home", "Announcements", "Assignments", "Discussions", "Grades",
     "People", "Pages", "Files", "Modules", "LMS Bridge"];
   return (
-    <div style={{ display: "flex", minHeight: VH, background: CONTENT_BG, fontFamily: FONT("Lato") }}>
-      <div style={{ width: 84, background: "#394B58", color: "#fff", display: "flex",
+    <div className="lms-frame" style={{ display: "flex", minHeight: VH, background: CONTENT_BG, fontFamily: FONT("Lato") }}>
+      <div className="lms-rail" style={{ width: 84, background: "#394B58", color: "#fff", display: "flex",
         flexDirection: "column", alignItems: "center", padding: "12px 0", gap: 2 }}>
         <div style={{ width: 42, height: 42, borderRadius: "50%", background: "#0a1a2b",
           color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
@@ -133,11 +133,11 @@ function Canvas({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
           </a>
         ))}
       </div>
-      <div style={{ width: 184, background: "#fff", borderRight: "1px solid #d9dde1", padding: "14px 0" }}>
+      <div className="lms-side" style={{ width: 184, background: "#fff", borderRight: "1px solid #d9dde1", padding: "14px 0" }}>
         <div style={{ padding: "0 16px 10px", fontWeight: 700, color: "#E0061F", fontSize: 14 }}>{COURSE}</div>
         <SideNav labels={nav} accent="#0374B5" activePage={activePage} linkFor={linkFor} />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="lms-content" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ padding: "10px 22px", fontSize: 12.5, color: "#6b7780", background: "#fff",
           borderBottom: "1px solid #ebedf0" }}>
           {COURSE} <span style={{ margin: "0 6px" }}>›</span>
@@ -158,8 +158,8 @@ function Blackboard({ activePage, linkFor, children }: Omit<FrameProps, "lms">) 
   const nav = ["Content", "Calendar", "Announcements", "Discussions", "Gradebook",
     "Messages", "People", "Modules", "LMS Bridge"];
   return (
-    <div style={{ display: "flex", minHeight: VH, background: CONTENT_BG, fontFamily: FONT("Open Sans") }}>
-      <div style={{ width: 150, background: "#262626", color: "#d6d6d6", padding: "14px 0" }}>
+    <div className="lms-frame" style={{ display: "flex", minHeight: VH, background: CONTENT_BG, fontFamily: FONT("Open Sans") }}>
+      <div className="lms-rail" style={{ width: 150, background: "#262626", color: "#d6d6d6", padding: "14px 0" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "0 14px 14px" }}>
           <Mark bg="#fff" fg="#262626" text="Bb" size={26} />
           <span style={{ color: "#fff", fontWeight: 700, fontSize: 13 }}>Blackboard</span>
@@ -171,14 +171,14 @@ function Blackboard({ activePage, linkFor, children }: Omit<FrameProps, "lms">) 
           </a>
         ))}
       </div>
-      <div style={{ width: 196, background: "#fff", borderRight: "1px solid #d9dde1", padding: "16px 0" }}>
+      <div className="lms-side" style={{ width: 196, background: "#fff", borderRight: "1px solid #d9dde1", padding: "16px 0" }}>
         <div style={{ padding: "0 18px 12px" }}>
           <div style={{ fontSize: 11, color: "#6b7780", textTransform: "uppercase", letterSpacing: .4 }}>Course</div>
           <div style={{ fontWeight: 700, color: "#11161b", fontSize: 15 }}>{COURSE}</div>
         </div>
         <SideNav labels={nav} accent="#c2113a" activePage={activePage} linkFor={linkFor} />
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="lms-content" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ padding: "12px 24px", fontSize: 13, color: "#6b7780", background: "#fff",
           borderBottom: "1px solid #ebedf0" }}>
           {COURSE_LONG} <span style={{ margin: "0 6px" }}>›</span>
@@ -220,8 +220,8 @@ function Moodle({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
           })}
         </div>
       </div>
-      <div style={{ display: "flex", minHeight: "calc(100vh - 46px - 52px - 86px)" }}>
-        <div style={{ width: 220, background: "#fff", borderRight: "1px solid #dee2e6", padding: "16px 0" }}>
+      <div className="lms-frame" style={{ display: "flex", minHeight: "calc(100vh - 46px - 52px - 86px)" }}>
+        <div className="lms-side" style={{ width: 220, background: "#fff", borderRight: "1px solid #dee2e6", padding: "16px 0" }}>
           <div style={{ padding: "0 16px 10px", fontWeight: 700, fontSize: 13, color: "#1d2125" }}>Course index</div>
           {["General", "Number systems", "Logic", "Machine code"].map((n) => (
             <a key={n} href={linkFor("modules")} style={{ padding: "7px 16px", display: "block",
@@ -232,7 +232,7 @@ function Moodle({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
             textDecoration: "none", background: activePage === "tool" ? "#fff5ec" : "transparent" }}>
             LMS Bridge</a>
         </div>
-        <div style={{ flex: 1, minWidth: 0, background: CONTENT_BG }}>{children}</div>
+        <div className="lms-content" style={{ flex: 1, minWidth: 0, background: CONTENT_BG }}>{children}</div>
       </div>
     </div>
   );
@@ -255,7 +255,7 @@ function Brightspace({ role, activePage, linkFor, children }: Omit<FrameProps, "
         <Mark bg="#5a2a4d" fg="#fff" text="N" size={28} />
         <Dots />
         <span style={{ fontWeight: 700, fontSize: 18, color: "#202122" }}>{COURSE_LONG}</span>
-        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16 }}>
+        <span className="lms-hideMobile" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16 }}>
           <span style={icon}><Waffle /></span>
           <Dots />
           <span style={icon}><I d={IC.mail} s={20} /></span>

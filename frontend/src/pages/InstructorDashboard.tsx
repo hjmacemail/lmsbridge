@@ -344,13 +344,13 @@ export default function InstructorDashboard({ scoped = false }: { scoped?: boole
       <div className="row">
         <h1>{TITLES[persona]}</h1>
         {showCourseControls && (
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             {/* A dropdown only makes sense for a standalone (no-LMS) deployment that manages
                 more than one course by hand. Under an LMS launch (or the demo) the course is
                 fixed, so show it as a plain label. */}
             {!courseScoped && courses.length > 1 ? (
               <select value={selected ?? ""} onChange={(e) => setSelected(Number(e.target.value))}
-                style={{ width: 260 }}>
+                style={{ width: 260, maxWidth: "100%" }}>
                 {courses.map((c) => <option key={c.id} value={c.id}>{c.code} — {c.title}</option>)}
               </select>
             ) : (

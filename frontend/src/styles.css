@@ -53,6 +53,27 @@ a { color: var(--primary); text-decoration: none; }
   /* Wide data tables scroll horizontally on phones instead of overflowing the page. */
   .card > table { display: block; overflow-x: auto; white-space: nowrap; }
 }
+
+/* ---- Phones: collapse the decorative simulated-LMS chrome in the /demo page so the real
+   product content gets the full width (fixed sidebars otherwise squeeze it to a sliver).
+   These override inline styles, hence !important. ---- */
+@media (max-width: 760px) {
+  .lms-rail, .lms-side { display: none !important; }
+  .lms-content { flex: 1 1 auto !important; width: 100% !important; min-width: 0 !important; }
+  .lms-frame { min-height: 0 !important; }
+  .lms-hideMobile { display: none !important; }
+  /* Tighten the app shell + tool content on small screens. */
+  .topbar { padding: 0 14px; }
+  .topbar .user { gap: 8px; }
+  .container { padding: 18px 14px; }
+  .chat-log { max-height: 60vh; }
+  .bubble { max-width: 90%; }
+}
+/* Very small screens: let the top bar wrap instead of overflowing. */
+@media (max-width: 400px) {
+  .topbar { height: auto; flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
+  .topbar .user { font-size: 13px; }
+}
 h1 { font-size: 24px; margin: 0 0 4px; }
 h2 { font-size: 18px; margin: 0 0 12px; }
 h3 { font-size: 15px; margin: 0 0 6px; }
