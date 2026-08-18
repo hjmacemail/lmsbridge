@@ -486,6 +486,50 @@ function CourseMenu({ onDelete }: { onDelete: () => void }) {
   );
 }
 
+// A labeled group of course cards ("Teaching" / "Enrolled as student"). The delete menu only
+// appears when onDelete is provided (i.e. for courses you teach).
+function CourseGroup({ label, count, courses, onOpen, onDelete }: {
+  label: string; count: number; courses: SageCourseSummary[];
+  onOpen: (c: SageCourseSummary) => void; onDelete?: (c: SageCourseSummary) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <section style={{ marginBottom: 18 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "2px 0 10px" }}>
+        <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: C.muted,
+          textTransform: "uppercase", letterSpacing: ".5px" }}>{label}</h3>
+        <span style={{ fontSize: 12, fontWeight: 600, color: C.muted, background: C.soft,
+          borderRadius: 999, padding: "1px 9px" }}>{count}</span>
+      </div>
+      <div style={{ display: "grid", gap: 12 }}>
+        {courses.map((c) => (
+          <Card key={c.id} style={{ cursor: "pointer", display: "flex", justifyContent: "space-between",
+            alignItems: "center", gap: 12 }}>
+            <div onClick={() => onOpen(c)} role="button" tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") { if (e.key === " ") e.preventDefault(); onOpen(c); }
+              }}
+              style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 16.5 }}>{c.name}</div>
+              <div style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>
+                {t("sage.courses.meta", { students: c.student_count, quizzes: c.quiz_count })}
+                {c.role === "instructor" && <JoinCodeInline code={c.join_code} />}
+              </div>
+            </div>
+            <button type="button" aria-label={t("sage.open", { defaultValue: "Open" })}
+              onClick={(e) => { e.stopPropagation(); onOpen(c); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: C.muted,
+                display: "flex", alignItems: "center", padding: 6, flexShrink: 0 }}>
+              <Icon name="arrow" color={C.muted} />
+            </button>
+            {onDelete && <CourseMenu onDelete={() => onDelete(c)} />}
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void; userName: string }) {
   const { t } = useTranslation();
   const [courses, setCourses] = useState<SageCourseSummary[]>([]);
@@ -495,11 +539,11 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
   useEffect(() => { load(); }, []);
 
   const firstName = userName.trim().split(/\s+/)[0] || userName;
+  // Roles are per-course: you can teach some courses and be enrolled as a student in others.
   const teaching = courses.filter((c) => c.role === "instructor");
+  const enrolled = courses.filter((c) => c.role !== "instructor");
   const totalStudents = teaching.reduce((s, c) => s + (c.student_count || 0), 0);
   const totalQuizzes = teaching.reduce((s, c) => s + (c.quiz_count || 0), 0);
-  // The role chip only helps when the user has courses in more than one role.
-  const mixedRoles = new Set(courses.map((c) => c.role)).size > 1;
 
   async function create(e: React.FormEvent) {
     e.preventDefault(); if (!name) return;
@@ -540,40 +584,18 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
           {t("sage.courses.empty")}
         </Card>
       )}
-      <div style={{ display: "grid", gap: 12 }}>
-        {courses.map((c) => (
-          <Card key={c.id} style={{ cursor: "pointer", display: "flex", justifyContent: "space-between",
-            alignItems: "center", gap: 12 }}>
-            <div onClick={() => onOpen(c)} role="button" tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  if (e.key === " ") e.preventDefault();
-                  onOpen(c);
-                }
-              }}
-              style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 16.5 }}>{c.name}</div>
-              <div style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>
-                {t("sage.courses.meta", { students: c.student_count, quizzes: c.quiz_count })}
-                {c.role === "instructor" && <JoinCodeInline code={c.join_code} />}
-              </div>
-            </div>
-            {/* Role chip only when it's informative — i.e. the user has courses in BOTH roles. */}
-            {mixedRoles && (
-              <span style={{ fontSize: 12, fontWeight: 600, background: C.accentBg, color: C.accentInk,
-                padding: "4px 11px", borderRadius: 999, whiteSpace: "nowrap" }}>
-                {t("sage.role." + c.role, { defaultValue: c.role })}</span>
-            )}
-            <button type="button" aria-label={t("sage.open", { defaultValue: "Open" })}
-              onClick={(e) => { e.stopPropagation(); onOpen(c); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: C.muted,
-                display: "flex", alignItems: "center", padding: 6, flexShrink: 0 }}>
-              <Icon name="arrow" color={C.muted} />
-            </button>
-            {c.role === "instructor" && <CourseMenu onDelete={() => removeCourse(c)} />}
-          </Card>
-        ))}
-      </div>
+      {teaching.length > 0 && (
+        <CourseGroup
+          label={t("sage.courses.teaching", { defaultValue: "Teaching" })}
+          count={teaching.length}
+          courses={teaching} onOpen={onOpen} onDelete={removeCourse} />
+      )}
+      {enrolled.length > 0 && (
+        <CourseGroup
+          label={t("sage.courses.enrolled", { defaultValue: "Enrolled as student" })}
+          count={enrolled.length}
+          courses={enrolled} onOpen={onOpen} />
+      )}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
         gap: 14, marginTop: 16 }}>
         <Card>

@@ -396,7 +396,9 @@
       "joinBtn": "Rejoindre avec un code",
       "delete": "Supprimer le cours",
       "deleteConfirm": "Supprimer « {{name}} » et tout son contenu (quiz, résultats, liste) ? Cette action est irréversible.",
-      "menu": "Options du cours"
+      "menu": "Options du cours",
+      "teaching": "Vous enseignez",
+      "enrolled": "Inscrit comme étudiant"
     },
     "stat": {
       "courses": "Cours",

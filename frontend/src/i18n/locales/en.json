@@ -396,7 +396,9 @@
       "joinBtn": "Join with code",
       "delete": "Delete course",
       "deleteConfirm": "Delete “{{name}}” and everything in it (quizzes, results, roster)? This cannot be undone.",
-      "menu": "Course options"
+      "menu": "Course options",
+      "teaching": "Teaching",
+      "enrolled": "Enrolled as student"
     },
     "stat": {
       "courses": "Courses",

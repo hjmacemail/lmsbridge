@@ -396,7 +396,9 @@
       "joinBtn": "Unirse con código",
       "delete": "Eliminar curso",
       "deleteConfirm": "¿Eliminar «{{name}}» y todo su contenido (cuestionarios, resultados, lista)? Esto no se puede deshacer.",
-      "menu": "Opciones del curso"
+      "menu": "Opciones del curso",
+      "teaching": "Impartes",
+      "enrolled": "Inscrito como estudiante"
     },
     "stat": {
       "courses": "Cursos",
