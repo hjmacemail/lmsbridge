@@ -166,8 +166,9 @@ export const api = {
   classBrief: (courseId: number, lang?: string) =>
     request<ClassBrief>(
       `/analytics/courses/${courseId}/brief${lang ? `?lang=${encodeURIComponent(lang)}` : ""}`),
-  misconceptionClusters: (courseId: number) =>
-    request<MisconceptionCluster[]>(`/analytics/courses/${courseId}/clusters`),
+  misconceptionClusters: (courseId: number, lang?: string) =>
+    request<MisconceptionCluster[]>(
+      `/analytics/courses/${courseId}/clusters${lang ? `?lang=${encodeURIComponent(lang)}` : ""}`),
   syncCourse: (courseId: number) =>
     request<Record<string, unknown>>(`/assessments/sync?course_id=${courseId}`, {
       method: "POST",

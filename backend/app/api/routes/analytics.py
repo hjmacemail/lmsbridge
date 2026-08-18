@@ -19,6 +19,7 @@ from app.models.mastery import ConceptMastery
 from app.models.remediation import RemediationActivity, RemediationModule
 from app.models.tenant import Tenant
 from app.models.user import User
+from app.pedagogy.prompts import language_name
 from app.schemas.analytics import (
     ActivityWithResponses,
     AssessmentBreakdown,
@@ -213,11 +214,19 @@ def course_analytics(
 
 @router.get("/courses/{course_id}/clusters", response_model=list[MisconceptionCluster])
 def misconception_clusters(
-    course_id: int, db: Session = Depends(get_db), user: User = Depends(require_instructor)
+    course_id: int, lang: str | None = None,
+    db: Session = Depends(get_db), user: User = Depends(require_instructor)
 ) -> list[MisconceptionCluster]:
-    """Groups of students who share one specific misconception — so instructors can teach groups."""
+    """Groups of students who share one specific misconception — so instructors can teach groups.
+    The misconception text is localized to `lang` when a non-English language is active."""
     require_course_instructor(db, course_id, user)
-    return [MisconceptionCluster(**c) for c in build_misconception_clusters(db, course_id)]
+    clusters = build_misconception_clusters(db, course_id)
+    if clusters and language_name(lang):
+        from app.services.localize_service import localize_texts
+        translated = localize_texts(db, course_id, [c["misconception"] for c in clusters], lang)
+        for c, tx in zip(clusters, translated):
+            c["misconception"] = tx
+    return [MisconceptionCluster(**c) for c in clusters]
 
 
 @router.get("/courses/{course_id}/brief", response_model=ClassBrief)

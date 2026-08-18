@@ -20,7 +20,7 @@ from app.models.course import Course, Enrollment
 from app.models.enums import MasteryStatus, RemediationStatus, UserRole
 from app.models.mastery import ConceptMastery
 from app.models.remediation import RemediationModule
-from app.pedagogy.prompts import build_class_brief_prompt
+from app.pedagogy.prompts import build_class_brief_prompt, language_name
 
 logger = get_logger("brief")
 
@@ -101,6 +101,12 @@ def build_class_brief(db: Session, course_id: int, lang: str | None = None) -> d
     facts["class_health_change_pts"] = trend
 
     brief, recommendation = _narrate(db, course_id, facts, lang)
+
+    # The brief/recommendation are narrated in the active language by the model; the standalone
+    # misconception chip is seeded English, so localize it too (safe fallback to English).
+    if top_misc and language_name(lang):
+        from app.services.localize_service import localize_texts
+        top_misc = localize_texts(db, course_id, [top_misc], lang)[0]
 
     return {
         "health_pct": health,

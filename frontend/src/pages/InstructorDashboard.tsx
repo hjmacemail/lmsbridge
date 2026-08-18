@@ -52,7 +52,9 @@ function CopilotBrief({ courseId }: { courseId: number }) {
     api.classBrief(courseId, i18n.language).then(setBrief).catch(() => setBrief(null))
       .finally(() => setLoading(false));
   };
-  useEffect(load, [courseId]);
+  // Re-fetch when the course OR the language changes, so the AI narration follows the
+  // selected language instead of keeping the copy from the first render.
+  useEffect(load, [courseId, i18n.language]);
 
   const accent = "#3C3489";
   return (
@@ -122,12 +124,12 @@ function CopilotBrief({ courseId }: { courseId: number }) {
 }
 
 function MisconceptionClusters({ courseId }: { courseId: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [clusters, setClusters] = useState<MisconceptionCluster[] | null>(null);
   const [open, setOpen] = useState<number | null>(null);
   useEffect(() => {
-    api.misconceptionClusters(courseId).then(setClusters).catch(() => setClusters([]));
-  }, [courseId]);
+    api.misconceptionClusters(courseId, i18n.language).then(setClusters).catch(() => setClusters([]));
+  }, [courseId, i18n.language]);
   if (!clusters || clusters.length === 0) return null;
 
   return (
