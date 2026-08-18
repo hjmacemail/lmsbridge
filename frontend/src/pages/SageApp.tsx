@@ -8,7 +8,8 @@ import {
   type SageTakeQuiz, type SageSubmitResult, type SageStudent,
   type SageGrades, type SageQuestionDraft, type SageMaterial, type SageProfile,
   type SageQType, type SageAnswerIn, type SageAnnouncement, type SageQuizAttempt,
-  type SageQuizForEdit, type SageAssignment, type SageSubmissionsView, type SageSubmissionRow,
+  type SageQuizForEdit, type SageAssignment, type SageSubmission,
+  type SageSubmissionsView, type SageSubmissionRow,
 } from "../api/client";
 import type { RemediationModule, InstructorAnalytics, AuthToken, Role } from "../types";
 import { useAuth } from "../context/AuthContext";
@@ -1490,6 +1491,34 @@ function AttemptsPanel({ quizId }: { quizId: number }) {
   );
 }
 
+// A styled "button-like" label used for the hidden file <input> in submissions.
+const ghostLike: React.CSSProperties = {
+  background: "#fff", color: C.ink, border: `1px solid ${C.line}`, borderRadius: 10,
+  padding: "8px 14px", fontSize: 14, display: "inline-flex", alignItems: "center", gap: 6,
+};
+
+function fmtBytes(n?: number) {
+  if (!n) return "";
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// Downloads a submission's file attachment (works for the student who owns it and the instructor).
+function AttachmentLink({ sub }: { sub: SageSubmission }) {
+  const { t } = useTranslation();
+  if (!sub.has_file) return null;
+  return (
+    <button onClick={() => sageApi.downloadSubmissionFile(sub.id, sub.file_name || "attachment")}
+      style={{ background: "none", border: "none", cursor: "pointer", color: C.primary, padding: 0,
+        display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13.5 }}
+      title={t("sage.asg.download", { defaultValue: "Download attachment" })}>
+      <Icon name="download" size={15} /> {sub.file_name}
+      {sub.file_size ? <span style={{ color: C.muted }}>({fmtBytes(sub.file_size)})</span> : null}
+    </button>
+  );
+}
+
 // --------------------------------------------------------------- Assignments (instructor)
 function AssignmentsInstructor({ course }: { course: SageCourseSummary }) {
   const { t } = useTranslation();
@@ -1674,9 +1703,12 @@ function SubmissionRow({ row, points, onGraded }: {
       </div>
       {sub && open && (
         <div style={{ marginTop: 12, borderTop: `1px solid ${C.line}`, paddingTop: 12 }}>
-          <div className="sage-md" style={{ fontSize: 14, marginBottom: 12,
-            background: C.soft, borderRadius: 10, padding: "10px 14px" }}
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(sub.body) }} />
+          {sub.body.trim() && (
+            <div className="sage-md" style={{ fontSize: 14, marginBottom: 12,
+              background: C.soft, borderRadius: 10, padding: "10px 14px" }}
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(sub.body) }} />
+          )}
+          {sub.has_file && <div style={{ marginBottom: 12 }}><AttachmentLink sub={sub} /></div>}
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
             <label style={{ fontSize: 13, color: C.muted, display: "inline-flex", alignItems: "center", gap: 7 }}>
               {t("sage.asg.grade", { defaultValue: "Grade" })}
@@ -1722,13 +1754,17 @@ function StudentAssignmentCard({ assignment, onChanged }: {
   const graded = sub?.grade != null;
   const [open, setOpen] = useState(false);
   const [body, setBody] = useState(sub?.body || "");
+  const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   async function submit() {
-    if (!body.trim()) { setErr(t("sage.asg.errBody", { defaultValue: "Write your response before submitting." })); return; }
+    if (!body.trim() && !file && !sub?.has_file) {
+      setErr(t("sage.asg.errBodyOrFile", { defaultValue: "Write a response or attach a file before submitting." }));
+      return;
+    }
     setBusy(true); setErr(null);
-    try { await sageApi.submitAssignment(assignment.id, body); onChanged(); setOpen(false); }
+    try { await sageApi.submitAssignment(assignment.id, body, file); onChanged(); setOpen(false); }
     catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   }
 
@@ -1762,9 +1798,12 @@ function StudentAssignmentCard({ assignment, onChanged }: {
           {graded ? (
             <div>
               <div style={{ fontWeight: 600, marginBottom: 6 }}>{t("sage.asg.yourSubmission", { defaultValue: "Your submission" })}</div>
-              <div className="sage-md" style={{ fontSize: 14, background: C.soft, borderRadius: 10,
-                padding: "10px 14px", marginBottom: 12 }}
-                dangerouslySetInnerHTML={{ __html: renderMarkdown(sub!.body) }} />
+              {sub!.body.trim() && (
+                <div className="sage-md" style={{ fontSize: 14, background: C.soft, borderRadius: 10,
+                  padding: "10px 14px", marginBottom: 12 }}
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(sub!.body) }} />
+              )}
+              {sub!.has_file && <div style={{ marginBottom: 12 }}><AttachmentLink sub={sub!} /></div>}
               {sub!.feedback && <>
                 <div style={{ fontWeight: 600, marginBottom: 6 }}>{t("sage.asg.feedback", { defaultValue: "Instructor feedback" })}</div>
                 <div className="sage-md" style={{ fontSize: 14, background: C.soft, borderRadius: 10, padding: "10px 14px" }}
@@ -1776,6 +1815,16 @@ function StudentAssignmentCard({ assignment, onChanged }: {
               {err && <div style={{ color: C.danger, marginBottom: 10, fontSize: 13.5 }}>{err}</div>}
               <MarkdownEditor value={body} onChange={setBody} minHeight={140}
                 placeholder={t("sage.asg.phResponse", { defaultValue: "Write your response…" })} />
+              <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <label style={{ ...ghostLike, cursor: "pointer" }}>
+                  <Icon name="file" size={15} /> {t("sage.asg.attachFile", { defaultValue: "Attach file" })}
+                  <input type="file" style={{ display: "none" }}
+                    onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                </label>
+                {file ? <span style={{ fontSize: 13, color: C.muted }}>{file.name}</span>
+                  : sub?.has_file ? <AttachmentLink sub={sub} />
+                  : null}
+              </div>
               <div style={{ marginTop: 12 }}>
                 <PrimaryBtn onClick={submit} disabled={busy}>
                   {sub ? t("sage.asg.resubmit", { defaultValue: "Update submission" }) : t("sage.asg.submit", { defaultValue: "Submit" })}</PrimaryBtn>

@@ -3,7 +3,16 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, TimestampMixin
@@ -54,6 +63,11 @@ class SageSubmission(Base, TimestampMixin):
         ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
     body: Mapped[str] = mapped_column(Text, default="")  # Markdown
+    # Optional file attachment (stored inline, like course materials).
+    file_name: Mapped[str | None] = mapped_column(String(255))
+    content_type: Mapped[str | None] = mapped_column(String(128))
+    size_bytes: Mapped[int] = mapped_column(Integer, default=0)
+    file_content: Mapped[bytes | None] = mapped_column(LargeBinary)
     grade: Mapped[float | None] = mapped_column(Float)  # points awarded, out of assignment.points
     feedback: Mapped[str] = mapped_column(Text, default="")
     graded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

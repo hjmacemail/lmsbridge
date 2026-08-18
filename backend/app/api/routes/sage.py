@@ -49,7 +49,6 @@ from app.schemas.sage import (
     SageGuestJoin,
     SageJoinSignup,
     SageSignup,
-    SubmissionCreate,
     SyllabusUpdate,
 )
 from app.services.ingestion_service import ingest_result
@@ -667,6 +666,8 @@ def _submission_out(s: SageSubmission) -> dict:
     return {
         "id": s.id, "assignment_id": s.assignment_id, "student_id": s.student_id,
         "body": s.body, "grade": s.grade, "feedback": s.feedback,
+        "has_file": s.file_content is not None,
+        "file_name": s.file_name, "file_size": s.size_bytes or 0,
         "graded_at": s.graded_at.isoformat() if s.graded_at else None,
         "submitted_at": s.created_at.isoformat() if s.created_at else None,
         "updated_at": s.updated_at.isoformat() if s.updated_at else None,
@@ -738,10 +739,14 @@ def delete_assignment(
 
 
 @router.post("/assignments/{assignment_id}/submit", status_code=201)
-def submit_assignment(
-    assignment_id: int, payload: SubmissionCreate,
+async def submit_assignment(
+    assignment_id: int,
+    body: str = Form(""),
+    file: UploadFile | None = File(None),
     db: Session = Depends(get_db), user: User = Depends(get_current_user),
 ) -> dict:
+    """Submit (or resubmit before grading) an assignment as multipart form-data: a written
+    `body` and/or an optional file attachment. At least one of the two is required."""
     a = db.get(SageAssignment, assignment_id)
     if not a:
         raise HTTPException(status_code=404, detail="Assignment not found")
@@ -752,15 +757,47 @@ def submit_assignment(
         SageSubmission.assignment_id == assignment_id, SageSubmission.student_id == user.id))
     if sub and sub.grade is not None:
         raise HTTPException(status_code=409, detail="This submission has already been graded")
-    if sub:
-        sub.body = payload.body.strip()  # resubmit before grading
-    else:
-        sub = SageSubmission(assignment_id=assignment_id, student_id=user.id,
-                             body=payload.body.strip())
+
+    body = body.strip()
+    data = await file.read() if file is not None else None
+    if data is not None and len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 20 MB limit")
+    # Something must be submitted: text, a new file, or (on resubmit) an already-attached file.
+    has_existing_file = bool(sub and sub.file_content is not None)
+    if not body and not data and not has_existing_file:
+        raise HTTPException(status_code=400, detail="Provide a response or attach a file")
+
+    if not sub:
+        sub = SageSubmission(assignment_id=assignment_id, student_id=user.id)
         db.add(sub)
+    sub.body = body
+    if data:
+        sub.file_content = data
+        sub.file_name = file.filename or "attachment"
+        sub.content_type = file.content_type or "application/octet-stream"
+        sub.size_bytes = len(data)
     db.commit()
     db.refresh(sub)
     return _submission_out(sub)
+
+
+@router.get("/submissions/{submission_id}/file")
+def download_submission_file(
+    submission_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> StreamingResponse:
+    """Download a submission's attachment. Allowed for the submitting student and the course
+    instructor."""
+    sub = db.get(SageSubmission, submission_id)
+    if not sub or sub.file_content is None:
+        raise HTTPException(status_code=404, detail="No file on this submission")
+    a = db.get(SageAssignment, sub.assignment_id)
+    _course, role = _require_role(db, a.course_id, user)
+    if role != "instructor" and sub.student_id != user.id:
+        raise HTTPException(status_code=403, detail="Not allowed")
+    return StreamingResponse(
+        io.BytesIO(sub.file_content),
+        media_type=sub.content_type or "application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{sub.file_name or "attachment"}"'})
 
 
 @router.get("/assignments/{assignment_id}/submissions")

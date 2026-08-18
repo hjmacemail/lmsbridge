@@ -599,7 +599,10 @@
       "feedback": "Instructor feedback",
       "phResponse": "Write your response…",
       "resubmit": "Update submission",
-      "submit": "Submit"
+      "submit": "Submit",
+      "attachFile": "Attach file",
+      "download": "Download attachment",
+      "errBodyOrFile": "Write a response or attach a file before submitting."
     },
     "save": "Save"
   },

@@ -350,6 +350,7 @@ export interface SageGrades {
 export interface SageSubmission {
   id: number; assignment_id: number; student_id: number; body: string;
   grade: number | null; feedback: string;
+  has_file?: boolean; file_name?: string | null; file_size?: number;
   graded_at: string | null; submitted_at: string | null; updated_at: string | null;
 }
 export interface SageAssignment {
@@ -482,9 +483,18 @@ export const sageApi = {
       { method: "PUT", body: JSON.stringify({ ...a, due_at: a.due_at || null }) }),
   deleteAssignment: (assignmentId: number) =>
     request<void>(`/sage/assignments/${assignmentId}`, { method: "DELETE" }),
-  submitAssignment: (assignmentId: number, body: string) =>
-    request<SageSubmission>(`/sage/assignments/${assignmentId}/submit`,
-      { method: "POST", body: JSON.stringify({ body }) }),
+  submitAssignment: async (assignmentId: number, body: string, file?: File | null): Promise<SageSubmission> => {
+    const token = loadToken();
+    const form = new FormData();
+    form.append("body", body);
+    if (file) form.append("file", file);
+    const res = await fetch(`${BASE}/sage/assignments/${assignmentId}/submit`, {
+      method: "POST", headers: token ? { Authorization: `Bearer ${token.access_token}` } : {}, body: form });
+    if (!res.ok) throw new Error(errorMessage(await res.json().catch(() => ({})), res.status));
+    return (await res.json()) as SageSubmission;
+  },
+  downloadSubmissionFile: (submissionId: number, filename: string) =>
+    api.authedDownload(`/sage/submissions/${submissionId}/file`, filename),
   submissions: (assignmentId: number) =>
     request<SageSubmissionsView>(`/sage/assignments/${assignmentId}/submissions`),
   gradeSubmission: (submissionId: number, grade: number, feedback: string) =>

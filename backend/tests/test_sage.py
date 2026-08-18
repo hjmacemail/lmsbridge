@@ -104,14 +104,27 @@ def test_sage_assignment_full_workflow(client):
         "join_code": code, "full_name": "Stu", "email": "stu@uni.edu", "password": "secret123"}).json())
     seen = client.get(f"/api/v1/sage/courses/{cid}/assignments", headers=sh).json()
     assert seen[0]["my_submission"] is None
-    sub = client.post(f"/api/v1/sage/assignments/{aid}/submit", headers=sh, json={
-        "body": "Recursion is when a function calls itself."})
-    assert sub.status_code == 201
+    # Submit as multipart form-data with a text response AND a file attachment.
+    sub = client.post(f"/api/v1/sage/assignments/{aid}/submit", headers=sh,
+                      data={"body": "Recursion is when a function calls itself."},
+                      files={"file": ("answer.txt", b"my recursion write-up", "text/plain")})
+    assert sub.status_code == 201, sub.text
     sub_id = sub.json()["id"]
+    assert sub.json()["has_file"] is True and sub.json()["file_name"] == "answer.txt"
 
-    # Instructor sees the submission in the grading view and grades it.
+    # Instructor sees the submission in the grading view and can download the file.
     grid = client.get(f"/api/v1/sage/assignments/{aid}/submissions", headers=ih).json()
     assert grid["rows"][0]["submission"]["body"].startswith("Recursion")
+    dl = client.get(f"/api/v1/sage/submissions/{sub_id}/file", headers=ih)
+    assert dl.status_code == 200 and dl.content == b"my recursion write-up"
+    # A file-only submission (no text) is allowed.
+    assert client.post(f"/api/v1/sage/assignments/{aid}/submit", headers=sh, data={"body": ""},
+                       files={"file": ("v2.txt", b"updated", "text/plain")}).status_code == 201
+    # An empty submission (no text, no file) is rejected on a fresh assignment.
+    a2 = client.post(f"/api/v1/sage/courses/{cid}/assignments", headers=ih,
+                     json={"title": "Essay 2", "instructions": "x", "points": 10}).json()["id"]
+    assert client.post(f"/api/v1/sage/assignments/{a2}/submit", headers=sh,
+                       data={"body": ""}).status_code == 400
     g = client.post(f"/api/v1/sage/submissions/{sub_id}/grade", headers=ih, json={
         "grade": 18, "feedback": "Good, add a base-case note."})
     assert g.status_code == 200 and g.json()["grade"] == 18
@@ -125,7 +138,7 @@ def test_sage_assignment_full_workflow(client):
 
     # Can't resubmit after grading; over-limit grade rejected; students can't grade.
     assert client.post(f"/api/v1/sage/assignments/{aid}/submit", headers=sh,
-                       json={"body": "x"}).status_code == 409
+                       data={"body": "x"}).status_code == 409
     assert client.post(f"/api/v1/sage/submissions/{sub_id}/grade", headers=ih,
                        json={"grade": 99}).status_code == 400
     assert client.post(f"/api/v1/sage/submissions/{sub_id}/grade", headers=sh,

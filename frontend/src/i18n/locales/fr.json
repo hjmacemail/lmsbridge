@@ -599,7 +599,10 @@
       "feedback": "Retour de l’enseignant",
       "phResponse": "Rédigez votre réponse…",
       "resubmit": "Mettre à jour le rendu",
-      "submit": "Rendre"
+      "submit": "Rendre",
+      "attachFile": "Joindre un fichier",
+      "download": "Télécharger la pièce jointe",
+      "errBodyOrFile": "Rédigez une réponse ou joignez un fichier avant de rendre."
     },
     "save": "Enregistrer"
   },

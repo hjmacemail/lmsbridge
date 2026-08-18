@@ -336,7 +336,7 @@
       "Quizzes": "الاختبارات",
       "Grades": "الدرجات",
       "Needs review": "بحاجة لمراجعة",
-      "Materials": "المواد",
+      "Materials": "الملفات والملاحظات",
       "Syllabus": "المنهج",
       "Students": "الطلاب",
       "Analytics": "التحليلات",
@@ -599,7 +599,10 @@
       "feedback": "ملاحظات المدرّس",
       "phResponse": "اكتب إجابتك…",
       "resubmit": "تحديث التسليم",
-      "submit": "تقديم"
+      "submit": "تقديم",
+      "attachFile": "إرفاق ملف",
+      "download": "تنزيل المرفق",
+      "errBodyOrFile": "اكتب إجابة أو أرفق ملفًا قبل التقديم."
     },
     "save": "حفظ"
   },

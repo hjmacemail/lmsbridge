@@ -599,7 +599,10 @@
       "feedback": "Comentarios del instructor",
       "phResponse": "Escribe tu respuesta…",
       "resubmit": "Actualizar entrega",
-      "submit": "Entregar"
+      "submit": "Entregar",
+      "attachFile": "Adjuntar archivo",
+      "download": "Descargar adjunto",
+      "errBodyOrFile": "Escribe una respuesta o adjunta un archivo antes de entregar."
     },
     "save": "Guardar"
   },
