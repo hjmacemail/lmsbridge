@@ -316,6 +316,11 @@
       "summaryModules": "{{count}} módulos",
       "summaryCompleted": "{{count}} completados",
       "summaryInProgress": "{{count}} en curso"
+    },
+    "console": {
+      "instructor": "Consola del docente",
+      "institution": "Administración de la institución",
+      "platform": "Consola de la plataforma"
     }
   },
   "sage": {
@@ -529,6 +534,42 @@
       "save": "Guardar",
       "saving": "Guardando…",
       "download": "Descargar"
+    }
+  },
+  "lms": {
+    "nav": {
+      "home": "Inicio",
+      "announcements": "Anuncios",
+      "assignments": "Tareas",
+      "discussions": "Debates",
+      "grades": "Calificaciones",
+      "people": "Personas",
+      "pages": "Páginas",
+      "files": "Archivos",
+      "modules": "Módulos",
+      "dashboard": "Tablero",
+      "courses": "Cursos",
+      "calendar": "Calendario",
+      "inbox": "Bandeja",
+      "history": "Historial",
+      "help": "Ayuda",
+      "content": "Contenido",
+      "messages": "Mensajes",
+      "gradebook": "Libro de calificaciones",
+      "quizzes": "Cuestionarios",
+      "classlist": "Lista de clase",
+      "participants": "Participantes",
+      "course": "Curso",
+      "more": "Más",
+      "institution": "Página de institución",
+      "tools": "Herramientas",
+      "moreTools": "Más herramientas",
+      "courseReports": "Informes del curso",
+      "general": "General",
+      "numberSystems": "Sistemas numéricos",
+      "logic": "Lógica",
+      "machineCode": "Código máquina",
+      "courseIndex": "Índice del curso"
     }
   }
 }

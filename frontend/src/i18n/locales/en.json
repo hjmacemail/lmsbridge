@@ -316,6 +316,11 @@
       "summaryModules": "{{count}} modules",
       "summaryCompleted": "{{count}} completed",
       "summaryInProgress": "{{count}} in progress"
+    },
+    "console": {
+      "instructor": "Instructor console",
+      "institution": "Institution admin",
+      "platform": "Platform console"
     }
   },
   "sage": {
@@ -529,6 +534,42 @@
       "save": "Save",
       "saving": "Saving…",
       "download": "Download"
+    }
+  },
+  "lms": {
+    "nav": {
+      "home": "Home",
+      "announcements": "Announcements",
+      "assignments": "Assignments",
+      "discussions": "Discussions",
+      "grades": "Grades",
+      "people": "People",
+      "pages": "Pages",
+      "files": "Files",
+      "modules": "Modules",
+      "dashboard": "Dashboard",
+      "courses": "Courses",
+      "calendar": "Calendar",
+      "inbox": "Inbox",
+      "history": "History",
+      "help": "Help",
+      "content": "Content",
+      "messages": "Messages",
+      "gradebook": "Gradebook",
+      "quizzes": "Quizzes",
+      "classlist": "Classlist",
+      "participants": "Participants",
+      "course": "Course",
+      "more": "More",
+      "institution": "Institution Page",
+      "tools": "Tools",
+      "moreTools": "More Tools",
+      "courseReports": "Course Reports",
+      "general": "General",
+      "numberSystems": "Number systems",
+      "logic": "Logic",
+      "machineCode": "Machine code",
+      "courseIndex": "Course index"
     }
   }
 }

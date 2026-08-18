@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
+import { localizeTerm } from "../i18n/terms";
 import { useAuth } from "../context/AuthContext";
 import type { ClassBrief, ConceptOut, Course, InstructorAnalytics,
   MisconceptionCluster } from "../types";
@@ -38,9 +39,9 @@ const TABS: { id: Tab; label: string; who: Persona[]; hideWhenLms?: boolean }[] 
 ];
 
 const TITLES: Record<Persona, string> = {
-  instructor: "Instructor console",
-  institution: "Institution admin",
-  platform: "Platform console",
+  instructor: "instructor.console.instructor",
+  institution: "instructor.console.institution",
+  platform: "instructor.console.platform",
 };
 
 function CopilotBrief({ courseId }: { courseId: number }) {
@@ -114,7 +115,7 @@ function CopilotBrief({ courseId }: { courseId: number }) {
           </div>
           {brief.top_misconception && (
             <p className="muted" style={{ margin: "8px 0 0", fontSize: 12.5 }}>
-              {t("instructor.copilot.misconceptionLead")} <strong>{brief.top_concept}</strong>: {brief.top_misconception}
+              {t("instructor.copilot.misconceptionLead")} <strong>{localizeTerm(brief.top_concept, i18n.language)}</strong>: {brief.top_misconception}
             </p>
           )}
         </>
@@ -145,7 +146,7 @@ function MisconceptionClusters({ courseId }: { courseId: number }) {
                 {c.size}</span>
               <span className="muted" style={{ fontSize: 11.5 }}>{t("instructor.clusters.students")}</span>
             </div>
-            <div style={{ fontWeight: 600, fontSize: 13.5, margin: "6px 0 2px" }}>{c.concept}</div>
+            <div style={{ fontWeight: 600, fontSize: 13.5, margin: "6px 0 2px" }}>{localizeTerm(c.concept, i18n.language)}</div>
             <div className="muted" style={{ fontSize: 13, lineHeight: 1.45 }}>{c.misconception}</div>
             {open === i && (
               <div style={{ marginTop: 8, fontSize: 12.5, color: "#444" }}>
@@ -160,7 +161,7 @@ function MisconceptionClusters({ courseId }: { courseId: number }) {
 }
 
 function Overview({ courseId }: { courseId: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [analytics, setAnalytics] = useState<InstructorAnalytics | null>(null);
   useEffect(() => {
     api.analytics(courseId).then(setAnalytics).catch(() => setAnalytics(null));
@@ -187,7 +188,7 @@ function Overview({ courseId }: { courseId: number }) {
               <tr><td colSpan={4} className="muted">{t("instructor.overview.noData")}</td></tr>}
             {analytics.concept_risks.map((r) => (
               <tr key={r.concept_id}>
-                <td style={{ fontWeight: 600 }}>{r.concept_name}</td>
+                <td style={{ fontWeight: 600 }}>{localizeTerm(r.concept_name, i18n.language)}</td>
                 <td>
                   <div className="row" style={{ gap: 8 }}>
                     <div className="bar" style={{ width: 120 }}>
@@ -220,7 +221,7 @@ export default function InstructorDashboard({ scoped = false }: { scoped?: boole
   const [err, setErr] = useState<string | null>(null);
   const [lmsConnected, setLmsConnected] = useState(false);
   const [community, setCommunity] = useState(true); // default to self-hosted community mode
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { auth } = useAuth();
   const [params] = useSearchParams();
   // When the tool is launched LMS-wide via LTI, the instructor arrives in ONE course's
@@ -344,7 +345,7 @@ export default function InstructorDashboard({ scoped = false }: { scoped?: boole
   return (
     <div className="container">
       <div className="row">
-        <h1>{TITLES[persona]}</h1>
+        <h1>{t(TITLES[persona])}</h1>
         {showCourseControls && (
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
             {/* A dropdown only makes sense for a standalone (no-LMS) deployment that manages
@@ -353,11 +354,11 @@ export default function InstructorDashboard({ scoped = false }: { scoped?: boole
             {!courseScoped && courses.length > 1 ? (
               <select value={selected ?? ""} onChange={(e) => setSelected(Number(e.target.value))}
                 style={{ width: 260, maxWidth: "100%" }}>
-                {courses.map((c) => <option key={c.id} value={c.id}>{c.code} — {c.title}</option>)}
+                {courses.map((c) => <option key={c.id} value={c.id}>{c.code} — {localizeTerm(c.title, i18n.language)}</option>)}
               </select>
             ) : (
               <span style={{ fontWeight: 600, fontSize: 15, color: "var(--ink, #11161b)" }}>
-                {selectedCourse ? `${selectedCourse.code} — ${selectedCourse.title}` : "Loading…"}
+                {selectedCourse ? `${selectedCourse.code} — ${localizeTerm(selectedCourse.title, i18n.language)}` : t("instructor.overview.loading")}
               </span>
             )}
             {canAddCourse && (

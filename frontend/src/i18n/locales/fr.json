@@ -316,6 +316,11 @@
       "summaryModules": "{{count}} modules",
       "summaryCompleted": "{{count}} terminés",
       "summaryInProgress": "{{count}} en cours"
+    },
+    "console": {
+      "instructor": "Console de l'enseignant",
+      "institution": "Administration de l'établissement",
+      "platform": "Console de la plateforme"
     }
   },
   "sage": {
@@ -529,6 +534,42 @@
       "save": "Enregistrer",
       "saving": "Enregistrement…",
       "download": "Télécharger"
+    }
+  },
+  "lms": {
+    "nav": {
+      "home": "Accueil",
+      "announcements": "Annonces",
+      "assignments": "Devoirs",
+      "discussions": "Discussions",
+      "grades": "Notes",
+      "people": "Personnes",
+      "pages": "Pages",
+      "files": "Fichiers",
+      "modules": "Modules",
+      "dashboard": "Tableau de bord",
+      "courses": "Cours",
+      "calendar": "Calendrier",
+      "inbox": "Boîte de réception",
+      "history": "Historique",
+      "help": "Aide",
+      "content": "Contenu",
+      "messages": "Messages",
+      "gradebook": "Cahier de notes",
+      "quizzes": "Quiz",
+      "classlist": "Liste de classe",
+      "participants": "Participants",
+      "course": "Cours",
+      "more": "Plus",
+      "institution": "Page d'établissement",
+      "tools": "Outils",
+      "moreTools": "Plus d'outils",
+      "courseReports": "Rapports de cours",
+      "general": "Général",
+      "numberSystems": "Systèmes de numération",
+      "logic": "Logique",
+      "machineCode": "Code machine",
+      "courseIndex": "Index du cours"
     }
   }
 }

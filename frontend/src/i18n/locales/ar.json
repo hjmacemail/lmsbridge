@@ -316,6 +316,11 @@
       "summaryModules": "{{count}} وحدات",
       "summaryCompleted": "{{count}} مكتملة",
       "summaryInProgress": "{{count}} قيد التنفيذ"
+    },
+    "console": {
+      "instructor": "وحدة تحكم المدرّس",
+      "institution": "مسؤول المؤسسة",
+      "platform": "وحدة تحكم المنصّة"
     }
   },
   "sage": {
@@ -529,6 +534,42 @@
       "save": "حفظ",
       "saving": "جارٍ الحفظ…",
       "download": "تنزيل"
+    }
+  },
+  "lms": {
+    "nav": {
+      "home": "الرئيسية",
+      "announcements": "الإعلانات",
+      "assignments": "الواجبات",
+      "discussions": "النقاشات",
+      "grades": "الدرجات",
+      "people": "الأشخاص",
+      "pages": "الصفحات",
+      "files": "الملفات",
+      "modules": "الوحدات",
+      "dashboard": "لوحة التحكم",
+      "courses": "المقرّرات",
+      "calendar": "التقويم",
+      "inbox": "البريد الوارد",
+      "history": "السجل",
+      "help": "المساعدة",
+      "content": "المحتوى",
+      "messages": "الرسائل",
+      "gradebook": "سجل الدرجات",
+      "quizzes": "الاختبارات",
+      "classlist": "قائمة الصف",
+      "participants": "المشاركون",
+      "course": "المقرّر",
+      "more": "المزيد",
+      "institution": "صفحة المؤسسة",
+      "tools": "الأدوات",
+      "moreTools": "أدوات أخرى",
+      "courseReports": "تقارير المقرّر",
+      "general": "عام",
+      "numberSystems": "أنظمة الأعداد",
+      "logic": "المنطق",
+      "machineCode": "شفرة الآلة",
+      "courseIndex": "فهرس المقرّر"
     }
   }
 }

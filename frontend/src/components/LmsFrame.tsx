@@ -1,4 +1,20 @@
 import type { ReactNode, CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
+import { localizeTerm } from "../i18n/terms";
+
+const NAV_KEY: Record<string, string> = {
+  "Home":"home","Announcements":"announcements","Assignments":"assignments","Discussions":"discussions",
+  "Grades":"grades","People":"people","Pages":"pages","Files":"files","Modules":"modules",
+  "Dashboard":"dashboard","Courses":"courses","Calendar":"calendar","Inbox":"inbox","History":"history",
+  "Help":"help","Content":"content","Messages":"messages","Gradebook":"gradebook","Quizzes":"quizzes",
+  "Classlist":"classlist","Participants":"participants","Course":"course","More":"more",
+  "Institution Page":"institution","Tools":"tools","More Tools":"moreTools","Course Reports":"courseReports",
+  "General":"general","Number systems":"numberSystems","Logic":"logic","Machine code":"machineCode",
+};
+function navText(tr: (k: string) => string, label: string): string {
+  const k = NAV_KEY[label];
+  return k ? tr(`lms.nav.${k}`) : label; // unknown labels (e.g. "LMS Bridge" brand) pass through
+}
 
 export type LmsId = "canvas" | "blackboard" | "moodle" | "brightspace";
 export type LmsPage =
@@ -13,7 +29,6 @@ export const LMS_CONFIG: Record<LmsId, { label: string; font: string }> = {
 };
 
 const COURSE = "CS 101";
-const COURSE_LONG = "CS 101 · Intro to Computer Science";
 const CONTENT_BG = "#f4f5f7";
 const VH = "calc(100vh - 46px)";
 
@@ -98,12 +113,13 @@ function sideStyle(active: boolean, accent: string): CSSProperties {
 function SideNav({ labels, accent, activePage, linkFor }: {
   labels: string[]; accent: string; activePage: LmsPage; linkFor: (p: LmsPage) => string;
 }) {
+  const { t: tr } = useTranslation();
   return (
     <>
       {labels.map((label) => {
         const page = pageFor(label);
         return (
-          <a key={label} href={linkFor(page)} style={sideStyle(page === activePage, accent)}>{label}</a>
+          <a key={label} href={linkFor(page)} style={sideStyle(page === activePage, accent)}>{navText(tr, label)}</a>
         );
       })}
     </>
@@ -112,6 +128,7 @@ function SideNav({ labels, accent, activePage, linkFor }: {
 
 // ============================ Canvas ============================
 function Canvas({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
+  const { t: tr } = useTranslation();
   const glob: [keyof typeof IC, string][] = [
     ["grid", "Dashboard"], ["home", "Courses"], ["cal", "Calendar"],
     ["mail", "Inbox"], ["clock", "History"], ["help", "Help"],
@@ -129,7 +146,7 @@ function Canvas({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
           <a key={l} href={linkFor("home")} style={{ textAlign: "center", padding: "8px 0",
             width: "100%", color: "#fff", textDecoration: "none", opacity: .95 }}>
             <I d={IC[ic]} s={22} />
-            <div style={{ fontSize: 10, marginTop: 2 }}>{l}</div>
+            <div style={{ fontSize: 10, marginTop: 2 }}>{navText(tr, l)}</div>
           </a>
         ))}
       </div>
@@ -141,7 +158,7 @@ function Canvas({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
         <div style={{ padding: "10px 22px", fontSize: 12.5, color: "#6b7780", background: "#fff",
           borderBottom: "1px solid #ebedf0" }}>
           {COURSE} <span style={{ margin: "0 6px" }}>›</span>
-          <b style={{ color: "#2d3b45" }}>{pageLabel(activePage)}</b>
+          <b style={{ color: "#2d3b45" }}>{activePage === "tool" ? "LMS Bridge" : tr("lms.nav." + activePage)}</b>
         </div>
         {children}
       </div>
@@ -151,6 +168,7 @@ function Canvas({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
 
 // ============================ Blackboard (Ultra) ============================
 function Blackboard({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
+  const { t: tr, i18n } = useTranslation();
   const base: [keyof typeof IC, string][] = [
     ["home", "Institution Page"], ["grid", "Courses"], ["cal", "Calendar"],
     ["mail", "Messages"], ["clock", "Grades"], ["tools", "Tools"],
@@ -167,13 +185,13 @@ function Blackboard({ activePage, linkFor, children }: Omit<FrameProps, "lms">) 
         {base.map(([ic, l]) => (
           <a key={l} href={linkFor(pageFor(l))} style={{ display: "flex", alignItems: "center",
             gap: 10, padding: "10px 14px", color: "#d6d6d6", textDecoration: "none", fontSize: 12.5 }}>
-            <I d={IC[ic]} s={17} /> {l}
+            <I d={IC[ic]} s={17} /> {navText(tr, l)}
           </a>
         ))}
       </div>
       <div className="lms-side" style={{ width: 196, background: "#fff", borderRight: "1px solid #d9dde1", padding: "16px 0" }}>
         <div style={{ padding: "0 18px 12px" }}>
-          <div style={{ fontSize: 11, color: "#6b7780", textTransform: "uppercase", letterSpacing: .4 }}>Course</div>
+          <div style={{ fontSize: 11, color: "#6b7780", textTransform: "uppercase", letterSpacing: .4 }}>{tr("lms.nav.course")}</div>
           <div style={{ fontWeight: 700, color: "#11161b", fontSize: 15 }}>{COURSE}</div>
         </div>
         <SideNav labels={nav} accent="#c2113a" activePage={activePage} linkFor={linkFor} />
@@ -181,8 +199,8 @@ function Blackboard({ activePage, linkFor, children }: Omit<FrameProps, "lms">) 
       <div className="lms-content" style={{ flex: 1, minWidth: 0 }}>
         <div style={{ padding: "12px 24px", fontSize: 13, color: "#6b7780", background: "#fff",
           borderBottom: "1px solid #ebedf0" }}>
-          {COURSE_LONG} <span style={{ margin: "0 6px" }}>›</span>
-          <b style={{ color: "#262626" }}>{pageLabel(activePage)}</b>
+          {`CS 101 · ${localizeTerm("Intro to Computer Science", i18n.language)}`} <span style={{ margin: "0 6px" }}>›</span>
+          <b style={{ color: "#262626" }}>{activePage === "tool" ? "LMS Bridge" : tr("lms.nav." + activePage)}</b>
         </div>
         {children}
       </div>
@@ -192,6 +210,7 @@ function Blackboard({ activePage, linkFor, children }: Omit<FrameProps, "lms">) 
 
 // ============================ Moodle (Boost) ============================
 function Moodle({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
+  const { t: tr, i18n } = useTranslation();
   const tabs = ["Course", "Participants", "Grades", "Announcements", "More"];
   return (
     <div style={{ minHeight: VH, background: CONTENT_BG, fontFamily: FONT("Open Sans") }}>
@@ -208,24 +227,24 @@ function Moodle({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
         </span>
       </div>
       <div style={{ background: "#fff", borderBottom: "1px solid #dee2e6", padding: "14px 22px 0" }}>
-        <div style={{ fontSize: 19, fontWeight: 700, color: "#1d2125", marginBottom: 8 }}>{COURSE_LONG}</div>
+        <div style={{ fontSize: 19, fontWeight: 700, color: "#1d2125", marginBottom: 8 }}>{`CS 101 · ${localizeTerm("Intro to Computer Science", i18n.language)}`}</div>
         <div style={{ display: "flex", gap: 22, fontSize: 14 }}>
           {tabs.map((t) => {
             const on = pageFor(t) === activePage;
             return (
               <a key={t} href={linkFor(pageFor(t))} style={{ color: on ? "#0f6cbf" : "#5d6772",
                 borderBottom: on ? "3px solid #0f6cbf" : "3px solid transparent", paddingBottom: 10,
-                textDecoration: "none", fontWeight: on ? 700 : 400 }}>{t}</a>
+                textDecoration: "none", fontWeight: on ? 700 : 400 }}>{navText(tr, t)}</a>
             );
           })}
         </div>
       </div>
       <div className="lms-frame" style={{ display: "flex", minHeight: "calc(100vh - 46px - 52px - 86px)" }}>
         <div className="lms-side" style={{ width: 220, background: "#fff", borderRight: "1px solid #dee2e6", padding: "16px 0" }}>
-          <div style={{ padding: "0 16px 10px", fontWeight: 700, fontSize: 13, color: "#1d2125" }}>Course index</div>
+          <div style={{ padding: "0 16px 10px", fontWeight: 700, fontSize: 13, color: "#1d2125" }}>{tr("lms.nav.courseIndex")}</div>
           {["General", "Number systems", "Logic", "Machine code"].map((n) => (
             <a key={n} href={linkFor("modules")} style={{ padding: "7px 16px", display: "block",
-              fontSize: 13, color: "#3a4654", textDecoration: "none" }}>{n}</a>
+              fontSize: 13, color: "#3a4654", textDecoration: "none" }}>{navText(tr, n)}</a>
           ))}
           <a href={linkFor("tool")} style={{ padding: "7px 16px 7px 13px", display: "block",
             borderLeft: "3px solid #f98012", fontWeight: 700, fontSize: 13, color: "#1d2125",
@@ -240,6 +259,7 @@ function Moodle({ activePage, linkFor, children }: Omit<FrameProps, "lms">) {
 
 // ============================ Brightspace (D2L "Daylight") ============================
 function Brightspace({ role, activePage, linkFor, children }: Omit<FrameProps, "lms">) {
+  const { t: tr, i18n } = useTranslation();
   // White header + white navbar with bold black links and a blue active accent (D2L Daylight).
   // Classlist/People is an instructor-only tool in Brightspace — hide it for students.
   const nav = ["Content", "Announcements", "Assignments", "Discussions", "Quizzes", "Grades",
@@ -254,7 +274,7 @@ function Brightspace({ role, activePage, linkFor, children }: Omit<FrameProps, "
         gap: 16, padding: "0 22px", borderBottom: "1px solid #e6e9ed" }}>
         <Mark bg="#5a2a4d" fg="#fff" text="N" size={28} />
         <Dots />
-        <span style={{ fontWeight: 700, fontSize: 18, color: "#202122" }}>{COURSE_LONG}</span>
+        <span style={{ fontWeight: 700, fontSize: 18, color: "#202122" }}>{`CS 101 · ${localizeTerm("Intro to Computer Science", i18n.language)}`}</span>
         <span className="lms-hideMobile" style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 16 }}>
           <span style={icon}><Waffle /></span>
           <Dots />
@@ -278,12 +298,12 @@ function Brightspace({ role, activePage, linkFor, children }: Omit<FrameProps, "
             <a key={n} href={linkFor(pageFor(n))} style={{ display: "flex", alignItems: "center",
               padding: "0 14px", fontSize: 15, fontWeight: 700, textDecoration: "none",
               color: on ? BLUE : "#2d3338",
-              borderBottom: on ? `3px solid ${BLUE}` : "3px solid transparent" }}>{n}</a>
+              borderBottom: on ? `3px solid ${BLUE}` : "3px solid transparent" }}>{navText(tr, n)}</a>
           );
         })}
         {drop.map((n) => (
           <span key={n} style={{ display: "flex", alignItems: "center", padding: "0 14px",
-            fontSize: 15, fontWeight: 700, color: "#2d3338" }}>{n} <span aria-hidden
+            fontSize: 15, fontWeight: 700, color: "#2d3338" }}>{navText(tr, n)} <span aria-hidden
               style={{ marginLeft: 5, color: "#6b7780" }}>▾</span></span>
         ))}
       </div>
