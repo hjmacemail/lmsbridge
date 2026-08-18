@@ -484,7 +484,9 @@
       "attemptsTitle": "Your attempts",
       "noAttempts": "No attempts yet.",
       "yourAnswer": "Your answer: {{ans}}",
-      "conceptHint": "The topic this question tests (e.g. “Binary arithmetic”). When a student gets it wrong, LMS Bridge uses this to build them targeted practice on that exact topic. Questions on the same topic can share the same concept."
+      "conceptHint": "The topic this question tests (e.g. “Binary arithmetic”). When a student gets it wrong, LMS Bridge uses this to build them targeted practice on that exact topic. Questions on the same topic can share the same concept.",
+      "preview": "Preview",
+      "acceptedLabel": "Accepted answers:"
     },
     "qtype": {
       "mcq": "Multiple choice",

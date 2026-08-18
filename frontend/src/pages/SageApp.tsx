@@ -8,6 +8,7 @@ import {
   type SageTakeQuiz, type SageSubmitResult, type SageStudent,
   type SageGrades, type SageQuestionDraft, type SageMaterial, type SageProfile,
   type SageQType, type SageAnswerIn, type SageAnnouncement, type SageQuizAttempt,
+  type SageQuizForEdit,
 } from "../api/client";
 import type { RemediationModule, InstructorAnalytics, AuthToken, Role } from "../types";
 import { useAuth } from "../context/AuthContext";
@@ -80,6 +81,7 @@ function Icon({ name, size = 18, color = "currentColor" }: { name: string; size?
     code: "M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z",
     chart: "M4 21V10h4v11H4zm6 0V3h4v18h-4zm6 0v-7h4v7h-4z",
     dots: "M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z",
+    eye: "M12 5C5 5 2 12 2 12s3 7 10 7 10-7 10-7-3-7-10-7zm0 12a5 5 0 110-10 5 5 0 010 10zm0-2a3 3 0 100-6 3 3 0 000 6z",
   };
   const fillStroke = name === "back" ? { fill: "none", stroke: color, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const } : { fill: color };
   // Directional icons must mirror in right-to-left languages (e.g. "back" points the other way).
@@ -902,6 +904,61 @@ function Home({ course, instr, detail }:
   );
 }
 
+// Read-only preview of a quiz for the instructor: questions, choices with the correct one(s)
+// marked, accepted answers for short questions, and each question's concept tag.
+function QuizPreview({ quiz, onClose }: { quiz: SageQuizForEdit; onClose: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <Modal title={quiz.title} onClose={onClose}>
+      {quiz.due_at && (
+        <div style={{ color: C.muted, fontSize: 13, marginBottom: 12 }}>
+          {t("sage.quiz.due", { date: fmtDateTime(quiz.due_at) })}</div>
+      )}
+      <div style={{ display: "grid", gap: 14 }}>
+        {quiz.questions.map((q, i) => (
+          <div key={i} style={{ border: `1px solid ${C.line}`, borderRadius: 10, padding: 12 }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "baseline", marginBottom: 8 }}>
+              <span style={{ fontWeight: 700, color: C.muted, fontSize: 13, flexShrink: 0 }}>Q{i + 1}</span>
+              <span style={{ fontWeight: 600 }}>
+                {q.prompt || <em style={{ color: C.muted }}>—</em>}</span>
+            </div>
+            {q.qtype === "short" ? (
+              <div style={{ fontSize: 13.5 }}>
+                <span style={{ color: C.muted }}>
+                  {t("sage.quiz.acceptedLabel", { defaultValue: "Accepted answers:" })} </span>
+                <b>{q.correct.join(" · ") || "—"}</b>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gap: 5 }}>
+                {(q.qtype === "true_false" ? ["True", "False"] : q.choices).map((c, ci) => {
+                  const ok = q.correct.includes(c);
+                  return (
+                    <div key={ci} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14,
+                      padding: "6px 10px", borderRadius: 8,
+                      background: ok ? C.successBg : "transparent",
+                      border: `1px solid ${ok ? C.success : C.line}` }}>
+                      {ok ? <Icon name="check" size={15} color={C.success} />
+                        : <span style={{ width: 15, flexShrink: 0 }} />}
+                      <span style={{ color: ok ? C.success : C.ink, fontWeight: ok ? 600 : 400 }}>
+                        {q.qtype === "true_false" ? tfLabel(q.qtype, c, t) : c}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {q.concept && (
+              <div style={{ marginTop: 9 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, background: C.accentBg, color: C.accentInk,
+                  padding: "3px 10px", borderRadius: 999 }}>{q.concept}</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+}
+
 // --------------------------------------------------------------- Quizzes (instructor)
 function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
   const { t } = useTranslation();
@@ -910,10 +967,14 @@ function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
   const [editId, setEditId] = useState<number | null>(null);
   const [initial, setInitial] = useState<
     { title: string; questions: SageQuestionDraft[]; due_at?: string | null; locked?: boolean } | null>(null);
+  const [preview, setPreview] = useState<SageQuizForEdit | null>(null);
   const load = () => sageApi.quizzes(course.id).then(setQuizzes).catch(() => setQuizzes([]));
   useEffect(() => { load(); }, [course.id]);
 
   function startNew() { setInitial(null); setEditId(null); setBuild(true); }
+  function openPreview(id: number) {
+    sageApi.quizForEdit(id).then(setPreview).catch((e) => window.alert((e as Error).message));
+  }
   async function startEdit(id: number) {
     const q = await sageApi.quizForEdit(id);
     setInitial({ title: q.title, questions: q.questions, due_at: q.due_at, locked: q.has_submissions });
@@ -953,7 +1014,8 @@ function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
                   {t("sage.quiz.metaInstr", { questions: q.question_count, submitted: q.submission_count ?? 0 })}
                   {q.due_at && <> · {t("sage.quiz.due", { date: fmtDateTime(q.due_at) })}</>}</div>
               </div>
-              <div style={{ display: "flex", gap: 6 }}>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <GhostBtn onClick={() => openPreview(q.id)}><Icon name="eye" size={15} /> {t("sage.quiz.preview", { defaultValue: "Preview" })}</GhostBtn>
                 <GhostBtn onClick={() => startEdit(q.id)}><Icon name="edit" size={15} /> {t("sage.quiz.edit")}</GhostBtn>
                 <GhostBtn onClick={() => dup(q.id)}><Icon name="copy" size={15} /> {t("sage.quiz.duplicate")}</GhostBtn>
                 <button onClick={() => del(q.id)} title="Delete" style={{ background: "none", border: "none",
@@ -966,6 +1028,7 @@ function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
           </Card>
         );
       })}
+      {preview && <QuizPreview quiz={preview} onClose={() => setPreview(null)} />}
     </div>
   );
 }

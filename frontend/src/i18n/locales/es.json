@@ -484,7 +484,9 @@
       "attemptsTitle": "Tus intentos",
       "noAttempts": "Aún no hay intentos.",
       "yourAnswer": "Tu respuesta: {{ans}}",
-      "conceptHint": "El tema que evalúa esta pregunta (p. ej. «Aritmética binaria»). Cuando un estudiante falla, LMS Bridge lo usa para crear práctica dirigida a ese tema. Las preguntas del mismo tema pueden compartir el mismo concepto."
+      "conceptHint": "El tema que evalúa esta pregunta (p. ej. «Aritmética binaria»). Cuando un estudiante falla, LMS Bridge lo usa para crear práctica dirigida a ese tema. Las preguntas del mismo tema pueden compartir el mismo concepto.",
+      "preview": "Vista previa",
+      "acceptedLabel": "Respuestas aceptadas:"
     },
     "qtype": {
       "mcq": "Opción múltiple",
