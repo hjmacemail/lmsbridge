@@ -434,10 +434,20 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
   const teaching = courses.filter((c) => c.role === "instructor");
   const totalStudents = teaching.reduce((s, c) => s + (c.student_count || 0), 0);
   const totalQuizzes = teaching.reduce((s, c) => s + (c.quiz_count || 0), 0);
+  // The role chip only helps when the user has courses in more than one role.
+  const mixedRoles = new Set(courses.map((c) => c.role)).size > 1;
 
   async function create(e: React.FormEvent) {
     e.preventDefault(); if (!name) return;
     try { await sageApi.createCourse(name, subject); setName(""); setSubject(""); load(); }
+    catch (e) { setMsg((e as Error).message); }
+  }
+  async function removeCourse(c: SageCourseSummary) {
+    if (!window.confirm(t("sage.courses.deleteConfirm", {
+      defaultValue: "Delete “{{name}}” and everything in it (quizzes, results, roster)? This cannot be undone.",
+      name: c.name,
+    }))) return;
+    try { await sageApi.deleteCourse(c.id); load(); }
     catch (e) { setMsg((e as Error).message); }
   }
   async function join(e: React.FormEvent) {
@@ -477,15 +487,28 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
                   onOpen(c);
                 }
               }}
-              style={{ flex: 1 }}>
+              style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: 16.5 }}>{c.name}</div>
               <div style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>
                 {t("sage.courses.meta", { students: c.student_count, quizzes: c.quiz_count })}
                 {c.role === "instructor" && <> · {t("sage.joinCode")} <b style={{ color: C.accentInk, letterSpacing: 1 }}>{c.join_code}</b></>}
               </div>
             </div>
-            <span style={{ fontSize: 12, fontWeight: 600, background: C.accentBg, color: C.accentInk,
-              padding: "4px 11px", borderRadius: 999 }}>{c.role}</span>
+            {/* Role chip only when it's informative — i.e. the user has courses in BOTH roles. */}
+            {mixedRoles && (
+              <span style={{ fontSize: 12, fontWeight: 600, background: C.accentBg, color: C.accentInk,
+                padding: "4px 11px", borderRadius: 999, whiteSpace: "nowrap" }}>
+                {t("sage.role." + c.role, { defaultValue: c.role })}</span>
+            )}
+            {c.role === "instructor" && (
+              <button type="button" title={t("sage.courses.delete", { defaultValue: "Delete course" })}
+                aria-label={t("sage.courses.delete", { defaultValue: "Delete course" })}
+                onClick={(e) => { e.stopPropagation(); removeCourse(c); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: C.danger,
+                  display: "flex", alignItems: "center", padding: 4 }}>
+                <Icon name="trash" size={17} color={C.danger} />
+              </button>
+            )}
             <Icon name="arrow" color={C.muted} />
           </Card>
         ))}

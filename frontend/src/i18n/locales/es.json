@@ -393,7 +393,9 @@
       "createBtn": "Crear curso",
       "joinTitle": "Unirse a un curso",
       "phJoin": "Código de acceso",
-      "joinBtn": "Unirse con código"
+      "joinBtn": "Unirse con código",
+      "delete": "Eliminar curso",
+      "deleteConfirm": "¿Eliminar «{{name}}» y todo su contenido (cuestionarios, resultados, lista)? Esto no se puede deshacer."
     },
     "stat": {
       "courses": "Cursos",
@@ -547,6 +549,10 @@
       "save": "Guardar",
       "saving": "Guardando…",
       "download": "Descargar"
+    },
+    "role": {
+      "instructor": "docente",
+      "student": "estudiante"
     }
   },
   "lms": {

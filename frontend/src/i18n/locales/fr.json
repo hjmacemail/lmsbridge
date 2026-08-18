@@ -393,7 +393,9 @@
       "createBtn": "Créer le cours",
       "joinTitle": "Rejoindre un cours",
       "phJoin": "Code d'accès",
-      "joinBtn": "Rejoindre avec un code"
+      "joinBtn": "Rejoindre avec un code",
+      "delete": "Supprimer le cours",
+      "deleteConfirm": "Supprimer « {{name}} » et tout son contenu (quiz, résultats, liste) ? Cette action est irréversible."
     },
     "stat": {
       "courses": "Cours",
@@ -547,6 +549,10 @@
       "save": "Enregistrer",
       "saving": "Enregistrement…",
       "download": "Télécharger"
+    },
+    "role": {
+      "instructor": "enseignant",
+      "student": "étudiant"
     }
   },
   "lms": {

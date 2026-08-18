@@ -266,6 +266,21 @@ def update_syllabus(
     return {"syllabus": course.syllabus}
 
 
+@router.delete("/courses/{course_id}", status_code=204)
+def delete_course(
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> None:
+    """Permanently delete a course and everything in it (quizzes, results, materials, roster).
+    Only the course OWNER (its creator) may do this."""
+    course = db.get(Course, course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    if course.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Only the course owner can delete it")
+    db.delete(course)  # FK ondelete=CASCADE removes quizzes, results, enrollments, materials, etc.
+    db.commit()
+
+
 @router.get("/courses/{course_id}/students")
 def course_students(
     course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)

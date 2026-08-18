@@ -50,6 +50,25 @@ def test_purge_guests_ages_by_activity(db, monkeypatch):
     assert any(u.email == "old2@sage.local" for u in db.query(User).all())
 
 
+def test_sage_delete_course(client):
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr D", "email": "d@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "Trash Me"}).json()["id"]
+    # Give it content so we exercise the cascade.
+    client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih, json={
+        "title": "Q", "questions": [{"prompt": "1011?", "choices": ["9", "11"], "correct": "11",
+                                     "concept": "Bin"}]})
+    code = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"]
+    other = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Someone", "email": "s2@uni.edu", "password": "secret123"}).json())
+    # A non-owner can't delete it.
+    assert client.delete(f"/api/v1/sage/courses/{cid}", headers=other).status_code == 403
+    # Owner deletes it; it disappears from their course list and 404s afterward.
+    assert client.delete(f"/api/v1/sage/courses/{cid}", headers=ih).status_code == 204
+    assert all(c["id"] != cid for c in client.get("/api/v1/sage/courses", headers=ih).json())
+    assert client.get(f"/api/v1/sage/courses/{cid}", headers=ih).status_code in (403, 404)
+
+
 def test_sage_remove_student(client):
     ih = _auth(client.post("/api/v1/sage/signup", json={
         "full_name": "Dr R", "email": "r@uni.edu", "password": "secret123"}).json())

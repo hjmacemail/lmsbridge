@@ -393,7 +393,9 @@
       "createBtn": "Create course",
       "joinTitle": "Join a course",
       "phJoin": "Join code",
-      "joinBtn": "Join with code"
+      "joinBtn": "Join with code",
+      "delete": "Delete course",
+      "deleteConfirm": "Delete “{{name}}” and everything in it (quizzes, results, roster)? This cannot be undone."
     },
     "stat": {
       "courses": "Courses",
@@ -547,6 +549,10 @@
       "save": "Save",
       "saving": "Saving…",
       "download": "Download"
+    },
+    "role": {
+      "instructor": "instructor",
+      "student": "student"
     }
   },
   "lms": {
