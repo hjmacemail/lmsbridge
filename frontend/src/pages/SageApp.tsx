@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
@@ -79,6 +79,7 @@ function Icon({ name, size = 18, color = "currentColor" }: { name: string; size?
     note: "M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm4 4h10V7H7v2zm0 4h10v-2H7v2zm0 4h7v-2H7v2z",
     code: "M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z",
     chart: "M4 21V10h4v11H4zm6 0V3h4v18h-4zm6 0v-7h4v7h-4z",
+    dots: "M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z",
   };
   const fillStroke = name === "back" ? { fill: "none", stroke: color, strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const } : { fill: color };
   // Directional icons must mirror in right-to-left languages (e.g. "back" points the other way).
@@ -422,6 +423,69 @@ function greetingKey() {
   return h < 12 ? "morning" : h < 18 ? "afternoon" : "evening";
 }
 
+// Compact "Join code: XXXX  [Copy]" with clipboard feedback (used in the course row meta).
+function JoinCodeInline({ code }: { code: string | null }) {
+  const { t } = useTranslation();
+  const [done, setDone] = useState(false);
+  if (!code) return null;
+  return (
+    <>
+      {" · "}{t("sage.joinCode")}{" "}
+      <b style={{ color: C.accentInk, letterSpacing: 1 }}>{code}</b>{" "}
+      <button type="button"
+        onClick={(e) => { e.stopPropagation();
+          navigator.clipboard?.writeText(code); setDone(true); setTimeout(() => setDone(false), 1500); }}
+        style={{ display: "inline-flex", alignItems: "center", gap: 5, background: "#fff",
+          border: `1px solid ${C.line}`, color: done ? C.success : C.accentInk, borderRadius: 7,
+          padding: "3px 9px", fontSize: 12, fontWeight: 600, cursor: "pointer", verticalAlign: "middle" }}>
+        <Icon name={done ? "check" : "copy"} size={13} />
+        {done ? t("sage.copied") : t("sage.copy", { defaultValue: "Copy" })}
+      </button>
+    </>
+  );
+}
+
+// A "⋮" overflow menu for a course row — keeps destructive actions out of the way (a cleaner
+// pattern than a bare trash icon). Closes on outside-click or Escape.
+function CourseMenu({ onDelete }: { onDelete: () => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
+  }, [open]);
+  return (
+    <div ref={ref} style={{ position: "relative", flexShrink: 0 }}>
+      <button type="button" aria-haspopup="menu" aria-expanded={open}
+        aria-label={t("sage.courses.menu", { defaultValue: "Course options" })}
+        onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+        style={{ background: open ? C.soft : "none", border: "none", cursor: "pointer",
+          color: C.muted, display: "flex", alignItems: "center", padding: 6, borderRadius: 8 }}>
+        <Icon name="dots" size={18} color={C.muted} />
+      </button>
+      {open && (
+        <div role="menu" style={{ position: "absolute", insetInlineEnd: 0, top: "calc(100% + 4px)",
+          background: "#fff", border: `1px solid ${C.line}`, borderRadius: 10, boxShadow: C.shadow,
+          padding: 4, minWidth: 170, zIndex: 20 }}>
+          <button type="button" role="menuitem"
+            onClick={(e) => { e.stopPropagation(); setOpen(false); onDelete(); }}
+            style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", textAlign: "start",
+              background: "none", border: "none", cursor: "pointer", color: C.danger,
+              padding: "9px 11px", borderRadius: 7, fontSize: 13.5, fontWeight: 500 }}>
+            <Icon name="trash" size={15} color={C.danger} />
+            {t("sage.courses.delete", { defaultValue: "Delete course" })}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void; userName: string }) {
   const { t } = useTranslation();
   const [courses, setCourses] = useState<SageCourseSummary[]>([]);
@@ -491,7 +555,7 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
               <div style={{ fontWeight: 700, fontSize: 16.5 }}>{c.name}</div>
               <div style={{ color: C.muted, fontSize: 13, marginTop: 2 }}>
                 {t("sage.courses.meta", { students: c.student_count, quizzes: c.quiz_count })}
-                {c.role === "instructor" && <> · {t("sage.joinCode")} <b style={{ color: C.accentInk, letterSpacing: 1 }}>{c.join_code}</b></>}
+                {c.role === "instructor" && <JoinCodeInline code={c.join_code} />}
               </div>
             </div>
             {/* Role chip only when it's informative — i.e. the user has courses in BOTH roles. */}
@@ -500,16 +564,13 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
                 padding: "4px 11px", borderRadius: 999, whiteSpace: "nowrap" }}>
                 {t("sage.role." + c.role, { defaultValue: c.role })}</span>
             )}
-            {c.role === "instructor" && (
-              <button type="button" title={t("sage.courses.delete", { defaultValue: "Delete course" })}
-                aria-label={t("sage.courses.delete", { defaultValue: "Delete course" })}
-                onClick={(e) => { e.stopPropagation(); removeCourse(c); }}
-                style={{ background: "none", border: "none", cursor: "pointer", color: C.danger,
-                  display: "flex", alignItems: "center", padding: 4 }}>
-                <Icon name="trash" size={17} color={C.danger} />
-              </button>
-            )}
-            <Icon name="arrow" color={C.muted} />
+            <button type="button" aria-label={t("sage.open", { defaultValue: "Open" })}
+              onClick={(e) => { e.stopPropagation(); onOpen(c); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: C.muted,
+                display: "flex", alignItems: "center", padding: 6, flexShrink: 0 }}>
+              <Icon name="arrow" color={C.muted} />
+            </button>
+            {c.role === "instructor" && <CourseMenu onDelete={() => removeCourse(c)} />}
           </Card>
         ))}
       </div>

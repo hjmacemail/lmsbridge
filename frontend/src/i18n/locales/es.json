@@ -395,7 +395,8 @@
       "phJoin": "Código de acceso",
       "joinBtn": "Unirse con código",
       "delete": "Eliminar curso",
-      "deleteConfirm": "¿Eliminar «{{name}}» y todo su contenido (cuestionarios, resultados, lista)? Esto no se puede deshacer."
+      "deleteConfirm": "¿Eliminar «{{name}}» y todo su contenido (cuestionarios, resultados, lista)? Esto no se puede deshacer.",
+      "menu": "Opciones del curso"
     },
     "stat": {
       "courses": "Cursos",
@@ -553,7 +554,9 @@
     "role": {
       "instructor": "docente",
       "student": "estudiante"
-    }
+    },
+    "copy": "Copiar",
+    "open": "Abrir"
   },
   "lms": {
     "nav": {

@@ -395,7 +395,8 @@
       "phJoin": "Code d'accès",
       "joinBtn": "Rejoindre avec un code",
       "delete": "Supprimer le cours",
-      "deleteConfirm": "Supprimer « {{name}} » et tout son contenu (quiz, résultats, liste) ? Cette action est irréversible."
+      "deleteConfirm": "Supprimer « {{name}} » et tout son contenu (quiz, résultats, liste) ? Cette action est irréversible.",
+      "menu": "Options du cours"
     },
     "stat": {
       "courses": "Cours",
@@ -553,7 +554,9 @@
     "role": {
       "instructor": "enseignant",
       "student": "étudiant"
-    }
+    },
+    "copy": "Copier",
+    "open": "Ouvrir"
   },
   "lms": {
     "nav": {
