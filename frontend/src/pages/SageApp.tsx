@@ -155,6 +155,9 @@ export default function SageApp() {
   const [course, setCourse] = useState<SageCourseSummary | null>(null);
   const [courseTab, setCourseTab] = useState("Home");
   const [detail, setDetail] = useState<SageCourseDetail | null>(null);
+  // Create/Join course dialog (opened from the sidebar) + a counter that refreshes the list.
+  const [courseDialog, setCourseDialog] = useState<"create" | "join" | null>(null);
+  const [coursesReload, setCoursesReload] = useState(0);
   const { t } = useTranslation();
   // Keep the shared AuthContext in sync so the LMS Bridge tutor route (/modules/:id,
   // a Protected route) recognises the Sage session instead of bouncing to /login.
@@ -242,6 +245,20 @@ export default function SageApp() {
             <>
               <SideLink icon="school" label={t("sage.tab.Courses")} active={view === "courses"} onClick={() => setView("courses")} />
               <SideLink icon="note" label={t("sage.tab.Profile")} active={view === "profile"} onClick={() => setView("profile")} />
+              <div style={{ display: "grid", gap: 7, marginTop: 14, padding: "0 3px" }}>
+                <button onClick={() => { setView("courses"); setCourseDialog("create"); }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                    background: C.primary, color: "#fff", border: "none", borderRadius: 10,
+                    padding: "9px 12px", fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}>
+                  <Icon name="plus" size={16} color="#fff" /> {t("sage.courses.createBtn")}
+                </button>
+                <button onClick={() => { setView("courses"); setCourseDialog("join"); }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                    background: "#fff", color: C.accentInk, border: `1px solid ${C.line}`, borderRadius: 10,
+                    padding: "9px 12px", fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}>
+                  <Icon name="key" size={15} color={C.accentInk} /> {t("sage.courses.joinTitle")}
+                </button>
+              </div>
             </>
           )}
         </nav>
@@ -265,10 +282,15 @@ export default function SageApp() {
       <div style={{ flex: 1, minWidth: 0, padding: "28px 32px 56px", maxWidth: 1120 }}>
         {view === "profile" && <Profile onName={(n) => user && setUser({ ...user, full_name: n })}
           onBack={() => setView("courses")} />}
-        {view === "courses" && <Courses userName={user.full_name} onOpen={openCourse} />}
+        {view === "courses" && <Courses key={coursesReload} userName={user.full_name} onOpen={openCourse} />}
         {inCourse && <CourseView course={course!} tab={courseTab} detail={detail}
           reloadDetail={() => sageApi.courseDetail(course!.id).then(setDetail).catch(() => setDetail(null))} />}
       </div>
+
+      {courseDialog && (
+        <CourseDialog mode={courseDialog} onClose={() => setCourseDialog(null)}
+          onDone={() => setCoursesReload((n) => n + 1)} />
+      )}
     </div>
   );
 }
@@ -486,6 +508,85 @@ function CourseMenu({ onDelete }: { onDelete: () => void }) {
   );
 }
 
+// Centered modal dialog (click-outside / Escape to close).
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(20,20,40,.45)",
+      display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
+      <div onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true"
+        style={{ background: "#fff", borderRadius: 16, boxShadow: C.shadow, width: "100%", maxWidth: 430,
+          padding: 22, maxHeight: "90vh", overflowY: "auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+          <h3 style={{ margin: 0, fontSize: 18, color: C.ink }}>{title}</h3>
+          <button onClick={onClose} aria-label="Close"
+            style={{ background: "none", border: "none", cursor: "pointer", color: C.muted, fontSize: 22, lineHeight: 1 }}>×</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// The Create-course / Join-course forms, in a dialog opened from the sidebar. `onDone` refreshes
+// the course list on success.
+function CourseDialog({ mode, onClose, onDone }: {
+  mode: "create" | "join"; onClose: () => void; onDone: () => void;
+}) {
+  const { t } = useTranslation();
+  const [tab, setTab] = useState<"create" | "join">(mode);
+  const [name, setName] = useState(""); const [subject, setSubject] = useState(""); const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault(); setErr(null);
+    if (tab === "create" && !name.trim()) { setErr(t("sage.auth.errName")); return; }
+    if (tab === "join" && !code.trim()) { setErr(t("sage.auth.errCode")); return; }
+    setBusy(true);
+    try {
+      if (tab === "create") await sageApi.createCourse(name.trim(), subject.trim());
+      else await sageApi.joinExisting(code.trim().toUpperCase());
+      onDone(); onClose();
+    } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  }
+  const tabBtn = (which: "create" | "join", label: string) => (
+    <button type="button" onClick={() => { setTab(which); setErr(null); }}
+      style={{ flex: 1, padding: "8px 10px", fontSize: 13.5, fontWeight: 600, cursor: "pointer",
+        borderRadius: 9, border: `1px solid ${tab === which ? C.primary : C.line}`,
+        background: tab === which ? C.primary : "#fff", color: tab === which ? "#fff" : C.muted }}>{label}</button>
+  );
+  return (
+    <Modal title={t(tab === "create" ? "sage.courses.createTitle" : "sage.courses.joinTitle")} onClose={onClose}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+        {tabBtn("create", t("sage.courses.createTitle"))}
+        {tabBtn("join", t("sage.courses.joinTitle"))}
+      </div>
+      <form onSubmit={submit} style={{ display: "grid", gap: 10 }}>
+        {tab === "create" ? (
+          <>
+            <input style={inputStyle} placeholder={t("sage.courses.phName")} autoFocus
+              value={name} onChange={(e) => setName(e.target.value)} />
+            <input style={inputStyle} placeholder={t("sage.courses.phSubject")}
+              value={subject} onChange={(e) => setSubject(e.target.value)} />
+          </>
+        ) : (
+          <input style={inputStyle} placeholder={t("sage.courses.phJoin")} autoFocus
+            value={code} onChange={(e) => setCode(e.target.value)} />
+        )}
+        <PrimaryBtn type="submit" disabled={busy}>
+          {busy ? "…" : tab === "create"
+            ? <><Icon name="plus" size={16} /> {t("sage.courses.createBtn")}</>
+            : t("sage.courses.joinBtn")}
+        </PrimaryBtn>
+        {err && <div style={{ color: C.danger, fontSize: 13 }}>{err}</div>}
+      </form>
+    </Modal>
+  );
+}
+
 // A labeled group of course cards ("Teaching" / "Enrolled as student"). The delete menu only
 // appears when onDelete is provided (i.e. for courses you teach).
 function CourseGroup({ label, count, courses, onOpen, onDelete }: {
@@ -533,8 +634,7 @@ function CourseGroup({ label, count, courses, onOpen, onDelete }: {
 function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void; userName: string }) {
   const { t } = useTranslation();
   const [courses, setCourses] = useState<SageCourseSummary[]>([]);
-  const [name, setName] = useState(""); const [subject, setSubject] = useState("");
-  const [code, setCode] = useState(""); const [msg, setMsg] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
   const load = () => sageApi.courses().then(setCourses).catch(() => setCourses([]));
   useEffect(() => { load(); }, []);
 
@@ -545,22 +645,12 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
   const totalStudents = teaching.reduce((s, c) => s + (c.student_count || 0), 0);
   const totalQuizzes = teaching.reduce((s, c) => s + (c.quiz_count || 0), 0);
 
-  async function create(e: React.FormEvent) {
-    e.preventDefault(); if (!name) return;
-    try { await sageApi.createCourse(name, subject); setName(""); setSubject(""); load(); }
-    catch (e) { setMsg((e as Error).message); }
-  }
   async function removeCourse(c: SageCourseSummary) {
     if (!window.confirm(t("sage.courses.deleteConfirm", {
       defaultValue: "Delete “{{name}}” and everything in it (quizzes, results, roster)? This cannot be undone.",
       name: c.name,
     }))) return;
     try { await sageApi.deleteCourse(c.id); load(); }
-    catch (e) { setMsg((e as Error).message); }
-  }
-  async function join(e: React.FormEvent) {
-    e.preventDefault(); if (!code) return;
-    try { await sageApi.joinExisting(code.trim().toUpperCase()); setCode(""); load(); }
     catch (e) { setMsg((e as Error).message); }
   }
   return (
@@ -596,32 +686,6 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
           count={enrolled.length}
           courses={enrolled} onOpen={onOpen} />
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-        gap: 14, marginTop: 16 }}>
-        <Card>
-          <h3 style={{ marginTop: 0, fontSize: 16 }}>{t("sage.courses.createTitle")}</h3>
-          <form onSubmit={create} style={{ display: "grid", gap: 9 }}>
-            <label htmlFor="sage-course-name" style={{ position: "absolute", width: 1, height: 1,
-              padding: 0, margin: -1, overflow: "hidden", clip: "rect(0 0 0 0)", border: 0 }}>
-              {t("sage.courses.phName")}</label>
-            <input id="sage-course-name" style={inputStyle} placeholder={t("sage.courses.phName")}
-              value={name} onChange={(e) => setName(e.target.value)} />
-            <label htmlFor="sage-course-subject" style={{ position: "absolute", width: 1, height: 1,
-              padding: 0, margin: -1, overflow: "hidden", clip: "rect(0 0 0 0)", border: 0 }}>
-              {t("sage.courses.phSubject")}</label>
-            <input id="sage-course-subject" style={inputStyle} placeholder={t("sage.courses.phSubject")}
-              value={subject} onChange={(e) => setSubject(e.target.value)} />
-            <PrimaryBtn type="submit"><Icon name="plus" size={16} /> {t("sage.courses.createBtn")}</PrimaryBtn>
-          </form>
-        </Card>
-        <Card>
-          <h3 style={{ marginTop: 0, fontSize: 16 }}>{t("sage.courses.joinTitle")}</h3>
-          <form onSubmit={join} style={{ display: "grid", gap: 9 }}>
-            <input style={inputStyle} placeholder={t("sage.courses.phJoin")} value={code} onChange={(e) => setCode(e.target.value)} />
-            <GhostBtn><span>{t("sage.courses.joinBtn")}</span></GhostBtn>
-          </form>
-        </Card>
-      </div>
       {msg && <div style={{ color: C.danger, fontSize: 13, marginTop: 10 }}>{msg}</div>}
     </div>
   );
