@@ -341,7 +341,8 @@
       "Students": "Estudiantes",
       "Analytics": "Analíticas",
       "Profile": "Perfil",
-      "Courses": "Cursos"
+      "Courses": "Cursos",
+      "Assignments": "Tareas"
     },
     "greeting": {
       "morning": "Buenos días",
@@ -564,7 +565,43 @@
       "student": "estudiante"
     },
     "copy": "Copiar",
-    "open": "Abrir"
+    "open": "Abrir",
+    "asg": {
+      "new": "Nueva tarea",
+      "empty": "Aún no hay tareas. Crea una para que tus estudiantes la entreguen.",
+      "emptyStudent": "Todavía no se han publicado tareas.",
+      "metaInstr": "{{points}} pts · {{submitted}} entregadas · {{graded}} calificadas",
+      "review": "Entregas",
+      "editTitle": "Editar tarea",
+      "deleteConfirm": "¿Eliminar esta tarea y todas sus entregas?",
+      "errTitle": "Ponle un título a la tarea.",
+      "phTitle": "Título de la tarea",
+      "points": "Puntos",
+      "instructions": "Instrucciones",
+      "phInstructions": "Describe qué deben hacer los estudiantes…",
+      "back": "Volver a las tareas",
+      "noStudents": "Aún no hay estudiantes inscritos.",
+      "notSubmitted": "Sin entregar",
+      "gradedPts": "Calificada: {{grade}}/{{points}}",
+      "submittedOn": "Entregada {{date}}",
+      "hide": "Ocultar",
+      "viewGrade": "Ver y calificar",
+      "grade": "Nota",
+      "phFeedback": "Comentarios para el estudiante (opcional)…",
+      "saveGrade": "Guardar nota",
+      "submitted": "Entregada — pendiente de calificar",
+      "pointsShort": "{{points}} pts",
+      "viewResult": "Ver resultado",
+      "editSubmission": "Ver / editar",
+      "open": "Abrir",
+      "errBody": "Escribe tu respuesta antes de entregar.",
+      "yourSubmission": "Tu entrega",
+      "feedback": "Comentarios del instructor",
+      "phResponse": "Escribe tu respuesta…",
+      "resubmit": "Actualizar entrega",
+      "submit": "Entregar"
+    },
+    "save": "Guardar"
   },
   "lms": {
     "nav": {
@@ -611,6 +648,7 @@
     "numbered": "Lista numerada",
     "code": "Código",
     "link": "Enlace",
+    "linkPrompt": "URL del enlace:",
     "write": "Escribir",
     "preview": "Vista previa",
     "nothingToPreview": "Nada que previsualizar todavía.",

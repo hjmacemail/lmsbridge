@@ -341,7 +341,8 @@
       "Students": "Students",
       "Analytics": "Analytics",
       "Profile": "Profile",
-      "Courses": "Courses"
+      "Courses": "Courses",
+      "Assignments": "Assignments"
     },
     "greeting": {
       "morning": "Good morning",
@@ -564,7 +565,43 @@
       "student": "student"
     },
     "copy": "Copy",
-    "open": "Open"
+    "open": "Open",
+    "asg": {
+      "new": "New assignment",
+      "empty": "No assignments yet. Create one for your students to submit.",
+      "emptyStudent": "No assignments have been posted yet.",
+      "metaInstr": "{{points}} pts · {{submitted}} submitted · {{graded}} graded",
+      "review": "Submissions",
+      "editTitle": "Edit assignment",
+      "deleteConfirm": "Delete this assignment and all its submissions?",
+      "errTitle": "Give the assignment a title.",
+      "phTitle": "Assignment title",
+      "points": "Points",
+      "instructions": "Instructions",
+      "phInstructions": "Describe what students should do…",
+      "back": "Back to assignments",
+      "noStudents": "No students are enrolled yet.",
+      "notSubmitted": "Not submitted",
+      "gradedPts": "Graded: {{grade}}/{{points}}",
+      "submittedOn": "Submitted {{date}}",
+      "hide": "Hide",
+      "viewGrade": "View & grade",
+      "grade": "Grade",
+      "phFeedback": "Feedback for the student (optional)…",
+      "saveGrade": "Save grade",
+      "submitted": "Submitted — awaiting grade",
+      "pointsShort": "{{points}} pts",
+      "viewResult": "View result",
+      "editSubmission": "View / edit",
+      "open": "Open",
+      "errBody": "Write your response before submitting.",
+      "yourSubmission": "Your submission",
+      "feedback": "Instructor feedback",
+      "phResponse": "Write your response…",
+      "resubmit": "Update submission",
+      "submit": "Submit"
+    },
+    "save": "Save"
   },
   "lms": {
     "nav": {
@@ -611,6 +648,7 @@
     "numbered": "Numbered list",
     "code": "Code",
     "link": "Link",
+    "linkPrompt": "Link URL:",
     "write": "Write",
     "preview": "Preview",
     "nothingToPreview": "Nothing to preview yet.",

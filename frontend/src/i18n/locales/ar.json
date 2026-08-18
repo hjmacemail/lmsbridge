@@ -341,7 +341,8 @@
       "Students": "الطلاب",
       "Analytics": "التحليلات",
       "Profile": "الملف الشخصي",
-      "Courses": "المقرّرات"
+      "Courses": "المقرّرات",
+      "Assignments": "الواجبات"
     },
     "greeting": {
       "morning": "صباح الخير",
@@ -564,7 +565,43 @@
       "student": "طالب"
     },
     "copy": "نسخ",
-    "open": "فتح"
+    "open": "فتح",
+    "asg": {
+      "new": "واجب جديد",
+      "empty": "لا توجد واجبات بعد. أنشئ واجبًا ليقدّمه طلابك.",
+      "emptyStudent": "لم يتم نشر أي واجبات بعد.",
+      "metaInstr": "{{points}} نقطة · {{submitted}} مقدَّم · {{graded}} مُصحَّح",
+      "review": "التسليمات",
+      "editTitle": "تعديل الواجب",
+      "deleteConfirm": "حذف هذا الواجب وجميع تسليماته؟",
+      "errTitle": "أعطِ الواجب عنوانًا.",
+      "phTitle": "عنوان الواجب",
+      "points": "النقاط",
+      "instructions": "التعليمات",
+      "phInstructions": "صف ما ينبغي للطلاب فعله…",
+      "back": "العودة إلى الواجبات",
+      "noStudents": "لا يوجد طلاب مسجّلون بعد.",
+      "notSubmitted": "لم يُقدَّم",
+      "gradedPts": "الدرجة: {{grade}}/{{points}}",
+      "submittedOn": "قُدِّم في {{date}}",
+      "hide": "إخفاء",
+      "viewGrade": "عرض وتصحيح",
+      "grade": "الدرجة",
+      "phFeedback": "ملاحظات للطالب (اختياري)…",
+      "saveGrade": "حفظ الدرجة",
+      "submitted": "تم التقديم — بانتظار التصحيح",
+      "pointsShort": "{{points}} نقطة",
+      "viewResult": "عرض النتيجة",
+      "editSubmission": "عرض / تعديل",
+      "open": "فتح",
+      "errBody": "اكتب إجابتك قبل التقديم.",
+      "yourSubmission": "إجابتك",
+      "feedback": "ملاحظات المدرّس",
+      "phResponse": "اكتب إجابتك…",
+      "resubmit": "تحديث التسليم",
+      "submit": "تقديم"
+    },
+    "save": "حفظ"
   },
   "lms": {
     "nav": {
@@ -611,6 +648,7 @@
     "numbered": "قائمة مرقّمة",
     "code": "شيفرة",
     "link": "رابط",
+    "linkPrompt": "عنوان الرابط:",
     "write": "كتابة",
     "preview": "معاينة",
     "nothingToPreview": "لا شيء للمعاينة بعد.",

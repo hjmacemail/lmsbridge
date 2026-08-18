@@ -341,7 +341,8 @@
       "Students": "Étudiants",
       "Analytics": "Analyses",
       "Profile": "Profil",
-      "Courses": "Cours"
+      "Courses": "Cours",
+      "Assignments": "Devoirs"
     },
     "greeting": {
       "morning": "Bonjour",
@@ -564,7 +565,43 @@
       "student": "étudiant"
     },
     "copy": "Copier",
-    "open": "Ouvrir"
+    "open": "Ouvrir",
+    "asg": {
+      "new": "Nouveau devoir",
+      "empty": "Aucun devoir pour l’instant. Créez-en un à rendre par vos étudiants.",
+      "emptyStudent": "Aucun devoir n’a encore été publié.",
+      "metaInstr": "{{points}} pts · {{submitted}} rendus · {{graded}} notés",
+      "review": "Rendus",
+      "editTitle": "Modifier le devoir",
+      "deleteConfirm": "Supprimer ce devoir et tous ses rendus ?",
+      "errTitle": "Donnez un titre au devoir.",
+      "phTitle": "Titre du devoir",
+      "points": "Points",
+      "instructions": "Consignes",
+      "phInstructions": "Décrivez ce que les étudiants doivent faire…",
+      "back": "Retour aux devoirs",
+      "noStudents": "Aucun étudiant inscrit pour l’instant.",
+      "notSubmitted": "Non rendu",
+      "gradedPts": "Noté : {{grade}}/{{points}}",
+      "submittedOn": "Rendu le {{date}}",
+      "hide": "Masquer",
+      "viewGrade": "Voir et noter",
+      "grade": "Note",
+      "phFeedback": "Retour pour l’étudiant (facultatif)…",
+      "saveGrade": "Enregistrer la note",
+      "submitted": "Rendu — en attente de notation",
+      "pointsShort": "{{points}} pts",
+      "viewResult": "Voir le résultat",
+      "editSubmission": "Voir / modifier",
+      "open": "Ouvrir",
+      "errBody": "Rédigez votre réponse avant de rendre.",
+      "yourSubmission": "Votre rendu",
+      "feedback": "Retour de l’enseignant",
+      "phResponse": "Rédigez votre réponse…",
+      "resubmit": "Mettre à jour le rendu",
+      "submit": "Rendre"
+    },
+    "save": "Enregistrer"
   },
   "lms": {
     "nav": {
@@ -611,6 +648,7 @@
     "numbered": "Liste numérotée",
     "code": "Code",
     "link": "Lien",
+    "linkPrompt": "URL du lien :",
     "write": "Écrire",
     "preview": "Aperçu",
     "nothingToPreview": "Rien à prévisualiser pour l’instant.",

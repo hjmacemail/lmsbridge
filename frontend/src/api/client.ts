@@ -339,10 +339,30 @@ export interface SageSubmitResult {
 export interface SageStudent { id: number; full_name: string; email: string; }
 export interface SageGrades {
   quizzes: { id: number; title: string }[];
+  assignments?: { id: number; title: string; points: number }[];
   is_instructor: boolean;
-  rows?: { student_id: number; full_name: string; scores: Record<string, number>; open_remediation: number }[];
+  rows?: { student_id: number; full_name: string; scores: Record<string, number>;
+    assignment_scores?: Record<string, number>; open_remediation: number }[];
   scores?: Record<string, number>;
+  assignment_scores?: Record<string, number>;
   open_remediation?: number;
+}
+export interface SageSubmission {
+  id: number; assignment_id: number; student_id: number; body: string;
+  grade: number | null; feedback: string;
+  graded_at: string | null; submitted_at: string | null; updated_at: string | null;
+}
+export interface SageAssignment {
+  id: number; title: string; instructions: string; points: number;
+  due_at: string | null; created_at: string | null;
+  submission_count?: number; graded_count?: number;   // instructor view
+  my_submission?: SageSubmission | null;               // student view
+}
+export interface SageSubmissionRow {
+  student_id: number; full_name: string; submission: SageSubmission | null;
+}
+export interface SageSubmissionsView {
+  assignment: SageAssignment; rows: SageSubmissionRow[];
 }
 export type SageQType = "mcq" | "true_false" | "multi" | "short";
 export interface SageQuestionDraft {
@@ -451,4 +471,23 @@ export const sageApi = {
     request<SageSubmitResult>(`/sage/quizzes/${quizId}/submit`,
       { method: "POST", body: JSON.stringify({ answers }) }),
   grades: (courseId: number) => request<SageGrades>(`/sage/courses/${courseId}/grades`),
+  // Assignments
+  assignments: (courseId: number) =>
+    request<SageAssignment[]>(`/sage/courses/${courseId}/assignments`),
+  createAssignment: (courseId: number, a: { title: string; instructions: string; points: number; due_at?: string | null }) =>
+    request<SageAssignment>(`/sage/courses/${courseId}/assignments`,
+      { method: "POST", body: JSON.stringify({ ...a, due_at: a.due_at || null }) }),
+  updateAssignment: (assignmentId: number, a: { title: string; instructions: string; points: number; due_at?: string | null }) =>
+    request<SageAssignment>(`/sage/assignments/${assignmentId}`,
+      { method: "PUT", body: JSON.stringify({ ...a, due_at: a.due_at || null }) }),
+  deleteAssignment: (assignmentId: number) =>
+    request<void>(`/sage/assignments/${assignmentId}`, { method: "DELETE" }),
+  submitAssignment: (assignmentId: number, body: string) =>
+    request<SageSubmission>(`/sage/assignments/${assignmentId}/submit`,
+      { method: "POST", body: JSON.stringify({ body }) }),
+  submissions: (assignmentId: number) =>
+    request<SageSubmissionsView>(`/sage/assignments/${assignmentId}/submissions`),
+  gradeSubmission: (submissionId: number, grade: number, feedback: string) =>
+    request<SageSubmission>(`/sage/submissions/${submissionId}/grade`,
+      { method: "POST", body: JSON.stringify({ grade, feedback }) }),
 };

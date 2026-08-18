@@ -25,7 +25,7 @@ from app.models.remediation import (
     StudentResponse,
     TutorMessage,
 )
-from app.models.sage import SageAnnouncement
+from app.models.sage import SageAnnouncement, SageAssignment, SageSubmission
 from app.models.tenant import Tenant
 from app.models.user import User
 
@@ -36,5 +36,5 @@ __all__ = [
     "RemediationModule", "StudentResponse", "TutorMessage", "User", "ActivityType",
     "AssessmentType", "MasteryStatus", "PedagogyStrategy", "RemediationStatus", "UserRole",
     "LtiRegistration", "LtiDeployment", "LtiNonce", "LtiToolKey", "Lead", "Tenant",
-    "SageAnnouncement",
+    "SageAnnouncement", "SageAssignment", "SageSubmission",
 ]

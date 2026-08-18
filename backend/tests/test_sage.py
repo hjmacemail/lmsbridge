@@ -87,6 +87,51 @@ def test_sage_non_latin_concepts_stay_distinct(client):
     assert set(concepts) <= set(listed)
 
 
+def test_sage_assignment_full_workflow(client):
+    """Instructor posts an assignment, student submits, instructor grades, grade surfaces
+    in the Grades tab, and a graded submission can't be overwritten."""
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr A", "email": "asg@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "Asg"}).json()["id"]
+    a = client.post(f"/api/v1/sage/courses/{cid}/assignments", headers=ih, json={
+        "title": "Essay 1", "instructions": "Explain recursion.", "points": 20})
+    assert a.status_code == 201
+    aid = a.json()["id"]
+
+    # A student joins and submits.
+    code = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"]
+    sh = _auth(client.post("/api/v1/sage/join", json={
+        "join_code": code, "full_name": "Stu", "email": "stu@uni.edu", "password": "secret123"}).json())
+    seen = client.get(f"/api/v1/sage/courses/{cid}/assignments", headers=sh).json()
+    assert seen[0]["my_submission"] is None
+    sub = client.post(f"/api/v1/sage/assignments/{aid}/submit", headers=sh, json={
+        "body": "Recursion is when a function calls itself."})
+    assert sub.status_code == 201
+    sub_id = sub.json()["id"]
+
+    # Instructor sees the submission in the grading view and grades it.
+    grid = client.get(f"/api/v1/sage/assignments/{aid}/submissions", headers=ih).json()
+    assert grid["rows"][0]["submission"]["body"].startswith("Recursion")
+    g = client.post(f"/api/v1/sage/submissions/{sub_id}/grade", headers=ih, json={
+        "grade": 18, "feedback": "Good, add a base-case note."})
+    assert g.status_code == 200 and g.json()["grade"] == 18
+
+    # Grade shows up (normalized) in grades, and the student sees their grade.
+    grades = client.get(f"/api/v1/sage/courses/{cid}/grades", headers=ih).json()
+    assert grades["assignments"][0]["id"] == aid
+    assert grades["rows"][0]["assignment_scores"][str(aid)] == 0.9  # 18/20
+    mine = client.get(f"/api/v1/sage/courses/{cid}/assignments", headers=sh).json()
+    assert mine[0]["my_submission"]["grade"] == 18
+
+    # Can't resubmit after grading; over-limit grade rejected; students can't grade.
+    assert client.post(f"/api/v1/sage/assignments/{aid}/submit", headers=sh,
+                       json={"body": "x"}).status_code == 409
+    assert client.post(f"/api/v1/sage/submissions/{sub_id}/grade", headers=ih,
+                       json={"grade": 99}).status_code == 400
+    assert client.post(f"/api/v1/sage/submissions/{sub_id}/grade", headers=sh,
+                       json={"grade": 5}).status_code == 403
+
+
 def test_sage_suggest_concept(client):
     """AI concept suggestion is instructor-only and always returns a `concept` field
     (empty string when the model is unavailable — never an error)."""

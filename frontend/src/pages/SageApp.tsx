@@ -8,7 +8,7 @@ import {
   type SageTakeQuiz, type SageSubmitResult, type SageStudent,
   type SageGrades, type SageQuestionDraft, type SageMaterial, type SageProfile,
   type SageQType, type SageAnswerIn, type SageAnnouncement, type SageQuizAttempt,
-  type SageQuizForEdit,
+  type SageQuizForEdit, type SageAssignment, type SageSubmissionsView, type SageSubmissionRow,
 } from "../api/client";
 import type { RemediationModule, InstructorAnalytics, AuthToken, Role } from "../types";
 import { useAuth } from "../context/AuthContext";
@@ -211,8 +211,8 @@ export default function SageApp() {
 
   const inCourse = view === "course" && course;
   const courseTabs = course && course.role === "instructor"
-    ? ["Home", "Quizzes", "Students", "Grades", "Analytics", "Materials", "Syllabus"]
-    : ["Home", "Quizzes", "Grades", "Needs review", "Materials", "Syllabus"];
+    ? ["Home", "Quizzes", "Assignments", "Students", "Grades", "Analytics", "Materials", "Syllabus"]
+    : ["Home", "Quizzes", "Assignments", "Grades", "Needs review", "Materials", "Syllabus"];
 
   return (
     <div style={{ minHeight: "100vh", background: C.pageBg, color: C.ink, display: "flex" }}>
@@ -713,23 +713,27 @@ function CopyChip({ code }: { code: string | null }) {
 
 const TAB_ICON: Record<string, string> = {
   Home: "spark", Syllabus: "note", Materials: "file", Quizzes: "check",
-  Students: "school", Grades: "download", "Needs review": "alert", Analytics: "chart",
+  Assignments: "edit", Students: "school", Grades: "download",
+  "Needs review": "alert", Analytics: "chart",
 };
 
 function CourseView({ course, tab, detail, reloadDetail }:
   { course: SageCourseSummary; tab: string; detail: SageCourseDetail | null; reloadDetail: () => void }) {
+  const { t } = useTranslation();
   const instr = course.role === "instructor";
   return (
     <div style={{ minWidth: 0 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
         flexWrap: "wrap", gap: 10, margin: "0 0 18px" }}>
-        <h1 style={{ color: C.ink, margin: 0, fontSize: 23 }}>{tab === "Home" ? course.name : tab}</h1>
+        <h1 style={{ color: C.ink, margin: 0, fontSize: 23 }}>
+          {tab === "Home" ? course.name : t(`sage.tab.${tab}`, { defaultValue: tab })}</h1>
         {instr && <CopyChip code={course.join_code} />}
       </div>
       {tab === "Home" && <Home course={course} instr={instr} detail={detail} />}
       {tab === "Syllabus" && <Syllabus course={course} instr={instr} detail={detail} onSaved={reloadDetail} />}
       {tab === "Materials" && <Materials course={course} instr={instr} />}
       {tab === "Quizzes" && (instr ? <QuizzesInstructor course={course} /> : <QuizzesStudent course={course} />)}
+      {tab === "Assignments" && (instr ? <AssignmentsInstructor course={course} /> : <AssignmentsStudent course={course} />)}
       {tab === "Students" && <Students course={course} />}
       {tab === "Analytics" && <Analytics course={course} />}
       {tab === "Grades" && <GradesTab course={course} />}
@@ -1486,6 +1490,304 @@ function AttemptsPanel({ quizId }: { quizId: number }) {
   );
 }
 
+// --------------------------------------------------------------- Assignments (instructor)
+function AssignmentsInstructor({ course }: { course: SageCourseSummary }) {
+  const { t } = useTranslation();
+  const [items, setItems] = useState<SageAssignment[]>([]);
+  const [form, setForm] = useState<SageAssignment | "new" | null>(null);
+  const [grading, setGrading] = useState<number | null>(null);
+  const load = () => sageApi.assignments(course.id).then(setItems).catch(() => setItems([]));
+  useEffect(() => { load(); }, [course.id]);
+
+  async function del(id: number) {
+    if (!window.confirm(t("sage.asg.deleteConfirm", { defaultValue: "Delete this assignment and all its submissions?" }))) return;
+    try { await sageApi.deleteAssignment(id); load(); }
+    catch (e) { window.alert((e as Error).message); }
+  }
+
+  if (grading != null) {
+    const a = items.find((x) => x.id === grading);
+    return <GradingView assignmentId={grading} title={a?.title || ""}
+      onBack={() => { setGrading(null); load(); }} />;
+  }
+  if (form) {
+    return <AssignmentForm courseId={course.id} initial={form === "new" ? null : form}
+      onCancel={() => setForm(null)} onDone={() => { setForm(null); load(); }} />;
+  }
+
+  return (
+    <div style={{ display: "grid", gap: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h3 style={{ margin: 0, fontSize: 17 }}>{t("sage.tab.Assignments", { defaultValue: "Assignments" })}</h3>
+        <PrimaryBtn onClick={() => setForm("new")}><Icon name="plus" size={16} /> {t("sage.asg.new", { defaultValue: "New assignment" })}</PrimaryBtn>
+      </div>
+      {items.length === 0 && (
+        <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
+          {t("sage.asg.empty", { defaultValue: "No assignments yet. Create one for your students to submit." })}
+        </Card>
+      )}
+      {items.map((a) => {
+        const total = a.submission_count ?? 0;
+        const graded = a.graded_count ?? 0;
+        const pct = course.student_count ? Math.round((total / course.student_count) * 100) : 0;
+        return (
+          <Card key={a.id}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <div>
+                <b style={{ fontSize: 15 }}>{a.title}</b>
+                <div style={{ color: C.muted, fontSize: 13 }}>
+                  {t("sage.asg.metaInstr", { defaultValue: "{{points}} pts · {{submitted}} submitted · {{graded}} graded",
+                    points: a.points, submitted: total, graded })}
+                  {a.due_at && <> · {t("sage.quiz.due", { date: fmtDateTime(a.due_at) })}</>}
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <GhostBtn onClick={() => setGrading(a.id)}><Icon name="check" size={15} /> {t("sage.asg.review", { defaultValue: "Submissions" })}</GhostBtn>
+                <GhostBtn onClick={() => setForm(a)}><Icon name="edit" size={15} /> {t("sage.quiz.edit")}</GhostBtn>
+                <button onClick={() => del(a.id)} title="Delete" style={{ background: "none", border: "none",
+                  cursor: "pointer", color: C.danger, padding: 6 }}><Icon name="trash" size={16} /></button>
+              </div>
+            </div>
+            <div style={{ height: 7, borderRadius: 999, background: C.soft, marginTop: 10, overflow: "hidden" }}>
+              <div style={{ width: `${pct}%`, height: "100%", background: C.primary }} />
+            </div>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+function AssignmentForm({ courseId, initial, onCancel, onDone }: {
+  courseId: number; initial: SageAssignment | null; onCancel: () => void; onDone: () => void;
+}) {
+  const { t } = useTranslation();
+  const [title, setTitle] = useState(initial?.title || "");
+  const [points, setPoints] = useState(initial?.points ?? 100);
+  const [dueAt, setDueAt] = useState(toLocalInput(initial?.due_at));
+  const [instructions, setInstructions] = useState(initial?.instructions || "");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function save() {
+    if (!title.trim()) { setErr(t("sage.asg.errTitle", { defaultValue: "Give the assignment a title." })); return; }
+    setBusy(true); setErr(null);
+    const payload = { title: title.trim(), instructions, points: Number(points) || 0,
+      due_at: dueAt ? new Date(dueAt).toISOString() : null };
+    try {
+      if (initial) await sageApi.updateAssignment(initial.id, payload);
+      else await sageApi.createAssignment(courseId, payload);
+      onDone();
+    } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  }
+
+  return (
+    <Card>
+      <h3 style={{ marginTop: 0, fontSize: 17 }}>
+        {initial ? t("sage.asg.editTitle", { defaultValue: "Edit assignment" }) : t("sage.asg.new", { defaultValue: "New assignment" })}</h3>
+      {err && <div style={{ color: C.danger, marginBottom: 10, fontSize: 13.5 }}>{err}</div>}
+      <input style={{ ...inputStyle, marginBottom: 10, fontWeight: 600 }}
+        placeholder={t("sage.asg.phTitle", { defaultValue: "Assignment title" })}
+        value={title} onChange={(e) => setTitle(e.target.value)} />
+      <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 12, flexWrap: "wrap" }}>
+        <label style={{ fontSize: 13, color: C.muted, display: "inline-flex", alignItems: "center", gap: 7 }}>
+          {t("sage.asg.points", { defaultValue: "Points" })}
+          <input type="number" min={0} max={1000} value={points}
+            onChange={(e) => setPoints(Number(e.target.value))}
+            style={{ ...inputStyle, width: 90 }} />
+        </label>
+        <label style={{ fontSize: 13, color: C.muted, display: "inline-flex", alignItems: "center", gap: 7 }}>
+          {t("sage.quiz.dueDate")}
+          <input type="datetime-local" style={{ ...inputStyle, width: "auto" }} value={dueAt}
+            onChange={(e) => setDueAt(e.target.value)} />
+        </label>
+        {dueAt && <GhostBtn onClick={() => setDueAt("")}>{t("sage.quiz.clear")}</GhostBtn>}
+      </div>
+      <label style={{ fontSize: 13, color: C.muted, display: "block", marginBottom: 6 }}>
+        {t("sage.asg.instructions", { defaultValue: "Instructions" })}</label>
+      <MarkdownEditor value={instructions} onChange={setInstructions} minHeight={160}
+        placeholder={t("sage.asg.phInstructions", { defaultValue: "Describe what students should do…" })} />
+      <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+        <PrimaryBtn onClick={save} disabled={busy}>{t("sage.save", { defaultValue: "Save" })}</PrimaryBtn>
+        <GhostBtn onClick={onCancel}>{t("sage.cancel", { defaultValue: "Cancel" })}</GhostBtn>
+      </div>
+    </Card>
+  );
+}
+
+function GradingView({ assignmentId, title, onBack }: {
+  assignmentId: number; title: string; onBack: () => void;
+}) {
+  const { t } = useTranslation();
+  const [view, setView] = useState<SageSubmissionsView | null>(null);
+  const load = () => sageApi.submissions(assignmentId).then(setView).catch(() => setView(null));
+  useEffect(() => { load(); }, [assignmentId]);
+
+  const points = view?.assignment.points ?? 100;
+  return (
+    <div style={{ display: "grid", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <GhostBtn onClick={onBack}><Icon name="back" size={16} /> {t("sage.asg.back", { defaultValue: "Back to assignments" })}</GhostBtn>
+        <h3 style={{ margin: 0, fontSize: 17 }}>{title}</h3>
+      </div>
+      {view && view.rows.length === 0 && (
+        <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
+          {t("sage.asg.noStudents", { defaultValue: "No students are enrolled yet." })}</Card>
+      )}
+      {view?.rows.map((r) => (
+        <SubmissionRow key={r.student_id} row={r} points={points} onGraded={load} />
+      ))}
+    </div>
+  );
+}
+
+function SubmissionRow({ row, points, onGraded }: {
+  row: SageSubmissionRow; points: number; onGraded: () => void;
+}) {
+  const { t } = useTranslation();
+  const sub = row.submission;
+  const [grade, setGrade] = useState<string>(sub?.grade != null ? String(sub.grade) : "");
+  const [feedback, setFeedback] = useState(sub?.feedback || "");
+  const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  async function save() {
+    if (!sub) return;
+    setBusy(true);
+    try { await sageApi.gradeSubmission(sub.id, Number(grade) || 0, feedback); onGraded(); }
+    catch (e) { window.alert((e as Error).message); } finally { setBusy(false); }
+  }
+
+  return (
+    <Card>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div>
+          <b style={{ fontSize: 15 }}>{row.full_name}</b>
+          <div style={{ color: C.muted, fontSize: 13 }}>
+            {!sub ? t("sage.asg.notSubmitted", { defaultValue: "Not submitted" })
+              : sub.grade != null ? t("sage.asg.gradedPts", { defaultValue: "Graded: {{grade}}/{{points}}", grade: sub.grade, points })
+              : t("sage.asg.submittedOn", { defaultValue: "Submitted {{date}}", date: fmtDateTime(sub.submitted_at) })}
+          </div>
+        </div>
+        {sub && <GhostBtn onClick={() => setOpen((o) => !o)}>
+          <Icon name="eye" size={15} /> {open ? t("sage.asg.hide", { defaultValue: "Hide" }) : t("sage.asg.viewGrade", { defaultValue: "View & grade" })}</GhostBtn>}
+      </div>
+      {sub && open && (
+        <div style={{ marginTop: 12, borderTop: `1px solid ${C.line}`, paddingTop: 12 }}>
+          <div className="sage-md" style={{ fontSize: 14, marginBottom: 12,
+            background: C.soft, borderRadius: 10, padding: "10px 14px" }}
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(sub.body) }} />
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
+            <label style={{ fontSize: 13, color: C.muted, display: "inline-flex", alignItems: "center", gap: 7 }}>
+              {t("sage.asg.grade", { defaultValue: "Grade" })}
+              <input type="number" min={0} max={points} value={grade}
+                onChange={(e) => setGrade(e.target.value)} style={{ ...inputStyle, width: 90 }} />
+              <span style={{ color: C.muted }}>/ {points}</span>
+            </label>
+          </div>
+          <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)}
+            placeholder={t("sage.asg.phFeedback", { defaultValue: "Feedback for the student (optional)…" })}
+            style={{ ...inputStyle, minHeight: 70, resize: "vertical", marginBottom: 10 }} />
+          <PrimaryBtn onClick={save} disabled={busy}>{t("sage.asg.saveGrade", { defaultValue: "Save grade" })}</PrimaryBtn>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// --------------------------------------------------------------- Assignments (student)
+function AssignmentsStudent({ course }: { course: SageCourseSummary }) {
+  const { t } = useTranslation();
+  const [items, setItems] = useState<SageAssignment[]>([]);
+  const load = () => sageApi.assignments(course.id).then(setItems).catch(() => setItems([]));
+  useEffect(() => { load(); }, [course.id]);
+
+  return (
+    <div style={{ display: "grid", gap: 12 }}>
+      <h3 style={{ margin: 0, fontSize: 17 }}>{t("sage.tab.Assignments", { defaultValue: "Assignments" })}</h3>
+      {items.length === 0 && (
+        <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
+          {t("sage.asg.emptyStudent", { defaultValue: "No assignments have been posted yet." })}</Card>
+      )}
+      {items.map((a) => <StudentAssignmentCard key={a.id} assignment={a} onChanged={load} />)}
+    </div>
+  );
+}
+
+function StudentAssignmentCard({ assignment, onChanged }: {
+  assignment: SageAssignment; onChanged: () => void;
+}) {
+  const { t } = useTranslation();
+  const sub = assignment.my_submission;
+  const graded = sub?.grade != null;
+  const [open, setOpen] = useState(false);
+  const [body, setBody] = useState(sub?.body || "");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function submit() {
+    if (!body.trim()) { setErr(t("sage.asg.errBody", { defaultValue: "Write your response before submitting." })); return; }
+    setBusy(true); setErr(null);
+    try { await sageApi.submitAssignment(assignment.id, body); onChanged(); setOpen(false); }
+    catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  }
+
+  const status = graded
+    ? t("sage.asg.gradedPts", { defaultValue: "Graded: {{grade}}/{{points}}", grade: sub!.grade, points: assignment.points })
+    : sub ? t("sage.asg.submitted", { defaultValue: "Submitted — awaiting grade" })
+    : t("sage.asg.pointsShort", { defaultValue: "{{points}} pts", points: assignment.points });
+
+  return (
+    <Card>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <div>
+          <b style={{ fontSize: 15 }}>{assignment.title}</b>
+          <div style={{ color: graded ? C.success : C.muted, fontSize: 13 }}>
+            {status}{assignment.due_at && <> · {t("sage.quiz.due", { date: fmtDateTime(assignment.due_at) })}</>}
+          </div>
+        </div>
+        <GhostBtn onClick={() => setOpen((o) => !o)}>
+          {open ? t("sage.asg.hide", { defaultValue: "Hide" })
+            : graded ? t("sage.asg.viewResult", { defaultValue: "View result" })
+            : sub ? t("sage.asg.editSubmission", { defaultValue: "View / edit" })
+            : t("sage.asg.open", { defaultValue: "Open" })}
+        </GhostBtn>
+      </div>
+      {open && (
+        <div style={{ marginTop: 12, borderTop: `1px solid ${C.line}`, paddingTop: 12 }}>
+          {assignment.instructions.trim() && (
+            <div className="sage-md" style={{ fontSize: 14, marginBottom: 14 }}
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(assignment.instructions) }} />
+          )}
+          {graded ? (
+            <div>
+              <div style={{ fontWeight: 600, marginBottom: 6 }}>{t("sage.asg.yourSubmission", { defaultValue: "Your submission" })}</div>
+              <div className="sage-md" style={{ fontSize: 14, background: C.soft, borderRadius: 10,
+                padding: "10px 14px", marginBottom: 12 }}
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(sub!.body) }} />
+              {sub!.feedback && <>
+                <div style={{ fontWeight: 600, marginBottom: 6 }}>{t("sage.asg.feedback", { defaultValue: "Instructor feedback" })}</div>
+                <div className="sage-md" style={{ fontSize: 14, background: C.soft, borderRadius: 10, padding: "10px 14px" }}
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(sub!.feedback) }} />
+              </>}
+            </div>
+          ) : (
+            <div>
+              {err && <div style={{ color: C.danger, marginBottom: 10, fontSize: 13.5 }}>{err}</div>}
+              <MarkdownEditor value={body} onChange={setBody} minHeight={140}
+                placeholder={t("sage.asg.phResponse", { defaultValue: "Write your response…" })} />
+              <div style={{ marginTop: 12 }}>
+                <PrimaryBtn onClick={submit} disabled={busy}>
+                  {sub ? t("sage.asg.resubmit", { defaultValue: "Update submission" }) : t("sage.asg.submit", { defaultValue: "Submit" })}</PrimaryBtn>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 // --------------------------------------------------------------- Students
 function Students({ course }: { course: SageCourseSummary }) {
   const { t } = useTranslation();
@@ -1597,7 +1899,10 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
             <table style={{ width: "100%", fontSize: 13.5, borderCollapse: "collapse", minWidth: 360 }}>
               <thead><tr style={{ textAlign: "left", color: C.muted }}>
                 <th style={{ padding: "6px 8px" }}>{t("sage.grades.thStudent")}</th>
-                {g.quizzes.map((q) => <th key={q.id} style={{ padding: "6px 8px" }}>{q.title}</th>)}
+                {g.quizzes.map((q) => <th key={`q${q.id}`} style={{ padding: "6px 8px" }}>{q.title}</th>)}
+                {(g.assignments || []).map((a) => <th key={`a${a.id}`} style={{ padding: "6px 8px" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <Icon name="edit" size={12} /> {a.title}</span></th>)}
                 <th style={{ padding: "6px 8px" }}>{t("sage.grades.thNeeds")}</th>
               </tr></thead>
               <tbody>
@@ -1607,7 +1912,12 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
                     <td style={{ padding: "8px", fontWeight: 600, color: C.accentInk }}>{r.full_name}</td>
                     {g.quizzes.map((q) => {
                       const v = r.scores[String(q.id)];
-                      return <td key={q.id} style={{ padding: "8px", fontWeight: 600,
+                      return <td key={`q${q.id}`} style={{ padding: "8px", fontWeight: 600,
+                        color: v == null ? C.muted : scoreColor(v) }}>{pct(v)}</td>;
+                    })}
+                    {(g.assignments || []).map((a) => {
+                      const v = r.assignment_scores?.[String(a.id)];
+                      return <td key={`a${a.id}`} style={{ padding: "8px", fontWeight: 600,
                         color: v == null ? C.muted : scoreColor(v) }}>{pct(v)}</td>;
                     })}
                     <td style={{ padding: "8px" }}>{r.open_remediation > 0
@@ -1623,9 +1933,10 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
       </div>
     );
   }
-  const scored = g.quizzes
-    .map((q) => g.scores?.[String(q.id)])
-    .filter((v): v is number => v != null);
+  const scored = [
+    ...g.quizzes.map((q) => g.scores?.[String(q.id)]),
+    ...(g.assignments || []).map((a) => g.assignment_scores?.[String(a.id)]),
+  ].filter((v): v is number => v != null);
   const overall = scored.length ? scored.reduce((a, b) => a + b, 0) / scored.length : null;
   return (
     <div style={{ display: "grid", gap: 14 }}>
@@ -1641,13 +1952,27 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
       )}
       <Card>
         <h3 style={{ marginTop: 0, fontSize: 17 }}>{t("sage.grades.my")}</h3>
-        {g.quizzes.length === 0 && <p style={{ color: C.muted }}>{t("sage.grades.noQuizzes")}</p>}
+        {g.quizzes.length === 0 && (g.assignments || []).length === 0
+          && <p style={{ color: C.muted }}>{t("sage.grades.noQuizzes")}</p>}
         {g.quizzes.map((q) => {
           const v = g.scores?.[String(q.id)];
           return (
-            <div key={q.id} style={{ display: "flex", alignItems: "center", gap: 12,
+            <div key={`q${q.id}`} style={{ display: "flex", alignItems: "center", gap: 12,
               padding: "11px 0", borderTop: `1px solid ${C.line}` }}>
               <span style={{ flex: 1, minWidth: 0 }}>{q.title}</span>
+              {v != null && <Bar v={v} width={110} />}
+              <b style={{ minWidth: 42, textAlign: "right",
+                color: v == null ? C.muted : scoreColor(v) }}>{pct(v)}</b>
+            </div>
+          );
+        })}
+        {(g.assignments || []).map((a) => {
+          const v = g.assignment_scores?.[String(a.id)];
+          return (
+            <div key={`a${a.id}`} style={{ display: "flex", alignItems: "center", gap: 12,
+              padding: "11px 0", borderTop: `1px solid ${C.line}` }}>
+              <span style={{ flex: 1, minWidth: 0, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <Icon name="edit" size={13} /> {a.title}</span>
               {v != null && <Bar v={v} width={110} />}
               <b style={{ minWidth: 42, textAlign: "right",
                 color: v == null ? C.muted : scoreColor(v) }}>{pct(v)}</b>

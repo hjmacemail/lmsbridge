@@ -13,7 +13,7 @@ import io
 import json
 import re
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
@@ -29,15 +29,17 @@ from app.models.course import Course, Enrollment
 from app.models.enums import AssessmentType, RemediationStatus, UserRole
 from app.models.material import CourseMaterial
 from app.models.remediation import RemediationModule
-from app.models.sage import SageAnnouncement
+from app.models.sage import SageAnnouncement, SageAssignment, SageSubmission
 from app.models.user import User
 from app.llm.base import LLMMessage
 from app.llm.providers.mock import extract_json
 from app.llm.tenant_factory import resolve_provider
 from app.schemas.sage import (
     AnnouncementCreate,
+    AssignmentCreate,
     ConceptSuggestIn,
     CourseCreate,
+    GradeSubmission,
     JoinByCode,
     MaterialTextCreate,
     ProfileUpdate,
@@ -47,6 +49,7 @@ from app.schemas.sage import (
     SageGuestJoin,
     SageJoinSignup,
     SageSignup,
+    SubmissionCreate,
     SyllabusUpdate,
 )
 from app.services.ingestion_service import ingest_result
@@ -636,6 +639,178 @@ def delete_announcement(
     db.commit()
 
 
+# ------------------------------------------------------------- assignments
+
+def _assignment_summary(db: Session, a: SageAssignment, *, for_student_id: int | None) -> dict:
+    """Assignment fields plus lightweight status: submission count for instructors, the caller's
+    own submission/grade for students."""
+    out = {
+        "id": a.id, "title": a.title, "instructions": a.instructions, "points": a.points,
+        "due_at": a.due_at.isoformat() if a.due_at else None,
+        "created_at": a.created_at.isoformat() if a.created_at else None,
+    }
+    if for_student_id is None:
+        total = db.scalar(select(func.count(SageSubmission.id))
+                          .where(SageSubmission.assignment_id == a.id)) or 0
+        graded = db.scalar(select(func.count(SageSubmission.id)).where(
+            SageSubmission.assignment_id == a.id, SageSubmission.grade.is_not(None))) or 0
+        out["submission_count"] = total
+        out["graded_count"] = graded
+    else:
+        sub = db.scalar(select(SageSubmission).where(
+            SageSubmission.assignment_id == a.id, SageSubmission.student_id == for_student_id))
+        out["my_submission"] = _submission_out(sub) if sub else None
+    return out
+
+
+def _submission_out(s: SageSubmission) -> dict:
+    return {
+        "id": s.id, "assignment_id": s.assignment_id, "student_id": s.student_id,
+        "body": s.body, "grade": s.grade, "feedback": s.feedback,
+        "graded_at": s.graded_at.isoformat() if s.graded_at else None,
+        "submitted_at": s.created_at.isoformat() if s.created_at else None,
+        "updated_at": s.updated_at.isoformat() if s.updated_at else None,
+    }
+
+
+@router.get("/courses/{course_id}/assignments")
+def list_assignments(
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> list[dict]:
+    _course, role = _require_role(db, course_id, user)
+    rows = db.scalars(
+        select(SageAssignment).where(SageAssignment.course_id == course_id)
+        .order_by(SageAssignment.created_at.desc())
+    ).all()
+    sid = None if role == "instructor" else user.id
+    return [_assignment_summary(db, a, for_student_id=sid) for a in rows]
+
+
+@router.post("/courses/{course_id}/assignments", status_code=201)
+def create_assignment(
+    course_id: int, payload: AssignmentCreate,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    _course, role = _require_role(db, course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    a = SageAssignment(course_id=course_id, author_id=user.id, title=payload.title.strip(),
+                       instructions=payload.instructions.strip(), points=payload.points,
+                       due_at=_parse_dt(payload.due_at))
+    db.add(a)
+    db.commit()
+    db.refresh(a)
+    return _assignment_summary(db, a, for_student_id=None)
+
+
+@router.put("/assignments/{assignment_id}")
+def update_assignment(
+    assignment_id: int, payload: AssignmentCreate,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    a = db.get(SageAssignment, assignment_id)
+    if not a:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    _course, role = _require_role(db, a.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    a.title = payload.title.strip()
+    a.instructions = payload.instructions.strip()
+    a.points = payload.points
+    a.due_at = _parse_dt(payload.due_at)
+    db.commit()
+    db.refresh(a)
+    return _assignment_summary(db, a, for_student_id=None)
+
+
+@router.delete("/assignments/{assignment_id}", status_code=204)
+def delete_assignment(
+    assignment_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> None:
+    a = db.get(SageAssignment, assignment_id)
+    if not a:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    _course, role = _require_role(db, a.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    db.delete(a)
+    db.commit()
+
+
+@router.post("/assignments/{assignment_id}/submit", status_code=201)
+def submit_assignment(
+    assignment_id: int, payload: SubmissionCreate,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    a = db.get(SageAssignment, assignment_id)
+    if not a:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    _course, role = _require_role(db, a.course_id, user)
+    if role != "student":
+        raise HTTPException(status_code=403, detail="Only students submit assignments")
+    sub = db.scalar(select(SageSubmission).where(
+        SageSubmission.assignment_id == assignment_id, SageSubmission.student_id == user.id))
+    if sub and sub.grade is not None:
+        raise HTTPException(status_code=409, detail="This submission has already been graded")
+    if sub:
+        sub.body = payload.body.strip()  # resubmit before grading
+    else:
+        sub = SageSubmission(assignment_id=assignment_id, student_id=user.id,
+                             body=payload.body.strip())
+        db.add(sub)
+    db.commit()
+    db.refresh(sub)
+    return _submission_out(sub)
+
+
+@router.get("/assignments/{assignment_id}/submissions")
+def list_submissions(
+    assignment_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> dict:
+    """Instructor's grading view: the assignment plus every student's submission (or lack of one)."""
+    a = db.get(SageAssignment, assignment_id)
+    if not a:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+    _course, role = _require_role(db, a.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    students = db.execute(
+        select(User).join(Enrollment, Enrollment.user_id == User.id)
+        .where(Enrollment.course_id == a.course_id, Enrollment.role == UserRole.student)
+        .order_by(User.full_name)
+    ).scalars().all()
+    subs = {s.student_id: s for s in db.scalars(
+        select(SageSubmission).where(SageSubmission.assignment_id == assignment_id)).all()}
+    rows = [{
+        "student_id": st.id, "full_name": st.full_name,
+        "submission": _submission_out(subs[st.id]) if st.id in subs else None,
+    } for st in students]
+    return {"assignment": _assignment_summary(db, a, for_student_id=None), "rows": rows}
+
+
+@router.post("/submissions/{submission_id}/grade")
+def grade_submission(
+    submission_id: int, payload: GradeSubmission,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    sub = db.get(SageSubmission, submission_id)
+    if not sub:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    a = db.get(SageAssignment, sub.assignment_id)
+    _course, role = _require_role(db, a.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    if payload.grade > a.points:
+        raise HTTPException(status_code=400, detail=f"Grade cannot exceed {a.points} points")
+    sub.grade = payload.grade
+    sub.feedback = payload.feedback.strip()
+    sub.graded_at = datetime.now(timezone.utc)
+    sub.graded_by = user.id
+    db.commit()
+    db.refresh(sub)
+    return _submission_out(sub)
+
+
 @router.get("/courses/{course_id}/quizzes")
 def list_quizzes(
     course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
@@ -764,6 +939,10 @@ def grades(
     course, role = _require_role(db, course_id, user)
     quizzes = db.scalars(select(Assessment).where(Assessment.course_id == course_id)).all()
     quiz_titles = [{"id": a.id, "title": a.title} for a in quizzes]
+    assignments = db.scalars(
+        select(SageAssignment).where(SageAssignment.course_id == course_id)
+        .order_by(SageAssignment.created_at)).all()
+    assignment_titles = [{"id": a.id, "title": a.title, "points": a.points} for a in assignments]
 
     def best_scores(student_id: int) -> dict[int, float]:
         out: dict[int, float] = {}
@@ -774,6 +953,16 @@ def grades(
                     AssessmentResult.student_id == student_id))
             if r is not None:
                 out[a.id] = round(r, 2)
+        return out
+
+    def assignment_scores(student_id: int) -> dict[int, float]:
+        # Graded assignment marks, normalized to a 0-1 fraction so the UI can reuse quiz coloring.
+        out: dict[int, float] = {}
+        for a in assignments:
+            sub = db.scalar(select(SageSubmission).where(
+                SageSubmission.assignment_id == a.id, SageSubmission.student_id == student_id))
+            if sub and sub.grade is not None:
+                out[a.id] = round(sub.grade / a.points, 2) if a.points else round(sub.grade, 2)
         return out
 
     def open_remediation(student_id: int) -> int:
@@ -791,13 +980,17 @@ def grades(
         ).scalars().all()
         rows = [{
             "student_id": s.id, "full_name": s.full_name,
-            "scores": best_scores(s.id), "open_remediation": open_remediation(s.id),
+            "scores": best_scores(s.id), "assignment_scores": assignment_scores(s.id),
+            "open_remediation": open_remediation(s.id),
         } for s in students]
-        return {"quizzes": quiz_titles, "rows": rows, "is_instructor": True}
+        return {"quizzes": quiz_titles, "assignments": assignment_titles,
+                "rows": rows, "is_instructor": True}
 
     return {
         "quizzes": quiz_titles,
+        "assignments": assignment_titles,
         "scores": best_scores(user.id),
+        "assignment_scores": assignment_scores(user.id),
         "open_remediation": open_remediation(user.id),
         "is_instructor": False,
     }

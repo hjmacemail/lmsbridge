@@ -66,6 +66,22 @@ class AnnouncementCreate(BaseModel):
     body: str = Field("", max_length=8000)
 
 
+class AssignmentCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    instructions: str = Field("", max_length=20000)
+    points: int = Field(100, ge=0, le=1000)
+    due_at: str | None = None  # ISO 8601 datetime, optional
+
+
+class SubmissionCreate(BaseModel):
+    body: str = Field(..., min_length=1, max_length=50000)
+
+
+class GradeSubmission(BaseModel):
+    grade: float = Field(..., ge=0, le=1000)
+    feedback: str = Field("", max_length=8000)
+
+
 class QuizAnswer(BaseModel):
     question_id: int
     choice: str | None = None          # mcq / true_false / short
