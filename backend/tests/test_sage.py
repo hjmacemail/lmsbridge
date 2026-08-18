@@ -69,6 +69,21 @@ def test_sage_backfills_join_code_for_owned_course(client, db):
     assert row["join_code"] and len(row["join_code"]) == 6  # backfilled
 
 
+def test_sage_non_latin_concepts_stay_distinct(client):
+    """Regression: Arabic (non-Latin) concept names used to all slug to 'concept', collapsing
+    every question onto one concept. They must remain distinct."""
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr C", "email": "c2@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "AR"}).json()["id"]
+    concepts = ["الحساب الثنائي", "المنطق البولي", "اختبار الفرضيات"]
+    qid = client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih, json={
+        "title": "Q", "questions": [
+            {"prompt": f"س{i}", "qtype": "mcq", "choices": ["a", "b"], "correct": "a", "concept": con}
+            for i, con in enumerate(concepts, 1)]}).json()["id"]
+    read = [x["concept"] for x in client.get(f"/api/v1/sage/quizzes/{qid}/edit", headers=ih).json()["questions"]]
+    assert read == concepts and len(set(read)) == 3
+
+
 def test_sage_delete_course(client):
     ih = _auth(client.post("/api/v1/sage/signup", json={
         "full_name": "Dr D", "email": "d@uni.edu", "password": "secret123"}).json())

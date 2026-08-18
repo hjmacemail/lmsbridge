@@ -483,7 +483,8 @@
       "pastAttempts": "Tentatives passées",
       "attemptsTitle": "Vos tentatives",
       "noAttempts": "Aucune tentative pour l’instant.",
-      "yourAnswer": "Votre réponse : {{ans}}"
+      "yourAnswer": "Votre réponse : {{ans}}",
+      "conceptHint": "Le sujet évalué par cette question (p. ex. « Arithmétique binaire »). En cas d’erreur, LMS Bridge s’en sert pour créer des exercices ciblés sur ce sujet. Des questions du même sujet peuvent partager le même concept."
     },
     "qtype": {
       "mcq": "QCM",

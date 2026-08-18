@@ -70,7 +70,11 @@ def _ensure_join_code(db: Session, course: Course) -> None:
 
 
 def _slug(name: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "_", name.strip().lower()).strip("_") or "concept"
+    # Keep Unicode letters/digits so non-Latin concept names (e.g. Arabic) get DISTINCT keys
+    # instead of all collapsing to "concept" (\w is Unicode-aware for str patterns in Py3).
+    # Only truly symbol-only names fall back to "concept".
+    slug = re.sub(r"[^\w]+", "_", name.strip().lower()).strip("_")
+    return (slug or "concept")[:120]
 
 
 def _parse_dt(s: str | None) -> datetime | None:

@@ -1149,6 +1149,9 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
           )}
           <input style={{ ...inputStyle, marginTop: 8 }} placeholder={t("sage.quiz.phConcept")}
             value={q.concept} onChange={(e) => upd(i, { concept: e.target.value })} />
+          <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
+            {t("sage.quiz.conceptHint", { defaultValue: "The topic this question tests (e.g. “Binary arithmetic”). When a student gets it wrong, LMS Bridge uses this to build them targeted practice on that exact topic. Questions on the same topic can share the same concept." })}
+          </div>
         </div>
       ))}
       <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
