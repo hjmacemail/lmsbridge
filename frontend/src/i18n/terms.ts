@@ -24,9 +24,33 @@ const TERMS: Record<string, Record<Lang, string>> = {
   "Intro to Computer Science": { es: "Introducción a la informática", fr: "Introduction à l'informatique", ar: "مقدمة في علوم الحاسوب" },
 };
 
+// Seeded demo student names, transliterated into Arabic (Latin scripts keep the original,
+// so we only map for Arabic). Keyed by full English name.
+const NAMES_AR: Record<string, string> = {
+  "Ava Chen": "آفا تشين",
+  "Marcus Lopez": "ماركوس لوبيز",
+  "Priya Patel": "بريا باتيل",
+  "Diego Santos": "دييغو سانتوس",
+  "Lena Müller": "لينا مولر",
+  "Omar Haddad": "عمر حدّاد",
+  "Grace Kim": "غريس كيم",
+  "Noah Williams": "نواه ويليامز",
+  // Demo instructor
+  "Dr. Alex Rivera": "د. أليكس ريفيرا",
+  "Alex Rivera": "أليكس ريفيرا",
+};
+
 function base(lang: string): Lang | null {
   const l = (lang || "").slice(0, 2).toLowerCase();
   return l === "es" || l === "fr" || l === "ar" ? l : null;
+}
+
+/** Localize a demo person's name. Only Arabic is transliterated; other locales keep the
+ *  original spelling. Unknown names pass through unchanged. */
+export function localizeName(name: string | null | undefined, lang: string): string {
+  if (!name) return name || "";
+  if ((lang || "").slice(0, 2).toLowerCase() !== "ar") return name;
+  return NAMES_AR[name.trim()] || name;
 }
 
 /** Localize a single seeded term (course title or concept name). Safe pass-through otherwise. */

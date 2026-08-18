@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
+import { localizeTerm } from "../i18n/terms";
 import { renderMarkdown } from "../lib/richtext";
 import type { SessionState, TutorMessage } from "../types";
 
@@ -85,7 +86,7 @@ export default function ModuleView(
   if (err) return <div className="container"><div className="card error">{err}</div></div>;
   if (!session) return <div className="container"><p className="muted">{t("tutor.starting")}</p></div>;
 
-  const concept = session.concept_name || session.title;
+  const concept = localizeTerm(session.concept_name, lang) || session.title;
   const goal = session.goal || t("tutor.goalFallback", { concept });
   const minutes = estMin(session.objectives?.length || 0);
   const ev = session.evidence;

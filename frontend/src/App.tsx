@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "./context/AuthContext";
+import { localizeName } from "./i18n/terms";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import Login from "./pages/Login";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -17,7 +18,7 @@ function TopBar() {
   const { auth, logout } = useAuth();
   const nav = useNavigate();
   const loc = useLocation();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // The demo, Sage, and connect routes render their own chrome — hide the app top bar there.
   if (!auth || loc.pathname.startsWith("/demo") || loc.pathname.startsWith("/sage")
     || loc.pathname.startsWith("/connect")) return null;
@@ -28,7 +29,7 @@ function TopBar() {
         LMS<span> Bridge</span>
       </Link>
       <div className="user">
-        <span>{auth.full_name} · {auth.role}</span>
+        <span>{localizeName(auth.full_name, i18n.language)} · {auth.role}</span>
         <LanguageSwitcher dark />
         <button className="btn ghost" onClick={() => { logout(); nav("/login"); }}>
           {t("common.signOut")}

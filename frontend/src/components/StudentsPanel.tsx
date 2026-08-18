@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
+import { localizeTerm, localizeName } from "../i18n/terms";
 import type { ResultDetail, RosterEntry, StudentDetailData } from "../types";
 
 function pct(n: number) { return `${Math.round(n * 100)}%`; }
@@ -53,7 +54,7 @@ function McqDetail({ result }: { result: ResultDetail }) {
 }
 
 function StudentDrill({ courseId, studentId }: { courseId: number; studentId: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [data, setData] = useState<StudentDetailData | null>(null);
   const [openResult, setOpenResult] = useState<number | null>(null);
   useEffect(() => {
@@ -69,7 +70,7 @@ function StudentDrill({ courseId, studentId }: { courseId: number; studentId: nu
           <div className="grid cols-2">
             {data.masteries.map((m) => (
               <div key={m.concept_id} className="row" style={{ gap: 8 }}>
-                <span style={{ fontSize: 13, minWidth: 150 }}>{m.concept_name}</span>
+                <span style={{ fontSize: 13, minWidth: 150 }}>{localizeTerm(m.concept_name, i18n.language)}</span>
                 <div className="bar" style={{ flex: 1 }}>
                   <span style={{ width: pct(m.mastery_score),
                     background: `var(--${masteryClass(m.status)})` }} />
@@ -121,7 +122,7 @@ function StudentDrill({ courseId, studentId }: { courseId: number; studentId: nu
                 <div>
                   <strong>{m.title}</strong>
                   <div className="muted" style={{ fontSize: 12 }}>
-                    {m.concept_name} · {m.activity_count} {t("instructor.students.activities")} · {m.response_count} {t("instructor.students.responses")}
+                    {localizeTerm(m.concept_name, i18n.language)} · {m.activity_count} {t("instructor.students.activities")} · {m.response_count} {t("instructor.students.responses")}
                     {m.grounded_on?.length ? ` · ${t("instructor.students.groundedIn", { list: m.grounded_on.join(", ") })}` : ""}
                   </div>
                 </div>
@@ -136,7 +137,7 @@ function StudentDrill({ courseId, studentId }: { courseId: number; studentId: nu
 }
 
 export default function StudentsPanel({ courseId }: { courseId: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [open, setOpen] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
@@ -187,7 +188,7 @@ export default function StudentsPanel({ courseId }: { courseId: number }) {
               <tr style={{ cursor: "pointer" }}
                 onClick={() => setOpen(open === s.student_id ? null : s.student_id)}>
                 <td style={{ fontWeight: 600 }}>
-                  {open === s.student_id ? "▾ " : "▸ "}{s.full_name}
+                  {open === s.student_id ? "▾ " : "▸ "}{localizeName(s.full_name, i18n.language)}
                   <div className="muted" style={{ fontSize: 12 }}>{s.email}</div>
                 </td>
                 <td>

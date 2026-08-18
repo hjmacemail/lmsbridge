@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
-import { localizeTerm } from "../i18n/terms";
+import { localizeTerm, localizeName } from "../i18n/terms";
 import { useAuth } from "../context/AuthContext";
 import type { ClassBrief, ConceptOut, Course, InstructorAnalytics,
   MisconceptionCluster } from "../types";
@@ -150,7 +150,7 @@ function MisconceptionClusters({ courseId }: { courseId: number }) {
             <div className="muted" style={{ fontSize: 13, lineHeight: 1.45 }}>{c.misconception}</div>
             {open === i && (
               <div style={{ marginTop: 8, fontSize: 12.5, color: "#444" }}>
-                {c.students.join(", ")}
+                {c.students.map((s) => localizeName(s, i18n.language)).join(", ")}
               </div>
             )}
           </div>

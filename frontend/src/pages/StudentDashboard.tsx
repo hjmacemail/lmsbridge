@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
+import { localizeTerm, localizeName } from "../i18n/terms";
 import type { Course, Mastery, RemediationModule, StudentDashboard as Dash } from "../types";
 
 function pct(n: number) { return `${Math.round(n * 100)}%`; }
@@ -35,7 +36,8 @@ interface Topic {
 export default function StudentDashboard(
   { moduleLink = (id: number) => `/modules/${id}` }: { moduleLink?: (id: number) => string },
 ) {
-  const { t: tr } = useTranslation();
+  const { t: tr, i18n } = useTranslation();
+  const lang = i18n.language;
   const [courses, setCourses] = useState<Course[]>([]);
   const [courseId, setCourseId] = useState<number | null>(null);
   const [dash, setDash] = useState<Dash | null>(null);
@@ -109,11 +111,11 @@ export default function StudentDashboard(
   return (
     <div className="container">
       <div className="row">
-        <h1>{dash ? tr("student.greeting", { name: dash.full_name.split(" ")[0] }) : tr("student.loading")}</h1>
+        <h1>{dash ? tr("student.greeting", { name: localizeName(dash.full_name, lang).split(" ")[0] }) : tr("student.loading")}</h1>
         {courses.length > 0 && (
           <select value={courseId ?? ""} onChange={(e) => setCourseId(Number(e.target.value))}
-            style={{ width: 280 }}>
-            {courses.map((c) => <option key={c.id} value={c.id}>{c.code} — {c.title}</option>)}
+            style={{ width: 280, maxWidth: "100%" }}>
+            {courses.map((c) => <option key={c.id} value={c.id}>{c.code} — {localizeTerm(c.title, lang)}</option>)}
           </select>
         )}
       </div>
@@ -134,7 +136,7 @@ export default function StudentDashboard(
                 <div style={{ fontWeight: 700, color: "#1E7A43", fontSize: 14 }}>
                   {tr("student.celebrateTitle")}</div>
                 <div style={{ fontSize: 13.5, color: "#22603C" }}>
-                  {tr("student.celebrateBody", { names: mastered.map((m) => m.concept_name).join(", ") })}
+                  {tr("student.celebrateBody", { names: mastered.map((m) => localizeTerm(m.concept_name, lang)).join(", ") })}
                 </div>
               </div>
             </div>
@@ -160,7 +162,7 @@ export default function StudentDashboard(
                         <div className="row mod-titles" style={{ gap: 10, alignItems: "center", minWidth: 0 }}>
                           <span style={{ color: "var(--muted, #888)", fontSize: 12, width: 12 }}>
                             {open ? "▾" : "▸"}</span>
-                          <h3 style={{ margin: 0, fontSize: 15 }}>{t.name}</h3>
+                          <h3 style={{ margin: 0, fontSize: 15 }}>{localizeTerm(t.name, lang)}</h3>
                           <Pill status={t.status} />
                         </div>
                         {primary && (
@@ -178,7 +180,7 @@ export default function StudentDashboard(
                           {t.modules.map((m) => (
                             <div key={m.id} style={{ marginBottom: t.modules.length > 1 ? 12 : 0 }}>
                               <p className="muted" style={{ fontSize: 13, margin: "0 0 6px" }}>
-                                {tr("student.whyBody", { concept: t.name })}</p>
+                                {tr("student.whyBody", { concept: localizeTerm(t.name, lang) })}</p>
                               <div className="row">
                                 <span className="muted" style={{ fontSize: 12 }}>
                                   💬 {tr("student.interactiveTutor")} · {tr("student.strategy." + m.strategy, { defaultValue: m.strategy.replace(/_/g, " ") })} ·{" "}
@@ -250,7 +252,7 @@ export default function StudentDashboard(
                           {items.map((m) => (
                             <div key={m.concept_id} style={{ marginBottom: 12 }}>
                               <div className="row" style={{ marginBottom: 4 }}>
-                                <span style={{ fontWeight: 600, fontSize: 14 }}>{m.concept_name}</span>
+                                <span style={{ fontWeight: 600, fontSize: 14 }}>{localizeTerm(m.concept_name, lang)}</span>
                                 <span className="muted" style={{ fontSize: 12 }}>
                                   {tr("student.confidenceLabel")}: {tr(confidenceKey(m.mastery_score))}
                                   {" · "}{tr("student.estMastery", { pct: pct(m.mastery_score) })}

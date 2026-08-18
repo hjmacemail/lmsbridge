@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../api/client";
+import { localizeTerm, localizeName } from "../i18n/terms";
 import type { ModuleWithStudent } from "../types";
 
 type GroupBy = "student" | "concept";
@@ -45,7 +46,10 @@ function ModuleDetail({ m }: { m: ModuleWithStudent }) {
 }
 
 export default function RemediationPanel({ courseId }: { courseId: number }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // Display helpers: names transliterate (Arabic), concept titles use the term dictionary.
+  const showName = (n: string) => localizeName(n, i18n.language);
+  const showConcept = (n: string) => localizeTerm(n, i18n.language);
   const [modules, setModules] = useState<ModuleWithStudent[]>([]);
   const [groupBy, setGroupBy] = useState<GroupBy>("student");
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
@@ -117,7 +121,7 @@ export default function RemediationPanel({ courseId }: { courseId: number }) {
             return (
               <Fragment key={key}>
                 <tr style={{ cursor: "pointer", background: "var(--soft)" }} onClick={() => toggleGroup(key)}>
-                  <td style={{ fontWeight: 700 }}>{gOpen ? "▾ " : "▸ "}{key}</td>
+                  <td style={{ fontWeight: 700 }}>{gOpen ? "▾ " : "▸ "}{groupBy === "student" ? showName(key) : showConcept(key)}</td>
                   <td colSpan={3} className="muted" style={{ fontSize: 13 }}>{summary(mods)}</td>
                 </tr>
                 {gOpen && mods.map((m) => (
@@ -126,8 +130,8 @@ export default function RemediationPanel({ courseId }: { courseId: number }) {
                       onClick={() => setOpenModule(openModule === m.id ? null : m.id)}>
                       <td style={{ paddingLeft: 26 }} className="muted">
                         {openModule === m.id ? "▾ " : "▸ "}
-                        {groupBy === "student" ? m.concept_name : m.student_name}</td>
-                      <td className="muted">{groupBy === "student" ? m.student_name : m.concept_name}</td>
+                        {groupBy === "student" ? showConcept(m.concept_name || "") : showName(m.student_name)}</td>
+                      <td className="muted">{groupBy === "student" ? showName(m.student_name) : showConcept(m.concept_name || "")}</td>
                       <td className="muted">{t(`tutor.strategy.${m.strategy}`, { defaultValue: m.strategy.replace(/_/g, " ") })}</td>
                       <td><span className={`pill ${m.status}`}>{t(`status.${m.status}`, { defaultValue: m.status.replace("_", " ") })}</span></td>
                     </tr>
