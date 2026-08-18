@@ -572,5 +572,22 @@
       "machineCode": "Machine code",
       "courseIndex": "Course index"
     }
+  },
+  "editor": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "heading": "Heading",
+    "quote": "Quote",
+    "bulleted": "Bulleted list",
+    "numbered": "Numbered list",
+    "code": "Code",
+    "link": "Link",
+    "write": "Write",
+    "preview": "Preview",
+    "nothingToPreview": "Nothing to preview yet.",
+    "boldText": "bold text",
+    "italicText": "italic text",
+    "codeText": "code",
+    "linkText": "text"
   }
 }

@@ -13,6 +13,7 @@ import type { RemediationModule, InstructorAnalytics, AuthToken, Role } from "..
 import { useAuth } from "../context/AuthContext";
 import ModuleView from "./ModuleView";
 import { renderMarkdown, highlightCode } from "../lib/richtext";
+import MarkdownEditor from "../components/MarkdownEditor";
 import { resolveBrand } from "../lib/brand";
 
 const BRAND = resolveBrand();
@@ -649,8 +650,8 @@ function Announcements({ course, instr }: { course: SageCourseSummary; instr: bo
       {open && (
         <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
           <input style={inputStyle} placeholder={t("sage.ann.phTitle")} value={title} onChange={(e) => setTitle(e.target.value)} />
-          <textarea style={{ ...inputStyle, minHeight: 70, resize: "vertical" }} placeholder={t("sage.ann.phBody")}
-            value={body} onChange={(e) => setBody(e.target.value)} />
+          <MarkdownEditor value={body} onChange={setBody} placeholder={t("sage.ann.phBody")}
+            minHeight={90} ariaLabel={t("sage.ann.phBody")} />
           <div><PrimaryBtn onClick={post} disabled={busy}>{busy ? t("sage.ann.posting") : t("sage.ann.postBtn")}</PrimaryBtn></div>
         </div>
       )}
@@ -1286,9 +1287,8 @@ function Syllabus({ course, instr, detail, onSaved }:
   if (instr && edit) {
     return (
       <Card>
-        <textarea style={{ ...inputStyle, minHeight: 240, resize: "vertical", fontFamily: "inherit" }}
-          value={text} onChange={(e) => setText(e.target.value)}
-          placeholder={t("sage.syllabus.phEdit")} />
+        <MarkdownEditor value={text} onChange={setText} minHeight={240}
+          placeholder={t("sage.syllabus.phEdit")} ariaLabel={t("sage.syllabus.phEdit")} />
         <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
           <PrimaryBtn onClick={save} disabled={busy}>{busy ? t("sage.profile.saving") : t("sage.syllabus.save")}</PrimaryBtn>
           <GhostBtn onClick={() => { setEdit(false); setText(detail?.syllabus || ""); }}>{t("sage.cancel")}</GhostBtn>
@@ -1368,12 +1368,18 @@ function MaterialForm({ courseId, kind, onDone }:
         <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
       ) : (
         <>
-          {kind === "code" && <input style={{ ...inputStyle, marginBottom: 8 }} placeholder="Language (e.g. python)"
+          {kind === "code" && <input style={{ ...inputStyle, marginBottom: 8 }}
+            placeholder={t("sage.materials.phLanguage", { defaultValue: "Language (e.g. python)" })}
             value={language} onChange={(e) => setLanguage(e.target.value)} />}
-          <textarea style={{ ...inputStyle, minHeight: 140, resize: "vertical",
-            fontFamily: kind === "code" ? "var(--font-mono, monospace)" : "inherit" }}
-            placeholder={kind === "code" ? t("sage.materials.phCode") : t("sage.materials.phNote")}
-            value={body} onChange={(e) => setBody(e.target.value)} />
+          {kind === "code" ? (
+            <textarea style={{ ...inputStyle, minHeight: 140, resize: "vertical",
+              fontFamily: "var(--font-mono, monospace)" }}
+              placeholder={t("sage.materials.phCode")}
+              value={body} onChange={(e) => setBody(e.target.value)} />
+          ) : (
+            <MarkdownEditor value={body} onChange={setBody} minHeight={160}
+              placeholder={t("sage.materials.phNote")} ariaLabel={t("sage.materials.phNote")} />
+          )}
         </>
       )}
       <div style={{ display: "flex", gap: 8, marginTop: 10 }}>

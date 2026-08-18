@@ -572,5 +572,22 @@
       "machineCode": "شفرة الآلة",
       "courseIndex": "فهرس المقرّر"
     }
+  },
+  "editor": {
+    "bold": "عريض",
+    "italic": "مائل",
+    "heading": "عنوان",
+    "quote": "اقتباس",
+    "bulleted": "قائمة نقطية",
+    "numbered": "قائمة مرقّمة",
+    "code": "شيفرة",
+    "link": "رابط",
+    "write": "كتابة",
+    "preview": "معاينة",
+    "nothingToPreview": "لا شيء للمعاينة بعد.",
+    "boldText": "نص عريض",
+    "italicText": "نص مائل",
+    "codeText": "شيفرة",
+    "linkText": "نص"
   }
 }

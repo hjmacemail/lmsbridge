@@ -572,5 +572,22 @@
       "machineCode": "Code machine",
       "courseIndex": "Index du cours"
     }
+  },
+  "editor": {
+    "bold": "Gras",
+    "italic": "Italique",
+    "heading": "Titre",
+    "quote": "Citation",
+    "bulleted": "Liste à puces",
+    "numbered": "Liste numérotée",
+    "code": "Code",
+    "link": "Lien",
+    "write": "Écrire",
+    "preview": "Aperçu",
+    "nothingToPreview": "Rien à prévisualiser pour l’instant.",
+    "boldText": "texte en gras",
+    "italicText": "texte en italique",
+    "codeText": "code",
+    "linkText": "texte"
   }
 }

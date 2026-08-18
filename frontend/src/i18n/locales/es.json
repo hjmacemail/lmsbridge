@@ -572,5 +572,22 @@
       "machineCode": "Código máquina",
       "courseIndex": "Índice del curso"
     }
+  },
+  "editor": {
+    "bold": "Negrita",
+    "italic": "Cursiva",
+    "heading": "Encabezado",
+    "quote": "Cita",
+    "bulleted": "Lista con viñetas",
+    "numbered": "Lista numerada",
+    "code": "Código",
+    "link": "Enlace",
+    "write": "Escribir",
+    "preview": "Vista previa",
+    "nothingToPreview": "Nada que previsualizar todavía.",
+    "boldText": "texto en negrita",
+    "italicText": "texto en cursiva",
+    "codeText": "código",
+    "linkText": "texto"
   }
 }
