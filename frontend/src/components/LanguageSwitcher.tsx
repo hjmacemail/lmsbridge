@@ -10,6 +10,10 @@ export default function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
       value={LANGUAGES.some((l) => l.code === cur) ? cur : "en"}
       onChange={(e) => i18n.changeLanguage(e.target.value)}
       style={{
+        // width:auto + flex:none override the global `select { width:100% }` form rule, so the
+        // switcher stays compact in flex headers (Sage header, app top bar, login) instead of
+        // stretching to fill the row.
+        width: "auto", flex: "0 0 auto",
         fontSize: 13, padding: "4px 8px", borderRadius: 7, cursor: "pointer",
         border: dark ? "1px solid rgba(255,255,255,.4)" : "1px solid var(--line, #d9dde1)",
         background: dark ? "transparent" : "#fff",

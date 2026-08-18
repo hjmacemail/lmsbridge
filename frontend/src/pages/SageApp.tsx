@@ -180,13 +180,14 @@ export default function SageApp() {
         <header style={{ background: BRAND.accent || C.brand, color: "#fff", padding: "13px 0" }}>
           <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 20px", display: "flex",
             alignItems: "center", gap: 9, justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 18 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0, flexWrap: "wrap" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 18,
+                whiteSpace: "nowrap" }}>
                 {BRAND.logoUrl ? <img src={BRAND.logoUrl} alt={BRAND.name} style={{ height: 22 }} />
                   : <Icon name="school" size={20} />} {BRAND.name}</span>
               <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer"
                 style={{ opacity: 0.75, fontWeight: 400, fontSize: 12.5, color: "#fff",
-                  textDecoration: "underline", textUnderlineOffset: 3 }}>· {BRAND.attribution}</a>
+                  whiteSpace: "nowrap", textDecoration: "underline", textUnderlineOffset: 3 }}>· {BRAND.attribution}</a>
             </div>
             <LanguageSwitcher dark />
           </div>
@@ -324,7 +325,7 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
       <div style={{ maxWidth: 560, margin: "24px auto", textAlign: "center" }}>
         <h1 style={{ color: C.ink, marginBottom: 8, fontSize: 30 }}>{t("sage.auth.welcome", { name: BRAND.name })}</h1>
         <p style={{ color: C.muted, marginTop: 0, fontSize: 15, lineHeight: 1.55, maxWidth: 460,
-          margin: "0 auto 22px" }}>{BRAND.tagline}</p>
+          margin: "0 auto 22px" }}>{t("sage.auth.tagline", { defaultValue: BRAND.tagline })}</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           {roleCard({ icon: "edit", title: t("sage.auth.instructor"), sub: t("sage.auth.instructorSub"),
             onClick: () => { setMode("signup"); setErr(null); } })}
