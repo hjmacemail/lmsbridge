@@ -7,7 +7,7 @@ const TERMS: Record<string, Record<Lang, string>> = {
   // ---- Concept / topic names ----
   "Binary Representation": { es: "Representación binaria", fr: "Représentation binaire", ar: "التمثيل الثنائي" },
   "Binary Arithmetic": { es: "Aritmética binaria", fr: "Arithmétique binaire", ar: "الحساب الثنائي" },
-  "Boolean Logic": { es: "Lógica booleana", fr: "Logique booléenne", ar: "المنطق البوليّ" },
+  "Boolean Logic": { es: "Lógica booleana", fr: "Logique booléenne", ar: "جبر المنطق" },
   "Machine-Level Computation": { es: "Cómputo a nivel de máquina", fr: "Calcul au niveau machine", ar: "الحوسبة على مستوى الآلة" },
   "Encapsulation": { es: "Encapsulamiento", fr: "Encapsulation", ar: "التغليف" },
   "Inheritance": { es: "Herencia", fr: "Héritage", ar: "الوراثة" },
@@ -30,6 +30,8 @@ const NAMES_AR: Record<string, string> = {
   "Ava Chen": "آفا تشين",
   "Marcus Lopez": "ماركوس لوبيز",
   "Priya Patel": "بريا باتيل",
+  "Sam Lee": "سام لي",
+  "Jordan Diaz": "جوردن دياز",
   "Diego Santos": "دييغو سانتوس",
   "Lena Müller": "لينا مولر",
   "Omar Haddad": "عمر حدّاد",
