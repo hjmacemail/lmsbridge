@@ -15,6 +15,88 @@ def _quiz_payload():
     ]}
 
 
+def test_purge_guests_ages_by_activity(db, monkeypatch):
+    from datetime import datetime, timedelta, timezone
+    from sqlalchemy.orm import sessionmaker
+    from app.core.security import hash_password
+    from app.models.user import User
+    import app.scripts.purge_guests as pg
+
+    old = datetime.now(timezone.utc) - timedelta(days=60)
+    stale = User(email="old@sage.local", full_name="Old", hashed_password=hash_password("x"),
+                 created_at=old)
+    fresh = User(email="new@sage.local", full_name="New", hashed_password=hash_password("x"))
+    real = User(email="prof@uni.edu", full_name="Prof", hashed_password=hash_password("x"),
+                created_at=old)  # old but NOT a guest -> never touched
+    db.add_all([stale, fresh, real])
+    db.commit()
+
+    monkeypatch.setattr(pg, "SessionLocal",
+                        sessionmaker(bind=db.get_bind(), expire_on_commit=False))
+    out = pg.purge_guests(days=30)
+    assert out["deleted"] == 1
+    db.expire_all()
+    emails = {u.email for u in db.query(User).all()}
+    assert "old@sage.local" not in emails          # stale guest deleted
+    assert "new@sage.local" in emails              # fresh guest kept
+    assert "prof@uni.edu" in emails                # non-guest never touched
+
+    # Dry-run reports but deletes nothing.
+    db.add(User(email="old2@sage.local", full_name="O2", hashed_password=hash_password("x"),
+                created_at=old))
+    db.commit()
+    assert pg.purge_guests(days=30, dry_run=True)["deleted"] == 1
+    db.expire_all()
+    assert any(u.email == "old2@sage.local" for u in db.query(User).all())
+
+
+def test_sage_remove_student(client):
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr R", "email": "r@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "Roster"}).json()["id"]
+    code = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"]
+    stu = client.post("/api/v1/sage/join", json={
+        "join_code": code, "full_name": "Rm Me", "email": "rm@uni.edu", "password": "secret123"}).json()
+    roster = client.get(f"/api/v1/sage/courses/{cid}/students", headers=ih).json()
+    sid = next(s["id"] for s in roster if s["email"] == "rm@uni.edu")
+    # Instructor removes the student; a student can't remove anyone.
+    assert client.delete(f"/api/v1/sage/courses/{cid}/students/{sid}", headers=_auth(stu)).status_code == 403
+    assert client.delete(f"/api/v1/sage/courses/{cid}/students/{sid}", headers=ih).status_code == 204
+    assert all(s["id"] != sid for s in client.get(f"/api/v1/sage/courses/{cid}/students", headers=ih).json())
+    # Removing again -> 404.
+    assert client.delete(f"/api/v1/sage/courses/{cid}/students/{sid}", headers=ih).status_code == 404
+
+
+def test_sage_attempt_history_and_editable_before_submission(client):
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr A", "email": "a2@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "Hist"}).json()["id"]
+    qid = client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih, json={
+        "title": "Q", "questions": [{"prompt": "1011?", "choices": ["9", "11"], "correct": "11",
+                                     "concept": "Binary"}]}).json()["id"]
+
+    # Editable while there are no submissions.
+    ed = client.put(f"/api/v1/sage/quizzes/{qid}", headers=ih, json={
+        "title": "Q2", "questions": [
+            {"prompt": "1+1?", "choices": ["10", "2"], "correct": "10", "concept": "Bin"},
+            {"prompt": "extra?", "choices": ["x", "y"], "correct": "x", "concept": "Bin"}]})
+    assert ed.json()["questions_locked"] is False and ed.json()["question_count"] == 2
+
+    code = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"]
+    sh = _auth(client.post("/api/v1/sage/guest", json={"join_code": code, "full_name": "S"}).json())
+    take = client.get(f"/api/v1/sage/quizzes/{qid}/take", headers=sh).json()
+    a = [{"question_id": take["questions"][0]["id"], "choice": "10"},
+         {"question_id": take["questions"][1]["id"], "choice": "y"}]  # 1 right, 1 wrong
+    client.post(f"/api/v1/sage/quizzes/{qid}/submit", headers=sh, json={"answers": a})
+
+    hist = client.get(f"/api/v1/sage/quizzes/{qid}/attempts", headers=sh).json()
+    assert len(hist) == 1
+    assert hist[0]["correct"] == 1 and hist[0]["total"] == 2
+    assert len(hist[0]["review"]) == 2 and hist[0]["submitted_at"]
+    # A student only sees their OWN attempts (none for the instructor here).
+    assert client.get(f"/api/v1/sage/quizzes/{qid}/attempts", headers=ih).json() == []
+
+
 def test_sage_minilms_end_to_end(client):
     # Instructor signs up, creates a course, authors a quiz.
     ih = _auth(client.post("/api/v1/sage/signup", json={
@@ -159,11 +241,17 @@ def test_sage_question_types_and_quiz_management(client):
     res = client.post(f"/api/v1/sage/quizzes/{quiz_id}/submit", headers=sh, json={"answers": ans})
     assert res.json()["correct"] == 4 and res.json()["total"] == 4
 
-    # Edit, duplicate, delete (instructor only).
+    # Editing a quiz that already has submissions LOCKS the questions (title/due still editable),
+    # so past attempts stay meaningful. Questions are unchanged; the response flags the lock.
     ed = client.put(f"/api/v1/sage/quizzes/{quiz_id}", headers=ih, json={
         "title": "Mixed v2", "questions": [
             {"prompt": "T or F?", "qtype": "true_false", "correct": "False", "concept": "C2"}]})
-    assert ed.status_code == 200 and ed.json()["question_count"] == 1
+    assert ed.status_code == 200 and ed.json()["questions_locked"] is True
+    assert ed.json()["question_count"] == 4  # unchanged despite the 1-question payload
+    assert client.get(f"/api/v1/sage/quizzes/{quiz_id}/edit", headers=ih).json()["has_submissions"] is True
+    # The title change did take effect.
+    assert client.get(f"/api/v1/sage/quizzes/{quiz_id}/edit", headers=ih).json()["title"] == "Mixed v2"
+
     dup = client.post(f"/api/v1/sage/quizzes/{quiz_id}/duplicate", headers=ih)
     assert dup.status_code == 201 and dup.json()["title"].endswith("(copy)")
     assert client.post(f"/api/v1/sage/quizzes/{quiz_id}/duplicate", headers=sh).status_code == 403

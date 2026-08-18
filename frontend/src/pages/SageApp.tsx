@@ -7,7 +7,7 @@ import {
   type SageAuth, type SageCourseSummary, type SageCourseDetail, type SageQuizListItem,
   type SageTakeQuiz, type SageSubmitResult, type SageStudent,
   type SageGrades, type SageQuestionDraft, type SageMaterial, type SageProfile,
-  type SageQType, type SageAnswerIn, type SageAnnouncement,
+  type SageQType, type SageAnswerIn, type SageAnnouncement, type SageQuizAttempt,
 } from "../api/client";
 import type { RemediationModule, InstructorAnalytics, AuthToken, Role } from "../types";
 import { useAuth } from "../context/AuthContext";
@@ -739,14 +739,14 @@ function QuizzesInstructor({ course }: { course: SageCourseSummary }) {
   const [build, setBuild] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [initial, setInitial] = useState<
-    { title: string; questions: SageQuestionDraft[]; due_at?: string | null } | null>(null);
+    { title: string; questions: SageQuestionDraft[]; due_at?: string | null; locked?: boolean } | null>(null);
   const load = () => sageApi.quizzes(course.id).then(setQuizzes).catch(() => setQuizzes([]));
   useEffect(() => { load(); }, [course.id]);
 
   function startNew() { setInitial(null); setEditId(null); setBuild(true); }
   async function startEdit(id: number) {
     const q = await sageApi.quizForEdit(id);
-    setInitial({ title: q.title, questions: q.questions, due_at: q.due_at });
+    setInitial({ title: q.title, questions: q.questions, due_at: q.due_at, locked: q.has_submissions });
     setEditId(id); setBuild(true);
   }
   async function dup(id: number) {
@@ -818,10 +818,11 @@ function tfLabel(qtype: string, c: string, tr: (k: string) => string): string {
 
 function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
   courseId: number; editId: number | null;
-  initial: { title: string; questions: SageQuestionDraft[]; due_at?: string | null } | null;
+  initial: { title: string; questions: SageQuestionDraft[]; due_at?: string | null; locked?: boolean } | null;
   onDone: () => void; onCancel: () => void;
 }) {
   const { t } = useTranslation();
+  const locked = !!initial?.locked;
   const blank = (): SageQuestionDraft =>
     ({ prompt: "", qtype: "mcq", choices: ["", ""], correct: [], concept: "" });
   const [title, setTitle] = useState(initial?.title || "");
@@ -888,6 +889,13 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
   }
   return (
     <Card style={{ background: C.soft, border: `1px solid ${C.line}` }}>
+      {locked && (
+        <div style={{ background: C.infoBg, color: C.info, borderRadius: 10, padding: "10px 14px",
+          marginBottom: 12, fontSize: 13.5, lineHeight: 1.5, display: "flex", alignItems: "flex-start", gap: 8 }}>
+          <Icon name="alert" size={18} />
+          <span>{t("sage.quiz.editLocked", { defaultValue: "This quiz already has submissions, so its questions are locked to keep past attempts consistent. You can still edit the title and due date — or use Duplicate to make an editable copy." })}</span>
+        </div>
+      )}
       <input style={{ ...inputStyle, marginBottom: 10, fontWeight: 600 }} placeholder={t("sage.quiz.phTitle")}
         value={title} onChange={(e) => setTitle(e.target.value)} />
       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
@@ -896,7 +904,35 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
           onChange={(e) => setDueAt(e.target.value)} />
         {dueAt && <GhostBtn onClick={() => setDueAt("")}>{t("sage.quiz.clear")}</GhostBtn>}
       </div>
-      {qs.map((q, i) => (
+      {locked ? (
+        qs.map((q, i) => (
+          <div key={i} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12,
+            padding: 14, marginBottom: 10 }}>
+            <div style={{ display: "flex", gap: 8, marginBottom: 6, alignItems: "baseline" }}>
+              <span style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>Q{i + 1}</span>
+              <span style={{ fontSize: 14.5, fontWeight: 600 }}>{q.prompt}</span>
+            </div>
+            {q.qtype === "short" ? (
+              <div style={{ fontSize: 13.5, color: C.muted }}>
+                {t("sage.quiz.correctAns", { ans: q.correct.join(" / ") })}</div>
+            ) : (
+              <div style={{ display: "grid", gap: 4 }}>
+                {(q.qtype === "true_false" ? ["True", "False"] : q.choices).map((c, ci) => {
+                  const isCorrect = q.correct.includes(c);
+                  return (
+                    <div key={ci} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14,
+                      color: isCorrect ? C.success : C.ink }}>
+                      <Icon name={isCorrect ? "check" : "circle"} size={15}
+                        color={isCorrect ? C.success : "#b9b4cf"} />
+                      <span>{tfLabel(q.qtype, c, t)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))
+      ) : qs.map((q, i) => (
         <div key={i} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12, padding: 14, marginBottom: 10 }}>
           <div style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "center" }}>
             <span style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>Q{i + 1}</span>
@@ -912,9 +948,14 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
             value={q.prompt} onChange={(e) => upd(i, { prompt: e.target.value })} />
 
           {q.qtype === "short" ? (
-            <input style={inputStyle} placeholder={t("sage.quiz.phShortAns")}
-              value={q.correct.join(", ")}
-              onChange={(e) => upd(i, { correct: e.target.value.split(",").map((s) => s.trim()) })} />
+            <>
+              <textarea style={{ ...inputStyle, minHeight: 64, resize: "vertical", fontFamily: "inherit" }}
+                placeholder={t("sage.quiz.phShortAns")}
+                value={q.correct.join("\n")}
+                onChange={(e) => upd(i, { correct: e.target.value.split("\n").map((s) => s.trim()) })} />
+              <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
+                {t("sage.quiz.acceptedHint", { defaultValue: "One accepted answer per line — all are matched case-insensitively." })}</div>
+            </>
           ) : (
             <>
               <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>
@@ -941,7 +982,7 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
         </div>
       ))}
       <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
-        <GhostBtn onClick={() => setQs((a) => [...a, blank()])}><Icon name="plus" size={15} /> {t("sage.quiz.addQ")}</GhostBtn>
+        {!locked && <GhostBtn onClick={() => setQs((a) => [...a, blank()])}><Icon name="plus" size={15} /> {t("sage.quiz.addQ")}</GhostBtn>}
         <PrimaryBtn onClick={save} disabled={busy}>{busy ? t("sage.quiz.saving") : editId != null ? t("sage.quiz.saveChanges") : t("sage.quiz.saveQuiz")}</PrimaryBtn>
         <GhostBtn onClick={onCancel}>{t("sage.cancel")}</GhostBtn>
       </div>
@@ -1074,26 +1115,101 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
       {quizzes.map((q) => {
         const taken = q.my_score != null;
         return (
-          <Card key={q.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-              <Icon name={taken ? "check" : "circle"} size={22} color={taken ? C.success : "#b9b4cf"} />
-              <div>
-                <b style={{ fontSize: 15 }}>{q.title}</b>
-                <div style={{ color: C.muted, fontSize: 13 }}>
-                  {t("sage.quiz.questions", { count: q.question_count })}
-                  {taken && <> · {t("sage.quiz.yourScore")} <b style={{ color: C.success }}>{Math.round((q.my_score || 0) * 100)}%</b></>}
-                  {q.due_at && (() => {
-                    const overdue = new Date(q.due_at) < new Date();
-                    return <span style={{ color: overdue && !taken ? C.danger : C.muted }}>
-                      {" · "}{overdue ? t("sage.quiz.wasDue") : t("sage.quiz.dueLabel")} {fmtDateTime(q.due_at)}</span>;
-                  })()}
+          <Card key={q.id} style={{ display: "grid", gap: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+                <Icon name={taken ? "check" : "circle"} size={22} color={taken ? C.success : "#b9b4cf"} />
+                <div>
+                  <b style={{ fontSize: 15 }}>{q.title}</b>
+                  <div style={{ color: C.muted, fontSize: 13 }}>
+                    {t("sage.quiz.questions", { count: q.question_count })}
+                    {taken && <> · {t("sage.quiz.yourScore")} <b style={{ color: C.success }}>{Math.round((q.my_score || 0) * 100)}%</b></>}
+                    {q.due_at && (() => {
+                      const overdue = new Date(q.due_at) < new Date();
+                      return <span style={{ color: overdue && !taken ? C.danger : C.muted }}>
+                        {" · "}{overdue ? t("sage.quiz.wasDue") : t("sage.quiz.dueLabel")} {fmtDateTime(q.due_at)}</span>;
+                    })()}
+                  </div>
                 </div>
               </div>
+              <PrimaryBtn onClick={() => open(q.id)}>{taken ? t("sage.quiz.retake") : t("sage.quiz.take")}</PrimaryBtn>
             </div>
-            <PrimaryBtn onClick={() => open(q.id)}>{taken ? t("sage.quiz.retake") : t("sage.quiz.take")}</PrimaryBtn>
+            {taken && <AttemptsPanel quizId={q.id} />}
           </Card>
         );
       })}
+    </div>
+  );
+}
+
+// Lazy-loaded per-quiz panel showing the student's own past attempts and their review.
+function AttemptsPanel({ quizId }: { quizId: number }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [attempts, setAttempts] = useState<SageQuizAttempt[]>([]);
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
+
+  function toggle() {
+    const next = !open;
+    setOpen(next);
+    if (next && !loaded && !loading) {
+      setLoading(true);
+      sageApi.quizAttempts(quizId)
+        .then((a) => { setAttempts(a); setLoaded(true); })
+        .catch(() => setAttempts([]))
+        .finally(() => setLoading(false));
+    }
+  }
+  return (
+    <div>
+      <GhostBtn onClick={toggle}>
+        <Icon name="chart" size={15} /> {t("sage.quiz.pastAttempts", { defaultValue: "Past attempts" })}</GhostBtn>
+      {open && (
+        <div style={{ marginTop: 10, borderTop: `1px solid ${C.line}`, paddingTop: 10 }}>
+          <h4 style={{ margin: "0 0 8px", fontSize: 14 }}>{t("sage.quiz.attemptsTitle", { defaultValue: "Your attempts" })}</h4>
+          {loading && <p style={{ color: C.muted, margin: 0, fontSize: 13.5 }}>{t("sage.loading")}</p>}
+          {!loading && attempts.length === 0 && (
+            <p style={{ color: C.muted, margin: 0, fontSize: 13.5 }}>
+              {t("sage.quiz.noAttempts", { defaultValue: "No attempts yet." })}</p>
+          )}
+          {!loading && attempts.map((a) => {
+            const isOpen = !!expanded[a.id];
+            return (
+              <div key={a.id} style={{ borderTop: `1px solid ${C.line}`, padding: "8px 0" }}>
+                <button onClick={() => setExpanded((m) => ({ ...m, [a.id]: !m[a.id] }))}
+                  style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "start",
+                    background: "none", border: "none", cursor: "pointer", padding: 0, color: C.ink }}>
+                  <Icon name="arrow" size={16} color={C.muted} />
+                  <span style={{ fontSize: 13.5, color: C.muted }}>
+                    {a.submitted_at ? new Date(a.submitted_at).toLocaleString() : "—"}</span>
+                  <b style={{ fontSize: 14, color: scoreColor(a.score), marginInlineStart: "auto" }}>
+                    {Math.round(a.score * 100)}%</b>
+                  <span style={{ fontSize: 13, color: C.muted }}>{a.correct}/{a.total}</span>
+                </button>
+                {isOpen && (
+                  <div style={{ marginTop: 8, display: "grid", gap: 8 }}>
+                    {a.review.map((r, ri) => (
+                      <div key={ri} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
+                        <Icon name={r.is_correct ? "check" : "alert"} size={16}
+                          color={r.is_correct ? C.success : C.danger} />
+                        <div style={{ fontSize: 13.5 }}>
+                          <div style={{ fontWeight: 500 }}>{r.question}</div>
+                          <div style={{ color: C.muted }}>
+                            {t("sage.quiz.yourAnswer", { defaultValue: "Your answer: {{ans}}", ans: r.selected ?? "—" })}</div>
+                          <div style={{ color: C.muted }}>
+                            {t("sage.quiz.correctAns", { ans: r.correct })}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -1102,13 +1218,25 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
 function Students({ course }: { course: SageCourseSummary }) {
   const { t } = useTranslation();
   const [students, setStudents] = useState<SageStudent[]>([]);
-  useEffect(() => { sageApi.students(course.id).then(setStudents).catch(() => setStudents([])); }, [course.id]);
+  const [err, setErr] = useState<string | null>(null);
+  const load = () => sageApi.students(course.id).then(setStudents).catch(() => setStudents([]));
+  useEffect(() => { load(); }, [course.id]);
+
+  async function remove(e: React.MouseEvent, s: SageStudent) {
+    e.stopPropagation();
+    if (!window.confirm(t("sage.students.removeConfirm",
+      { defaultValue: "Remove {{name}} from this course? Their past results are kept.", name: s.full_name }))) return;
+    setErr(null);
+    try { await sageApi.removeStudent(course.id, s.id); load(); }
+    catch (e) { setErr((e as Error).message); }
+  }
   return (
     <Card>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
         <h3 style={{ marginTop: 0, marginBottom: 0, fontSize: 17 }}>{t("sage.students.title", { count: students.length })}</h3>
         <CopyChip code={course.join_code} />
       </div>
+      {err && <div style={{ color: C.danger, fontSize: 13, marginTop: 8 }}>{err}</div>}
       <div style={{ marginTop: 8 }}>
         {students.length === 0 && <p style={{ color: C.muted }}>{t("sage.students.empty")}</p>}
         {students.map((s) => (
@@ -1117,8 +1245,12 @@ function Students({ course }: { course: SageCourseSummary }) {
             <div style={{ width: 34, height: 34, borderRadius: "50%", background: C.accentBg, color: C.accentInk,
               display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600 }}>
               {initials(s.full_name)}</div>
-            <div><b style={{ fontSize: 14.5 }}>{s.full_name}</b>
+            <div style={{ flex: 1, minWidth: 0 }}><b style={{ fontSize: 14.5 }}>{s.full_name}</b>
               <div style={{ color: C.muted, fontSize: 13 }}>{s.email}</div></div>
+            <button onClick={(e) => remove(e, s)}
+              style={{ background: "none", border: "none", color: C.danger, cursor: "pointer",
+                fontSize: 13, fontWeight: 600, padding: "6px 8px", flexShrink: 0 }}>
+              {t("sage.students.remove", { defaultValue: "Remove" })}</button>
           </div>
         ))}
       </div>

@@ -472,7 +472,13 @@
       "correctAns": "Bonne réponse : {{ans}}",
       "backToQuizzes": "Retour aux quiz",
       "true": "Vrai",
-      "false": "Faux"
+      "false": "Faux",
+      "acceptedHint": "Une réponse acceptée par ligne — la casse est ignorée.",
+      "editLocked": "Ce quiz a déjà des soumissions ; ses questions sont donc verrouillées afin de préserver la cohérence des tentatives précédentes. Vous pouvez encore modifier le titre et la date limite — ou utilisez Dupliquer pour créer une copie modifiable.",
+      "pastAttempts": "Tentatives passées",
+      "attemptsTitle": "Vos tentatives",
+      "noAttempts": "Aucune tentative pour l’instant.",
+      "yourAnswer": "Votre réponse : {{ans}}"
     },
     "qtype": {
       "mcq": "QCM",
@@ -482,7 +488,9 @@
     },
     "students": {
       "title": "Étudiants ({{count}})",
-      "empty": "Pas encore d'étudiants — partagez le code pour les inviter."
+      "empty": "Pas encore d'étudiants — partagez le code pour les inviter.",
+      "remove": "Retirer",
+      "removeConfirm": "Retirer {{name}} de ce cours ? Ses résultats antérieurs sont conservés."
     },
     "grades": {
       "title": "Notes",

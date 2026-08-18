@@ -281,6 +281,24 @@ def course_students(
     return [{"id": u.id, "full_name": u.full_name, "email": u.email} for u in rows]
 
 
+@router.delete("/courses/{course_id}/students/{student_id}", status_code=204)
+def remove_student(
+    course_id: int, student_id: int,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> None:
+    """Instructor removes a student from the course (revokes access). Past results are kept."""
+    _course, role = _require_role(db, course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    enr = db.scalar(select(Enrollment).where(
+        Enrollment.course_id == course_id, Enrollment.user_id == student_id,
+        Enrollment.role == UserRole.student))
+    if not enr:
+        raise HTTPException(status_code=404, detail="That student is not enrolled in this course")
+    db.delete(enr)
+    db.commit()
+
+
 # ------------------------------------------------------------- quizzes
 
 def _get_or_create_concept(db: Session, course_id: int, name: str) -> Concept:
@@ -379,16 +397,26 @@ def update_quiz(
     _course, role = _require_role(db, quiz.course_id, user)
     if role != "instructor":
         raise HTTPException(status_code=403, detail="Instructors only")
+    # Once students have submitted, the questions are LOCKED so past attempts stay meaningful —
+    # only the title and due date can change. (Instructors can Duplicate to edit a fresh copy.)
+    has_subs = db.scalar(select(func.count(AssessmentResult.id))
+                         .where(AssessmentResult.assessment_id == quiz.id)) or 0
     quiz.title = payload.title.strip()
-    quiz.max_score = float(len(payload.questions))
     quiz.due_at = _parse_dt(payload.due_at)
+    if has_subs:
+        db.commit()
+        n = db.scalar(select(func.count(Question.id))
+                      .where(Question.assessment_id == quiz.id)) or 0
+        return {"id": quiz.id, "title": quiz.title, "question_count": n, "questions_locked": True}
+    quiz.max_score = float(len(payload.questions))
     for old in db.scalars(select(Question).where(Question.assessment_id == quiz.id)).all():
         db.delete(old)
     db.flush()
     for q in payload.questions:
         db.add(_build_question(db, quiz.id, quiz.course_id, q))
     db.commit()
-    return {"id": quiz.id, "title": quiz.title, "question_count": len(payload.questions)}
+    return {"id": quiz.id, "title": quiz.title, "question_count": len(payload.questions),
+            "questions_locked": False}
 
 
 @router.delete("/quizzes/{quiz_id}", status_code=204)
@@ -441,9 +469,13 @@ def quiz_for_edit(
     if role != "instructor":
         raise HTTPException(status_code=403, detail="Instructors only")
     questions = db.scalars(select(Question).where(Question.assessment_id == quiz.id)).all()
+    has_subs = (db.scalar(select(func.count(AssessmentResult.id))
+                          .where(AssessmentResult.assessment_id == quiz.id)) or 0) > 0
     return {
         "id": quiz.id, "title": quiz.title,
         "due_at": quiz.due_at.isoformat() if quiz.due_at else None,
+        # When true, the questions can't be changed (there are submissions) — the UI locks them.
+        "has_submissions": has_subs,
         "questions": [{
             "prompt": q.prompt, "qtype": q.qtype or "mcq", "choices": q.choices or [],
             "correct": _correct_list(q),
@@ -558,6 +590,39 @@ def take_quiz(
         "questions": [{"id": q.id, "prompt": q.prompt, "qtype": q.qtype or "mcq",
                        "choices": q.choices or []} for q in questions],
     }
+
+
+@router.get("/quizzes/{quiz_id}/attempts")
+def quiz_attempts(
+    quiz_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> list[dict]:
+    """The current user's own past attempts at this quiz, with the per-question review of each
+    (reconstructed from the stored item scores), so a student can revisit what they answered."""
+    quiz = db.get(Assessment, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    _require_role(db, quiz.course_id, user)
+    rows = db.scalars(
+        select(AssessmentResult).where(
+            AssessmentResult.assessment_id == quiz_id,
+            AssessmentResult.student_id == user.id,
+        ).order_by(AssessmentResult.ingested_at.desc(), AssessmentResult.id.desc())
+    ).all()
+    out: list[dict] = []
+    for r in rows:
+        items = r.item_scores or []
+        out.append({
+            "id": r.id,
+            "score": round(r.score, 3),
+            "submitted_at": r.ingested_at.isoformat() if r.ingested_at else None,
+            "correct": sum(1 for it in items if it.get("is_correct")),
+            "total": len(items),
+            "review": [{
+                "question": it.get("question"), "selected": it.get("selected"),
+                "correct": it.get("correct"), "is_correct": it.get("is_correct"),
+            } for it in items],
+        })
+    return out
 
 
 @router.post("/quizzes/{quiz_id}/submit")

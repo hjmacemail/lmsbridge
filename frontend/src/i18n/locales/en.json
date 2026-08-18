@@ -472,7 +472,13 @@
       "correctAns": "Correct answer: {{ans}}",
       "backToQuizzes": "Back to quizzes",
       "true": "True",
-      "false": "False"
+      "false": "False",
+      "acceptedHint": "One accepted answer per line — all are matched case-insensitively.",
+      "editLocked": "This quiz already has submissions, so its questions are locked to keep past attempts consistent. You can still edit the title and due date — or use Duplicate to make an editable copy.",
+      "pastAttempts": "Past attempts",
+      "attemptsTitle": "Your attempts",
+      "noAttempts": "No attempts yet.",
+      "yourAnswer": "Your answer: {{ans}}"
     },
     "qtype": {
       "mcq": "Multiple choice",
@@ -482,7 +488,9 @@
     },
     "students": {
       "title": "Students ({{count}})",
-      "empty": "No students yet — share the join code to invite them."
+      "empty": "No students yet — share the join code to invite them.",
+      "remove": "Remove",
+      "removeConfirm": "Remove {{name}} from this course? Their past results are kept."
     },
     "grades": {
       "title": "Grades",

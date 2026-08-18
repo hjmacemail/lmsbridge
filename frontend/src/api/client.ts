@@ -350,6 +350,14 @@ export interface SageQuestionDraft {
 }
 export interface SageQuizForEdit {
   id: number; title: string; due_at?: string | null; questions: SageQuestionDraft[];
+  has_submissions?: boolean;  // when true, questions are locked (there are attempts)
+}
+export interface SageAttemptReviewItem {
+  question: string | null; selected: string | null; correct: string; is_correct: boolean;
+}
+export interface SageQuizAttempt {
+  id: number; score: number; submitted_at: string | null; correct: number; total: number;
+  review: SageAttemptReviewItem[];
 }
 export interface SageAnswerIn { question_id: number; choice?: string; choices?: string[]; }
 export interface SageInstructor { full_name: string; title: string | null; bio: string | null; }
@@ -404,6 +412,10 @@ export const sageApi = {
     request<{ course_id: number; name: string }>(`/sage/courses/join`, { method: "POST",
       body: JSON.stringify({ join_code }) }),
   students: (courseId: number) => request<SageStudent[]>(`/sage/courses/${courseId}/students`),
+  removeStudent: (courseId: number, studentId: number) =>
+    request<void>(`/sage/courses/${courseId}/students/${studentId}`, { method: "DELETE" }),
+  quizAttempts: (quizId: number) =>
+    request<SageQuizAttempt[]>(`/sage/quizzes/${quizId}/attempts`),
   quizzes: (courseId: number) => request<SageQuizListItem[]>(`/sage/courses/${courseId}/quizzes`),
   createQuiz: (courseId: number, title: string, questions: SageQuestionDraft[], due_at?: string | null) =>
     request<{ id: number; title: string; question_count: number }>(

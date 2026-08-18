@@ -472,7 +472,13 @@
       "correctAns": "Respuesta correcta: {{ans}}",
       "backToQuizzes": "Volver a los cuestionarios",
       "true": "Verdadero",
-      "false": "Falso"
+      "false": "Falso",
+      "acceptedHint": "Una respuesta aceptada por línea — se comparan sin distinguir mayúsculas.",
+      "editLocked": "Este cuestionario ya tiene envíos, por lo que sus preguntas están bloqueadas para mantener la coherencia de los intentos previos. Aún puedes editar el título y la fecha límite — o usa Duplicar para crear una copia editable.",
+      "pastAttempts": "Intentos anteriores",
+      "attemptsTitle": "Tus intentos",
+      "noAttempts": "Aún no hay intentos.",
+      "yourAnswer": "Tu respuesta: {{ans}}"
     },
     "qtype": {
       "mcq": "Opción múltiple",
@@ -482,7 +488,9 @@
     },
     "students": {
       "title": "Estudiantes ({{count}})",
-      "empty": "Aún no hay estudiantes — comparte el código para invitarlos."
+      "empty": "Aún no hay estudiantes — comparte el código para invitarlos.",
+      "remove": "Quitar",
+      "removeConfirm": "¿Quitar a {{name}} de este curso? Se conservan sus resultados anteriores."
     },
     "grades": {
       "title": "Calificaciones",
