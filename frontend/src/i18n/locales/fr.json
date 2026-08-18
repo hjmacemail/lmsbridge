@@ -468,7 +468,9 @@
       "gotCorrect": "Vous avez {{correct}} bonnes réponses sur {{total}}.",
       "practiceReady": "Une session d'entraînement guidée vous attend dans À revoir.",
       "correctAns": "Bonne réponse : {{ans}}",
-      "backToQuizzes": "Retour aux quiz"
+      "backToQuizzes": "Retour aux quiz",
+      "true": "Vrai",
+      "false": "Faux"
     },
     "qtype": {
       "mcq": "QCM",

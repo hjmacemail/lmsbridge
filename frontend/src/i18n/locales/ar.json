@@ -468,7 +468,9 @@
       "gotCorrect": "أصبت {{correct}} من {{total}}.",
       "practiceReady": "جلسة تدريب موجَّهة جاهزة لك في «بحاجة لمراجعة».",
       "correctAns": "الإجابة الصحيحة: {{ans}}",
-      "backToQuizzes": "العودة إلى الاختبارات"
+      "backToQuizzes": "العودة إلى الاختبارات",
+      "true": "صحيح",
+      "false": "خطأ"
     },
     "qtype": {
       "mcq": "اختيار من متعدد",

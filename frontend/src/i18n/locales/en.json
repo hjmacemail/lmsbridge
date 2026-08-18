@@ -468,7 +468,9 @@
       "gotCorrect": "You got {{correct}} of {{total}} correct.",
       "practiceReady": "A guided practice session is ready for you under Needs review.",
       "correctAns": "Correct answer: {{ans}}",
-      "backToQuizzes": "Back to quizzes"
+      "backToQuizzes": "Back to quizzes",
+      "true": "True",
+      "false": "False"
     },
     "qtype": {
       "mcq": "Multiple choice",

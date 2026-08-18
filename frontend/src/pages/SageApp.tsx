@@ -788,6 +788,15 @@ const QTYPE_LABELS: { value: SageQType; label: string }[] = [
   { value: "short", label: "Short answer" },
 ];
 
+// True/False options are stored canonically as "True"/"False" (grading depends on it); only the
+// DISPLAYED label is localized. Any other stored value is shown as-is.
+function tfLabel(qtype: string, c: string, tr: (k: string) => string): string {
+  if (qtype !== "true_false") return c;
+  if (c === "True") return tr("sage.quiz.true");
+  if (c === "False") return tr("sage.quiz.false");
+  return c;
+}
+
 function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
   courseId: number; editId: number | null;
   initial: { title: string; questions: SageQuestionDraft[]; due_at?: string | null } | null;
@@ -898,7 +907,7 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
                     onChange={() => toggleCorrect(i, c, q.qtype !== "multi")}
                     style={{ accentColor: C.primary }} title={t("sage.quiz.markCorrect")} />
                   {q.qtype === "true_false"
-                    ? <span style={{ fontSize: 14 }}>{c}</span>
+                    ? <span style={{ fontSize: 14 }}>{tfLabel(q.qtype, c, t)}</span>
                     : <input style={inputStyle} placeholder={t("sage.quiz.choiceN", { n: ci + 1 })} value={c}
                         onChange={(e) => setChoice(i, ci, e.target.value)} />}
                 </div>
@@ -1022,7 +1031,7 @@ function QuizzesStudent({ course }: { course: SageCourseSummary }) {
                   border: `1px solid ${sel ? C.primary : C.line}`, background: sel ? C.soft : "#fff" }}>
                   <input type={multi ? "checkbox" : "radio"} name={`q-${q.id}`} checked={sel}
                     onChange={() => multi ? toggleMulti(q.id, c) : setChoice(q.id, c)}
-                    style={{ accentColor: C.primary }} />{c}
+                    style={{ accentColor: C.primary }} />{tfLabel(q.qtype, c, t)}
                 </label>
               );
             }))}

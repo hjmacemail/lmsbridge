@@ -468,7 +468,9 @@
       "gotCorrect": "Acertaste {{correct}} de {{total}}.",
       "practiceReady": "Tienes una sesión de práctica guiada lista en Por repasar.",
       "correctAns": "Respuesta correcta: {{ans}}",
-      "backToQuizzes": "Volver a los cuestionarios"
+      "backToQuizzes": "Volver a los cuestionarios",
+      "true": "Verdadero",
+      "false": "Falso"
     },
     "qtype": {
       "mcq": "Opción múltiple",
