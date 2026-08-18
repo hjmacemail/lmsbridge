@@ -378,7 +378,9 @@
       "errEmail": "Saisissez votre adresse e-mail.",
       "errPw": "Saisissez un mot de passe.",
       "errPwLen": "Le mot de passe doit comporter au moins 6 caractères.",
-      "tagline": "Votre propre mini-plateforme de cours — créez un cours, ajoutez des quiz et laissez LMS Bridge guider les étudiants sur ce qu’ils manquent. Aucun LMS requis."
+      "tagline": "Votre propre mini-plateforme de cours — créez un cours, ajoutez des quiz et laissez LMS Bridge guider les étudiants sur ce qu’ils manquent. Aucun LMS requis.",
+      "guestPrompt": "Vous voulez juste essayer ?",
+      "guestBtn": "Continuer en tant qu’invité"
     },
     "courses": {
       "subtitle": "Voici ce qui se passe dans vos cours.",

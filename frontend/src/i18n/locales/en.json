@@ -378,7 +378,9 @@
       "errEmail": "Enter your email address.",
       "errPw": "Enter a password.",
       "errPwLen": "Password must be at least 6 characters.",
-      "tagline": "Your own mini class platform — create a course, add quizzes, and let LMS Bridge guide students through what they miss. No LMS needed."
+      "tagline": "Your own mini class platform — create a course, add quizzes, and let LMS Bridge guide students through what they miss. No LMS needed.",
+      "guestPrompt": "Just trying it out?",
+      "guestBtn": "Continue as guest"
     },
     "courses": {
       "subtitle": "Here's what's happening in your courses.",

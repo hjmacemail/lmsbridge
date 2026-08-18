@@ -285,13 +285,9 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
     // Friendly client-side checks so the user isn't bounced by a server validation error.
     if (mode === "join" && !code.trim()) { setErr(t("sage.auth.errCode")); return; }
     if (mode !== "login" && !name.trim()) { setErr(t("sage.auth.errName")); return; }
-    if (mode !== "join") {
-      if (!email.trim()) { setErr(t("sage.auth.errEmail")); return; }
-      if (!pw) { setErr(t("sage.auth.errPw")); return; }
-      if (mode === "signup" && pw.length < 6) {
-        setErr(t("sage.auth.errPwLen")); return;
-      }
-    }
+    if (!email.trim()) { setErr(t("sage.auth.errEmail")); return; }
+    if (!pw) { setErr(t("sage.auth.errPw")); return; }
+    if (mode !== "login" && pw.length < 6) { setErr(t("sage.auth.errPwLen")); return; }
     setBusy(true);
     try {
       if (mode === "signup") onAuth(await sageApi.signup(name.trim(), email.trim(), pw));
@@ -303,8 +299,23 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
         const me = await api.me();
         onAuth({ access_token: tok.access_token, token_type: tok.token_type,
           user_id: me.id, full_name: me.full_name, role: me.role });
-      } else onAuth(await sageApi.guestJoin(code.trim().toUpperCase(), name));
+      } else {
+        // Student "join" now creates a DURABLE account (email + password) via /sage/join, so a
+        // returning student can log back in and keep their grades and remediation — instead of an
+        // ephemeral guest that's lost when the tab closes.
+        onAuth(await sageApi.joinSignup(code.trim().toUpperCase(), name.trim(), email.trim(), pw));
+      }
     } catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  }
+
+  // Low-friction fallback: try a course as a temporary guest (no durable account).
+  async function goGuest() {
+    setErr(null);
+    if (!code.trim()) { setErr(t("sage.auth.errCode")); return; }
+    if (!name.trim()) { setErr(t("sage.auth.errName")); return; }
+    setBusy(true);
+    try { onAuth(await sageApi.guestJoin(code.trim().toUpperCase(), name.trim())); }
+    catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
   }
 
   // Role-picker landing.
@@ -363,21 +374,29 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
             value={code} onChange={(e) => setCode(e.target.value)} />}
           {mode !== "login" && <input style={inputStyle} placeholder={t("sage.auth.phName")}
             value={name} onChange={(e) => setName(e.target.value)} />}
-          {mode !== "join" && <input style={inputStyle} placeholder={t("sage.auth.phEmail")} type="email"
-            value={email} onChange={(e) => setEmail(e.target.value)} />}
-          {mode !== "join" && <input style={inputStyle} placeholder={t("sage.auth.phPw")} type="password"
-            value={pw} onChange={(e) => setPw(e.target.value)} />}
+          <input style={inputStyle} placeholder={t("sage.auth.phEmail")} type="email"
+            value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input style={inputStyle} placeholder={t("sage.auth.phPw")} type="password"
+            value={pw} onChange={(e) => setPw(e.target.value)} />
           <PrimaryBtn type="submit" disabled={busy}>
             {busy ? "…" : mode === "signup" ? t("sage.auth.createBtn")
               : mode === "login" ? t("sage.auth.loginBtn") : t("sage.auth.joinBtn")}
           </PrimaryBtn>
           {err && <div style={{ color: C.danger, fontSize: 13 }}>{err}</div>}
         </form>
-        {mode === "signup" && (
+        {(mode === "signup" || mode === "join") && (
           <p style={{ textAlign: "center", color: C.muted, fontSize: 13, marginTop: 14, marginBottom: 0 }}>
             {t("sage.auth.haveAccount")}{" "}
             <button onClick={() => { setMode("login"); setErr(null); }} style={{ background: "none",
               border: "none", color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 13, padding: 0 }}>{t("sage.auth.login")}</button>
+          </p>
+        )}
+        {mode === "join" && (
+          <p style={{ textAlign: "center", color: C.muted, fontSize: 12.5, marginTop: 8, marginBottom: 0 }}>
+            {t("sage.auth.guestPrompt", { defaultValue: "Just trying it out?" })}{" "}
+            <button type="button" onClick={goGuest} disabled={busy} style={{ background: "none",
+              border: "none", color: C.primary, fontWeight: 600, cursor: "pointer", fontSize: 12.5, padding: 0 }}>
+              {t("sage.auth.guestBtn", { defaultValue: "Continue as guest" })}</button>
           </p>
         )}
         {mode === "login" && (
