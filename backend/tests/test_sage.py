@@ -50,6 +50,25 @@ def test_purge_guests_ages_by_activity(db, monkeypatch):
     assert any(u.email == "old2@sage.local" for u in db.query(User).all())
 
 
+def test_sage_backfills_join_code_for_owned_course(client, db):
+    """A course an instructor owns but that lacks a join code (e.g. LMS-seeded) gets one
+    assigned the first time it's listed/opened in Sage, so it's shareable by code."""
+    from app.core.security import hash_password
+    from app.models.course import Course, Enrollment
+    from app.models.enums import UserRole
+    from app.models.user import User
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr J", "email": "j@uni.edu", "password": "secret123"}).json())
+    me = client.get("/api/v1/sage/me", headers=ih).json()
+    # Simulate an LMS-seeded course (no join_code) owned by this instructor.
+    c = Course(code="CS 999", title="Seeded", term="2026SP", owner_id=me["id"], join_code=None)
+    db.add(c); db.flush()
+    db.add(Enrollment(course_id=c.id, user_id=me["id"], role=UserRole.instructor))
+    db.commit()
+    row = next(x for x in client.get("/api/v1/sage/courses", headers=ih).json() if x["id"] == c.id)
+    assert row["join_code"] and len(row["join_code"]) == 6  # backfilled
+
+
 def test_sage_delete_course(client):
     ih = _auth(client.post("/api/v1/sage/signup", json={
         "full_name": "Dr D", "email": "d@uni.edu", "password": "secret123"}).json())

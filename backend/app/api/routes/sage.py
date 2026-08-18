@@ -61,6 +61,14 @@ def _gen_join_code(db: Session) -> str:
     raise HTTPException(status_code=500, detail="Could not allocate a join code")
 
 
+def _ensure_join_code(db: Session, course: Course) -> None:
+    """Backfill a join code for a course that lacks one (e.g. LMS-seeded courses surfaced in
+    Sage), so every course an instructor owns can be shared with students by code."""
+    if not course.join_code:
+        course.join_code = _gen_join_code(db)
+        db.commit()
+
+
 def _slug(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", name.strip().lower()).strip("_") or "concept"
 
@@ -211,6 +219,8 @@ def my_courses(db: Session = Depends(get_db), user: User = Depends(get_current_u
     out = []
     for c in seen.values():
         role = _role_in(db, c, user) or "student"
+        if role == "instructor":
+            _ensure_join_code(db, c)  # every course you teach is shareable by code
         out.append(_course_summary(db, c, role))
     return sorted(out, key=lambda x: x["id"], reverse=True)
 
@@ -220,6 +230,8 @@ def course_detail(
     course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
 ) -> dict:
     course, role = _require_role(db, course_id, user)
+    if role == "instructor":
+        _ensure_join_code(db, course)
     out = _course_summary(db, course, role)
     out["syllabus"] = course.syllabus
     owner = db.get(User, course.owner_id) if course.owner_id else None
