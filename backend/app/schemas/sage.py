@@ -38,6 +38,13 @@ class JoinByCode(BaseModel):
     join_code: str = Field(..., min_length=4, max_length=12)
 
 
+class ConceptSuggestIn(BaseModel):
+    """Ask the model to infer the concept a quiz question tests."""
+    course_id: int
+    prompt: str = Field(..., min_length=1, max_length=2000)
+    choices: list[str] = Field(default_factory=list, max_length=10)
+
+
 class QuizQuestionIn(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=2000)
     qtype: str = Field("mcq", description="mcq | true_false | multi | short")

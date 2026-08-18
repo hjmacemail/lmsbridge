@@ -441,6 +441,11 @@ export const sageApi = {
     request<{ id: number; title: string; question_count: number }>(
       `/sage/quizzes/${quizId}/duplicate`, { method: "POST" }),
   quizForEdit: (quizId: number) => request<SageQuizForEdit>(`/sage/quizzes/${quizId}/edit`),
+  courseConcepts: (courseId: number) =>
+    request<string[]>(`/sage/courses/${courseId}/concepts`),
+  suggestConcept: (courseId: number, prompt: string, choices: string[]) =>
+    request<{ concept: string }>(`/sage/suggest-concept`, { method: "POST",
+      body: JSON.stringify({ course_id: courseId, prompt, choices }) }),
   takeQuiz: (quizId: number) => request<SageTakeQuiz>(`/sage/quizzes/${quizId}/take`),
   submitQuiz: (quizId: number, answers: SageAnswerIn[]) =>
     request<SageSubmitResult>(`/sage/quizzes/${quizId}/submit`,

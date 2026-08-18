@@ -484,7 +484,10 @@
       "attemptsTitle": "Your attempts",
       "noAttempts": "No attempts yet.",
       "yourAnswer": "Your answer: {{ans}}",
-      "conceptHint": "The topic this question tests (e.g. “Binary arithmetic”). When a student gets it wrong, LMS Bridge uses this to build them targeted practice on that exact topic. Questions on the same topic can share the same concept.",
+      "conceptHint": "The topic this question tests (e.g. “Binary arithmetic”). When a student gets it wrong, LMS Bridge uses this to build them targeted practice on that exact topic. Tap ✨ Suggest to have LMS Bridge infer it from the question, or start typing to reuse a concept already used in this course.",
+      "suggestConcept": "✨ Suggest",
+      "suggesting": "Suggesting…",
+      "suggestNone": "Couldn't suggest a concept — please type one.",
       "preview": "Preview",
       "acceptedLabel": "Accepted answers:"
     },

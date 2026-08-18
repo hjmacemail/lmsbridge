@@ -31,8 +31,12 @@ from app.models.material import CourseMaterial
 from app.models.remediation import RemediationModule
 from app.models.sage import SageAnnouncement
 from app.models.user import User
+from app.llm.base import LLMMessage
+from app.llm.providers.mock import extract_json
+from app.llm.tenant_factory import resolve_provider
 from app.schemas.sage import (
     AnnouncementCreate,
+    ConceptSuggestIn,
     CourseCreate,
     JoinByCode,
     MaterialTextCreate,
@@ -343,6 +347,59 @@ def _get_or_create_concept(db: Session, course_id: int, name: str) -> Concept:
 
 
 _QTYPES = {"mcq", "true_false", "multi", "short"}
+
+
+@router.get("/courses/{course_id}/concepts")
+def course_concepts(
+    course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> list[str]:
+    """Concept names already used in this course — for the quiz builder's autocomplete, so an
+    instructor can reuse a concept across questions instead of retyping it."""
+    _course, _role = _require_role(db, course_id, user)
+    return [
+        c.name for c in db.scalars(
+            select(Concept).where(Concept.course_id == course_id).order_by(Concept.name)
+        ).all()
+    ]
+
+
+def _suggest_concept(db: Session, course_id: int, prompt: str, choices: list[str],
+                     existing: list[str]) -> str:
+    """Infer the concept a question tests via the model. Reuses an existing course concept when
+    one fits; replies in the question's language. Safe empty-string fallback if unavailable."""
+    if not prompt.strip():
+        return ""
+    try:
+        llm = resolve_provider(db, course_id=course_id)
+        system = (
+            "You label a quiz question with the single short academic CONCEPT or topic it tests "
+            "(2–4 words, e.g. 'Binary arithmetic'). Reply in the SAME LANGUAGE as the question. "
+            "If one of the provided existing concepts clearly fits, reuse it EXACTLY. "
+            'Respond with ONLY a JSON object: {"concept": "..."}.'
+        )
+        user = json.dumps({"question": prompt, "choices": choices,
+                           "existing_concepts": existing}, ensure_ascii=False)
+        resp = llm.complete([LLMMessage("system", system), LLMMessage("user", user)],
+                            json_mode=True)
+        concept = str(extract_json(resp.text).get("concept") or "").strip()
+        return concept[:80]
+    except Exception:  # noqa: BLE001 — suggestion is best-effort; never fail the request.
+        return ""
+
+
+@router.post("/suggest-concept")
+def suggest_concept(
+    payload: ConceptSuggestIn,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    """Suggest a concept for a quiz question (AI). Instructor-only."""
+    _course, role = _require_role(db, payload.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    existing = [c.name for c in db.scalars(
+        select(Concept).where(Concept.course_id == payload.course_id)).all()]
+    return {"concept": _suggest_concept(db, payload.course_id, payload.prompt,
+                                        payload.choices, existing)}
 
 
 def _build_question(db: Session, assessment_id: int, course_id: int, q) -> Question:

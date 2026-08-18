@@ -484,7 +484,10 @@
       "attemptsTitle": "Vos tentatives",
       "noAttempts": "Aucune tentative pour l’instant.",
       "yourAnswer": "Votre réponse : {{ans}}",
-      "conceptHint": "Le sujet évalué par cette question (p. ex. « Arithmétique binaire »). En cas d’erreur, LMS Bridge s’en sert pour créer des exercices ciblés sur ce sujet. Des questions du même sujet peuvent partager le même concept.",
+      "conceptHint": "Le sujet évalué par cette question (p. ex. « Arithmétique binaire »). En cas d’erreur, LMS Bridge s’en sert pour créer des exercices ciblés sur ce sujet. Appuyez sur ✨ Suggérer pour que LMS Bridge le déduise de la question, ou commencez à taper pour réutiliser un concept déjà utilisé dans ce cours.",
+      "suggestConcept": "✨ Suggérer",
+      "suggesting": "Suggestion…",
+      "suggestNone": "Impossible de suggérer un concept — saisissez-le manuellement.",
       "preview": "Aperçu",
       "acceptedLabel": "Réponses acceptées :"
     },

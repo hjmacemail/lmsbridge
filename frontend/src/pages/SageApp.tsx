@@ -106,9 +106,12 @@ function PrimaryBtn({ children, onClick, disabled, type }:
       opacity: disabled ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 7,
       boxShadow: "0 1px 2px rgba(99,85,230,.35)" }}>{children}</button>;
 }
-function GhostBtn({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) {
-  return <button onClick={onClick} style={{ background: "#fff", color: C.ink, border: `1px solid ${C.line}`,
-    borderRadius: 10, padding: "8px 14px", fontSize: 14, cursor: "pointer",
+function GhostBtn({ children, onClick, disabled }: {
+  children: React.ReactNode; onClick?: () => void; disabled?: boolean;
+}) {
+  return <button onClick={onClick} disabled={disabled} style={{ background: "#fff", color: C.ink,
+    border: `1px solid ${C.line}`, borderRadius: 10, padding: "8px 14px", fontSize: 14,
+    cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.55 : 1,
     display: "inline-flex", alignItems: "center", gap: 6 }}>{children}</button>;
 }
 const inputStyle: React.CSSProperties = { width: "100%", padding: "11px 13px", border: `1px solid ${C.line}`,
@@ -1063,6 +1066,27 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
   const [qs, setQs] = useState<SageQuestionDraft[]>(
     initial?.questions?.length ? initial.questions : [blank()]);
   const [err, setErr] = useState<string | null>(null); const [busy, setBusy] = useState(false);
+  // Concepts already used in this course -> autocomplete; and per-question AI-suggest state.
+  const [conceptOpts, setConceptOpts] = useState<string[]>([]);
+  const [suggesting, setSuggesting] = useState<number | null>(null);
+  useEffect(() => { sageApi.courseConcepts(courseId).then(setConceptOpts).catch(() => setConceptOpts([])); },
+    [courseId]);
+
+  async function suggestConcept(i: number) {
+    const q = qs[i];
+    if (!q.prompt.trim() || suggesting != null) return;
+    setSuggesting(i);
+    try {
+      const choices = q.qtype === "short" ? [] : q.choices.filter(Boolean);
+      const { concept } = await sageApi.suggestConcept(courseId, q.prompt.trim(), choices);
+      if (concept) {
+        upd(i, { concept });
+        setConceptOpts((prev) => prev.includes(concept) ? prev : [...prev, concept]);
+      } else {
+        window.alert(t("sage.quiz.suggestNone", { defaultValue: "Couldn't suggest a concept — please type one." }));
+      }
+    } catch (e) { window.alert((e as Error).message); } finally { setSuggesting(null); }
+  }
 
   function upd(i: number, patch: Partial<SageQuestionDraft>) {
     setQs((arr) => arr.map((q, j) => j === i ? { ...q, ...patch } : q));
@@ -1129,6 +1153,9 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
           <span>{t("sage.quiz.editLocked", { defaultValue: "This quiz already has submissions, so its questions are locked to keep past attempts consistent. You can still edit the title and due date — or use Duplicate to make an editable copy." })}</span>
         </div>
       )}
+      <datalist id="sage-concept-list">
+        {conceptOpts.map((c) => <option key={c} value={c} />)}
+      </datalist>
       <input style={{ ...inputStyle, marginBottom: 10, fontWeight: 600 }} placeholder={t("sage.quiz.phTitle")}
         value={title} onChange={(e) => setTitle(e.target.value)} />
       <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14, flexWrap: "wrap" }}>
@@ -1210,10 +1237,19 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
               )}
             </>
           )}
-          <input style={{ ...inputStyle, marginTop: 8 }} placeholder={t("sage.quiz.phConcept")}
-            value={q.concept} onChange={(e) => upd(i, { concept: e.target.value })} />
+          <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "stretch", flexWrap: "wrap" }}>
+            <input style={{ ...inputStyle, flex: "1 1 200px", marginTop: 0 }}
+              placeholder={t("sage.quiz.phConcept")} list="sage-concept-list"
+              value={q.concept} onChange={(e) => upd(i, { concept: e.target.value })} />
+            <GhostBtn onClick={() => suggestConcept(i)}
+              disabled={suggesting != null || !q.prompt.trim()}>
+              {suggesting === i
+                ? t("sage.quiz.suggesting", { defaultValue: "Suggesting…" })
+                : t("sage.quiz.suggestConcept", { defaultValue: "✨ Suggest" })}
+            </GhostBtn>
+          </div>
           <div style={{ fontSize: 12, color: C.muted, marginTop: 4 }}>
-            {t("sage.quiz.conceptHint", { defaultValue: "The topic this question tests (e.g. “Binary arithmetic”). When a student gets it wrong, LMS Bridge uses this to build them targeted practice on that exact topic. Questions on the same topic can share the same concept." })}
+            {t("sage.quiz.conceptHint", { defaultValue: "The topic this question tests (e.g. “Binary arithmetic”). When a student gets it wrong, LMS Bridge uses this to build them targeted practice on that exact topic. Tap ✨ Suggest to have LMS Bridge infer it from the question, or start typing to reuse a concept already used in this course." })}
           </div>
         </div>
       ))}

@@ -82,6 +82,26 @@ def test_sage_non_latin_concepts_stay_distinct(client):
             for i, con in enumerate(concepts, 1)]}).json()["id"]
     read = [x["concept"] for x in client.get(f"/api/v1/sage/quizzes/{qid}/edit", headers=ih).json()["questions"]]
     assert read == concepts and len(set(read)) == 3
+    # Those concepts are now reusable via the autocomplete endpoint.
+    listed = client.get(f"/api/v1/sage/courses/{cid}/concepts", headers=ih).json()
+    assert set(concepts) <= set(listed)
+
+
+def test_sage_suggest_concept(client):
+    """AI concept suggestion is instructor-only and always returns a `concept` field
+    (empty string when the model is unavailable — never an error)."""
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr S", "email": "sug@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "Sug"}).json()["id"]
+    r = client.post("/api/v1/sage/suggest-concept", headers=ih, json={
+        "course_id": cid, "prompt": "Convert 1011 from binary to decimal.",
+        "choices": ["11", "9", "13"]})
+    assert r.status_code == 200 and "concept" in r.json()
+    # A student may not call it.
+    code = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"]
+    sh = _auth(client.post("/api/v1/sage/guest", json={"join_code": code, "full_name": "S"}).json())
+    assert client.post("/api/v1/sage/suggest-concept", headers=sh, json={
+        "course_id": cid, "prompt": "x"}).status_code == 403
 
 
 def test_sage_delete_course(client):
