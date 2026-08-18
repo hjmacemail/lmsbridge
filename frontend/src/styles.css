@@ -74,6 +74,15 @@ a { color: var(--primary); text-decoration: none; }
   .topbar { height: auto; flex-wrap: wrap; gap: 6px; padding: 8px 12px; }
   .topbar .user { font-size: 13px; }
 }
+
+/* Student "Recommended for you" cards: on phones the title + action button no longer fit on
+   one line, so stack the button under the title as a full-width, consistently-aligned button
+   (instead of it wrapping to the left, out of line with the other cards). */
+@media (max-width: 560px) {
+  .mod-head { flex-direction: column; align-items: stretch !important; gap: 10px; }
+  .mod-head .mod-titles { justify-content: flex-start; }
+  .mod-head .mod-action { display: block; width: 100%; text-align: center; }
+}
 h1 { font-size: 24px; margin: 0 0 4px; }
 h2 { font-size: 18px; margin: 0 0 12px; }
 h3 { font-size: 15px; margin: 0 0 6px; }

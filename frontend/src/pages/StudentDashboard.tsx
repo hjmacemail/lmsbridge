@@ -155,16 +155,16 @@ export default function StudentDashboard(
                   const mins = estMinutes(steps);
                   return (
                     <div className="card" key={t.conceptId} style={{ padding: "12px 16px" }}>
-                      <div className="row" style={{ alignItems: "center", cursor: "pointer", gap: 10 }}
+                      <div className="row mod-head" style={{ alignItems: "center", cursor: "pointer", gap: 10 }}
                         onClick={() => setOpenTopic(open ? null : t.conceptId)}>
-                        <div className="row" style={{ gap: 10, alignItems: "center", minWidth: 0 }}>
+                        <div className="row mod-titles" style={{ gap: 10, alignItems: "center", minWidth: 0 }}>
                           <span style={{ color: "var(--muted, #888)", fontSize: 12, width: 12 }}>
                             {open ? "▾" : "▸"}</span>
                           <h3 style={{ margin: 0, fontSize: 15 }}>{t.name}</h3>
                           <Pill status={t.status} />
                         </div>
                         {primary && (
-                          <Link className="btn" to={moduleLink(primary.id)}
+                          <Link className="btn mod-action" to={moduleLink(primary.id)}
                             onClick={(e) => e.stopPropagation()} style={{ whiteSpace: "nowrap" }}>
                             {actionLabel(primary, mins)}
                           </Link>
