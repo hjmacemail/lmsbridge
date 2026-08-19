@@ -382,11 +382,16 @@ export interface SageQuizAttempt {
   review: SageAttemptReviewItem[];
 }
 export interface SageAnswerIn { question_id: number; choice?: string; choices?: string[]; }
-export interface SageInstructor { full_name: string; title: string | null; bio: string | null; }
+export interface SageInstructor {
+  id?: number; full_name: string; title: string | null; bio: string | null; has_avatar?: boolean;
+}
 export interface SageCourseDetail extends SageCourseSummary {
   syllabus?: string | null; instructor?: SageInstructor | null;
 }
-export interface SageProfile { id: number; full_name: string; email: string; title: string | null; bio: string | null; }
+export interface SageProfile {
+  id: number; full_name: string; email: string; title: string | null; bio: string | null;
+  has_avatar?: boolean;
+}
 export interface SageMaterial {
   id: number; kind: string; title: string; filename: string; content_type: string;
   size_bytes: number; language: string | null; has_text: boolean; created_at: string;
@@ -420,6 +425,24 @@ export const sageApi = {
   changePassword: (current_password: string, new_password: string) =>
     request<{ ok: boolean }>(`/sage/me/password`, { method: "PUT",
       body: JSON.stringify({ current_password, new_password }) }),
+  uploadAvatar: async (file: File): Promise<{ has_avatar: boolean }> => {
+    const token = loadToken();
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(`${BASE}/sage/me/avatar`, {
+      method: "POST", headers: token ? { Authorization: `Bearer ${token.access_token}` } : {}, body: form });
+    if (!res.ok) throw new Error(errorMessage(await res.json().catch(() => ({})), res.status));
+    return (await res.json()) as { has_avatar: boolean };
+  },
+  removeAvatar: () => request<void>(`/sage/me/avatar`, { method: "DELETE" }),
+  // Fetch a user's avatar as an object URL (auth required); null if none. Caller revokes the URL.
+  avatarObjectUrl: async (userId: number): Promise<string | null> => {
+    const token = loadToken();
+    const res = await fetch(`${BASE}/sage/users/${userId}/avatar`, {
+      headers: token ? { Authorization: `Bearer ${token.access_token}` } : {} });
+    if (!res.ok) return null;
+    return URL.createObjectURL(await res.blob());
+  },
   updateSyllabus: (courseId: number, syllabus: string) =>
     request<{ syllabus: string | null }>(`/sage/courses/${courseId}/syllabus`,
       { method: "PUT", body: JSON.stringify({ syllabus }) }),

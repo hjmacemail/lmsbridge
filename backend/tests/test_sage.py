@@ -145,6 +145,29 @@ def test_sage_assignment_full_workflow(client):
                        json={"grade": 5}).status_code == 403
 
 
+def test_sage_avatar_upload_serve_remove(client):
+    """User can upload a profile photo, it's served back, reflected in the profile, and removable."""
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr Av", "email": "av@uni.edu", "password": "secret123"}).json())
+    me = client.get("/api/v1/sage/me", headers=ih).json()
+    assert me["has_avatar"] is False
+    png = b"\x89PNG\r\n\x1a\n" + b"fakeimagebytes"
+    up = client.post("/api/v1/sage/me/avatar", headers=ih,
+                     files={"file": ("me.png", png, "image/png")})
+    assert up.status_code == 200 and up.json()["has_avatar"] is True
+    assert client.get("/api/v1/sage/me", headers=ih).json()["has_avatar"] is True
+    # Served back with the right bytes; visible to another signed-in user.
+    served = client.get(f"/api/v1/sage/users/{me['id']}/avatar", headers=ih)
+    assert served.status_code == 200 and served.content == png
+    # Non-images rejected.
+    assert client.post("/api/v1/sage/me/avatar", headers=ih,
+                       files={"file": ("x.txt", b"hi", "text/plain")}).status_code == 400
+    # Remove it.
+    assert client.delete("/api/v1/sage/me/avatar", headers=ih).status_code == 204
+    assert client.get("/api/v1/sage/me", headers=ih).json()["has_avatar"] is False
+    assert client.get(f"/api/v1/sage/users/{me['id']}/avatar", headers=ih).status_code == 404
+
+
 def test_sage_change_password(client):
     """A user can change their password after verifying the current one; the new password works
     for login and the old one no longer does."""

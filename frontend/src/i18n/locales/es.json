@@ -541,7 +541,10 @@
       "saving": "Guardando…",
       "saved": "Guardado.",
       "email": "Correo electrónico",
-      "emailHint": "Tu correo de acceso no se puede cambiar aquí."
+      "emailHint": "Tu correo de acceso no se puede cambiar aquí.",
+      "addPhoto": "Añadir foto",
+      "changePhoto": "Cambiar foto",
+      "removePhoto": "Quitar"
     },
     "syllabus": {
       "phEdit": "Descripción del curso, calendario, evaluación, políticas…",

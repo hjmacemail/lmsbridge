@@ -541,7 +541,10 @@
       "saving": "Enregistrement…",
       "saved": "Enregistré.",
       "email": "Adresse e-mail",
-      "emailHint": "Votre e-mail de connexion ne peut pas être modifié ici."
+      "emailHint": "Votre e-mail de connexion ne peut pas être modifié ici.",
+      "addPhoto": "Ajouter une photo",
+      "changePhoto": "Changer la photo",
+      "removePhoto": "Supprimer"
     },
     "syllabus": {
       "phEdit": "Présentation du cours, calendrier, évaluation, règles…",

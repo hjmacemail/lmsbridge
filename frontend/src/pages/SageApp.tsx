@@ -938,9 +938,7 @@ function Home({ course, instr, detail }:
       <Announcements course={course} instr={instr} />
       {ins && (ins.title || ins.bio || ins.full_name) && (
         <Card style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-          <div style={{ width: 42, height: 42, borderRadius: "50%", background: C.accentBg, color: C.accentInk,
-            display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>
-            {initials(ins.full_name)}</div>
+          <UserAvatar userId={ins.id} hasAvatar={ins.has_avatar} name={ins.full_name} size={42} />
           <div>
             <div style={{ fontSize: 12, color: C.muted }}>{t("sage.home.taughtBy")}</div>
             <div style={{ fontWeight: 700 }}>{ins.full_name}</div>
@@ -2086,15 +2084,57 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
 }
 
 // --------------------------------------------------------------- Profile
+// Round profile photo: loads the user's avatar (auth'd blob) or falls back to initials.
+// `refresh` bumps to force a reload after upload/remove.
+function UserAvatar({ userId, hasAvatar, name, size = 64, refresh = 0 }: {
+  userId?: number; hasAvatar?: boolean; name: string; size?: number; refresh?: number;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true; let created: string | null = null;
+    if (userId && hasAvatar) {
+      sageApi.avatarObjectUrl(userId).then((u) => {
+        if (active) { setUrl(u); created = u; } else if (u) URL.revokeObjectURL(u);
+      });
+    } else setUrl(null);
+    return () => { active = false; if (created) URL.revokeObjectURL(created); };
+  }, [userId, hasAvatar, refresh]);
+  const inits = initials(name || "?");
+  const box: React.CSSProperties = { width: size, height: size, minWidth: size, borderRadius: "50%",
+    objectFit: "cover", background: C.accentBg, color: C.accentInk, display: "inline-flex",
+    alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: size * 0.36 };
+  return url
+    ? <img src={url} alt={name} style={box} />
+    : <span aria-hidden style={box}>{inits}</span>;
+}
+
 function Profile({ onName, onBack }: { onName: (n: string) => void; onBack: () => void }) {
   const { t } = useTranslation();
   const [p, setP] = useState<SageProfile | null>(null);
   const [name, setName] = useState(""); const [title, setTitle] = useState(""); const [bio, setBio] = useState("");
   const [busy, setBusy] = useState(false); const [msg, setMsg] = useState<string | null>(null);
+  const [avatarVer, setAvatarVer] = useState(0); const [avatarBusy, setAvatarBusy] = useState(false);
   useEffect(() => {
     sageApi.profile().then((pr) => { setP(pr); setName(pr.full_name); setTitle(pr.title || ""); setBio(pr.bio || ""); })
       .catch(() => {});
   }, []);
+  async function uploadPhoto(f: File | null) {
+    if (!f) return;
+    setAvatarBusy(true); setMsg(null);
+    try {
+      await sageApi.uploadAvatar(f);
+      setP((prev) => prev ? { ...prev, has_avatar: true } : prev);
+      setAvatarVer((v) => v + 1);
+    } catch (e) { setMsg((e as Error).message); } finally { setAvatarBusy(false); }
+  }
+  async function removePhoto() {
+    setAvatarBusy(true); setMsg(null);
+    try {
+      await sageApi.removeAvatar();
+      setP((prev) => prev ? { ...prev, has_avatar: false } : prev);
+      setAvatarVer((v) => v + 1);
+    } catch (e) { setMsg((e as Error).message); } finally { setAvatarBusy(false); }
+  }
   async function save(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setMsg(null);
     try { const r = await sageApi.updateProfile({ full_name: name.trim(), title, bio }); onName(r.full_name); setMsg(t("sage.profile.saved")); }
@@ -2110,6 +2150,21 @@ function Profile({ onName, onBack }: { onName: (n: string) => void; onBack: () =
         <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>{t("sage.profile.subtitle")}</p>
       </div>
       <Card>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
+          <UserAvatar userId={p?.id} hasAvatar={p?.has_avatar} name={name || p?.full_name || ""}
+            size={72} refresh={avatarVer} />
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <label style={{ ...ghostLike, cursor: avatarBusy ? "default" : "pointer", opacity: avatarBusy ? 0.6 : 1 }}>
+              <Icon name="file" size={15} />
+              {p?.has_avatar ? t("sage.profile.changePhoto", { defaultValue: "Change photo" })
+                : t("sage.profile.addPhoto", { defaultValue: "Add photo" })}
+              <input type="file" accept="image/*" style={{ display: "none" }} disabled={avatarBusy}
+                onChange={(e) => { uploadPhoto(e.target.files?.[0] || null); e.target.value = ""; }} />
+            </label>
+            {p?.has_avatar && <GhostBtn onClick={removePhoto} disabled={avatarBusy}>
+              <Icon name="trash" size={15} /> {t("sage.profile.removePhoto", { defaultValue: "Remove" })}</GhostBtn>}
+          </div>
+        </div>
         <form onSubmit={save} style={{ display: "grid", gap: 6 }}>
           <label style={lbl}>{t("sage.profile.email", { defaultValue: "Email address" })}</label>
           <input style={{ ...inputStyle, background: C.soft, color: C.muted }} value={p?.email || ""}

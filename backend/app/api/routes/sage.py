@@ -267,17 +267,66 @@ def course_detail(
     out["syllabus"] = course.syllabus
     owner = db.get(User, course.owner_id) if course.owner_id else None
     out["instructor"] = ({
-        "full_name": owner.full_name, "title": owner.title, "bio": owner.bio,
+        "id": owner.id, "full_name": owner.full_name, "title": owner.title, "bio": owner.bio,
+        "has_avatar": owner.avatar is not None,
     } if owner else None)
     return out
 
 
 # ------------------------------------------------------------- instructor profile
 
+_MAX_AVATAR_BYTES = 3 * 1024 * 1024  # 3 MB
+
+
+def _profile_out(user: User) -> dict:
+    return {"id": user.id, "full_name": user.full_name, "email": user.email,
+            "title": user.title, "bio": user.bio, "has_avatar": user.avatar is not None}
+
+
 @router.get("/me")
 def my_profile(user: User = Depends(get_current_user)) -> dict:
-    return {"id": user.id, "full_name": user.full_name, "email": user.email,
-            "title": user.title, "bio": user.bio}
+    return _profile_out(user)
+
+
+@router.post("/me/avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    """Set the signed-in user's profile photo (image only, <= 3 MB)."""
+    ctype = (file.content_type or "").lower()
+    if not ctype.startswith("image/"):
+        raise HTTPException(status_code=400, detail="Please choose an image file")
+    data = await file.read()
+    if not data:
+        raise HTTPException(status_code=400, detail="Empty file")
+    if len(data) > _MAX_AVATAR_BYTES:
+        raise HTTPException(status_code=413, detail="Image exceeds 3 MB limit")
+    user.avatar = data
+    user.avatar_type = ctype
+    user.avatar_size = len(data)
+    db.commit()
+    return {"has_avatar": True}
+
+
+@router.delete("/me/avatar", status_code=204)
+def remove_avatar(db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> None:
+    user.avatar = None
+    user.avatar_type = None
+    user.avatar_size = 0
+    db.commit()
+
+
+@router.get("/users/{user_id}/avatar")
+def get_avatar(
+    user_id: int, db: Session = Depends(get_db), _viewer: User = Depends(get_current_user)
+) -> StreamingResponse:
+    """Serve a user's profile photo (any signed-in user may view it)."""
+    u = db.get(User, user_id)
+    if not u or u.avatar is None:
+        raise HTTPException(status_code=404, detail="No avatar")
+    return StreamingResponse(io.BytesIO(u.avatar),
+                             media_type=u.avatar_type or "application/octet-stream")
 
 
 @router.put("/me")
@@ -292,8 +341,7 @@ def update_profile(
         user.bio = payload.bio.strip() or None
     db.commit()
     db.refresh(user)
-    return {"id": user.id, "full_name": user.full_name, "email": user.email,
-            "title": user.title, "bio": user.bio}
+    return _profile_out(user)
 
 
 @router.put("/me/password")

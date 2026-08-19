@@ -541,7 +541,10 @@
       "saving": "Saving…",
       "saved": "Saved.",
       "email": "Email address",
-      "emailHint": "Your sign-in email can't be changed here."
+      "emailHint": "Your sign-in email can't be changed here.",
+      "addPhoto": "Add photo",
+      "changePhoto": "Change photo",
+      "removePhoto": "Remove"
     },
     "syllabus": {
       "phEdit": "Course overview, schedule, grading, policies…",
