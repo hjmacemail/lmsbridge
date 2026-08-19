@@ -23,6 +23,7 @@ from app.schemas.remediation import (
     SessionTurnOut,
     SubmitResponseRequest,
 )
+from app.services.localize_service import localize_texts
 from app.services.remediation_engine import evaluate_response, generate_module
 from app.services.tutor_session_service import (
     post_message,
@@ -31,6 +32,31 @@ from app.services.tutor_session_service import (
 )
 
 router = APIRouter(prefix="/remediation", tags=["remediation"])
+
+
+def _localize_modules(
+    db: Session, modules: list[RemediationModule], lang: str | None
+) -> list[RemediationModule]:
+    """Translate the AI-generated title + rationale of each module into `lang` for display.
+
+    Safe in-memory only: the request session never commits (see get_db), so these overrides are
+    not persisted. Falls back to the original English on any failure.
+    """
+    from app.pedagogy.prompts import language_name
+    if not modules or not language_name(lang):
+        return modules
+    texts: list[str] = []
+    for m in modules:
+        texts.append(m.title or "")
+        texts.append(m.rationale or "")
+    translated = localize_texts(db, None, texts, lang)
+    for i, m in enumerate(modules):
+        if translated[2 * i]:
+            m.title = translated[2 * i]
+        if m.rationale and translated[2 * i + 1]:
+            m.rationale = translated[2 * i + 1]
+    db.expunge_all()  # detach so these display-only overrides can never be flushed
+    return modules
 
 
 def _load_module(db: Session, module_id: int) -> RemediationModule:
@@ -47,14 +73,23 @@ def _load_module(db: Session, module_id: int) -> RemediationModule:
     return module
 
 
-def _session_state(db: Session, module: RemediationModule) -> SessionState:
+def _session_state(
+    db: Session, module: RemediationModule, lang: str | None = None
+) -> SessionState:
     ctx = session_context(db, module)
+    title, rationale = module.title, module.rationale
+    from app.pedagogy.prompts import language_name
+    if language_name(lang):
+        # Localize the display header (title + rationale) for non-English UIs. Best-effort.
+        tr = localize_texts(db, None, [title or "", rationale or ""], lang)
+        title = tr[0] or title
+        rationale = (tr[1] or rationale) if rationale else rationale
     return SessionState(
         module_id=module.id,
-        title=module.title,
+        title=title,
         concept_id=module.concept_id,
         status=module.status,
-        rationale=module.rationale,
+        rationale=rationale,
         grounded_on=module.grounded_on,
         messages=module.messages,  # type: ignore[arg-type]
         **ctx,
@@ -69,6 +104,7 @@ def _authorize(user: User, module: RemediationModule) -> None:
 @router.get("/modules", response_model=list[RemediationModuleOut])
 def my_modules(
     status: RemediationStatus | None = None,
+    lang: str | None = None,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> list[RemediationModule]:
@@ -77,7 +113,8 @@ def my_modules(
         stmt = stmt.where(RemediationModule.student_id == user.id)
     if status:
         stmt = stmt.where(RemediationModule.status == status)
-    return list(db.scalars(stmt.order_by(RemediationModule.created_at.desc())).all())
+    modules = list(db.scalars(stmt.order_by(RemediationModule.created_at.desc())).all())
+    return _localize_modules(db, modules, lang)
 
 
 @router.get("/modules/{module_id}", response_model=RemediationModuleOut)
@@ -110,7 +147,7 @@ def start_session_endpoint(
     module = _load_module(db, module_id)
     _authorize(user, module)
     module = start_session(db, module, language=lang)
-    return _session_state(db, module)
+    return _session_state(db, module, lang)
 
 
 @router.post("/modules/{module_id}/session/message", response_model=SessionTurnOut)

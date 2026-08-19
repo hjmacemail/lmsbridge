@@ -125,7 +125,8 @@ export const api = {
     request<StudentDashboard>(
       `/students/me/dashboard${courseId != null ? `?course_id=${courseId}` : ""}`,
     ),
-  myModules: () => request<RemediationModule[]>("/remediation/modules"),
+  myModules: (lang?: string) =>
+    request<RemediationModule[]>(`/remediation/modules${lang ? `?lang=${encodeURIComponent(lang)}` : ""}`),
   getModule: (id: number) => request<RemediationModule>(`/remediation/modules/${id}`),
   startSession: (id: number, lang?: string) =>
     request<SessionState>(

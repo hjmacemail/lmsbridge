@@ -2301,12 +2301,12 @@ function MaterialRow({ m, instr, onChange }: { m: SageMaterial; instr: boolean; 
 
 // --------------------------------------------------------------- Needs review (student)
 function NeedsReview({ course }: { course: SageCourseSummary }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [mods, setMods] = useState<RemediationModule[]>([]);
   const [active, setActive] = useState<number | null>(null);
-  const load = () => api.myModules().then((m) => setMods(m.filter((x) => x.course_id === course.id)))
+  const load = () => api.myModules(i18n.language).then((m) => setMods(m.filter((x) => x.course_id === course.id)))
     .catch(() => setMods([]));
-  useEffect(() => { load(); setActive(null); }, [course.id]);
+  useEffect(() => { load(); setActive(null); }, [course.id, i18n.language]);
 
   // Launch the LMS Bridge tutor embedded inside Sage — the same way it appears inside
   // Canvas/Blackboard/Moodle — rather than navigating away to the standalone page.
