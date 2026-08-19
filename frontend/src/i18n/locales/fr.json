@@ -399,7 +399,8 @@
       "deleteConfirm": "Supprimer « {{name}} » et tout son contenu (quiz, résultats, liste) ? Cette action est irréversible.",
       "menu": "Options du cours",
       "teaching": "Vous enseignez",
-      "enrolled": "Inscrit comme étudiant"
+      "enrolled": "Inscrit comme étudiant",
+      "rename": "Renommer le cours"
     },
     "stat": {
       "courses": "Cours",

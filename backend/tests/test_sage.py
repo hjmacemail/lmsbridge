@@ -145,6 +145,24 @@ def test_sage_assignment_full_workflow(client):
                        json={"grade": 5}).status_code == 403
 
 
+def test_sage_rename_course(client):
+    """Instructors can rename their course; students (and non-members) cannot."""
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr N", "email": "ren@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "Old Name"}).json()["id"]
+    r = client.put(f"/api/v1/sage/courses/{cid}", headers=ih, json={"name": "New Name"})
+    assert r.status_code == 200 and r.json()["name"] == "New Name"
+    assert next(c for c in client.get("/api/v1/sage/courses", headers=ih).json()
+                if c["id"] == cid)["name"] == "New Name"
+    # Whitespace-only name rejected (route strips then validates); truly empty fails validation.
+    assert client.put(f"/api/v1/sage/courses/{cid}", headers=ih, json={"name": "  "}).status_code == 400
+    assert client.put(f"/api/v1/sage/courses/{cid}", headers=ih, json={"name": ""}).status_code == 422
+    # A student in the course can't rename it.
+    code = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"]
+    sh = _auth(client.post("/api/v1/sage/guest", json={"join_code": code, "full_name": "S"}).json())
+    assert client.put(f"/api/v1/sage/courses/{cid}", headers=sh, json={"name": "Hacked"}).status_code == 403
+
+
 def test_sage_suggest_concept(client):
     """AI concept suggestion is instructor-only and always returns a `concept` field
     (empty string when the model is unavailable — never an error)."""

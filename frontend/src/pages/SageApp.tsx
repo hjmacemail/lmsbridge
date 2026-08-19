@@ -475,7 +475,7 @@ function JoinCodeInline({ code }: { code: string | null }) {
 
 // A "⋮" overflow menu for a course row — keeps destructive actions out of the way (a cleaner
 // pattern than a bare trash icon). Closes on outside-click or Escape.
-function CourseMenu({ onDelete }: { onDelete: () => void }) {
+function CourseMenu({ onRename, onDelete }: { onRename?: () => void; onDelete: () => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -500,6 +500,16 @@ function CourseMenu({ onDelete }: { onDelete: () => void }) {
         <div role="menu" style={{ position: "absolute", insetInlineEnd: 0, top: "calc(100% + 4px)",
           background: "#fff", border: `1px solid ${C.line}`, borderRadius: 10, boxShadow: C.shadow,
           padding: 4, minWidth: 170, zIndex: 20 }}>
+          {onRename && (
+            <button type="button" role="menuitem"
+              onClick={(e) => { e.stopPropagation(); setOpen(false); onRename(); }}
+              style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", textAlign: "start",
+                background: "none", border: "none", cursor: "pointer", color: C.ink,
+                padding: "9px 11px", borderRadius: 7, fontSize: 13.5, fontWeight: 500 }}>
+              <Icon name="edit" size={15} color={C.muted} />
+              {t("sage.courses.rename", { defaultValue: "Rename course" })}
+            </button>
+          )}
           <button type="button" role="menuitem"
             onClick={(e) => { e.stopPropagation(); setOpen(false); onDelete(); }}
             style={{ display: "flex", alignItems: "center", gap: 9, width: "100%", textAlign: "start",
@@ -593,11 +603,42 @@ function CourseDialog({ mode, onClose, onDone }: {
   );
 }
 
+// Rename dialog for a course (instructor-only). Prefilled with the current name.
+function RenameCourseDialog({ course, onClose, onDone }: {
+  course: SageCourseSummary; onClose: () => void; onDone: () => void;
+}) {
+  const { t } = useTranslation();
+  const [name, setName] = useState(course.name);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) { setErr(t("sage.auth.errName")); return; }
+    setBusy(true); setErr(null);
+    try { await sageApi.renameCourse(course.id, name.trim()); onDone(); }
+    catch (e) { setErr((e as Error).message); } finally { setBusy(false); }
+  }
+  return (
+    <Modal title={t("sage.courses.rename", { defaultValue: "Rename course" })} onClose={onClose}>
+      <form onSubmit={submit} style={{ display: "grid", gap: 12 }}>
+        <input style={inputStyle} placeholder={t("sage.courses.phName")} autoFocus
+          value={name} onChange={(e) => setName(e.target.value)} />
+        <div style={{ display: "flex", gap: 8 }}>
+          <PrimaryBtn type="submit" disabled={busy}>{t("sage.save", { defaultValue: "Save" })}</PrimaryBtn>
+          <GhostBtn onClick={onClose}>{t("sage.cancel", { defaultValue: "Cancel" })}</GhostBtn>
+        </div>
+        {err && <div style={{ color: C.danger, fontSize: 13 }}>{err}</div>}
+      </form>
+    </Modal>
+  );
+}
+
 // A labeled group of course cards ("Teaching" / "Enrolled as student"). The delete menu only
 // appears when onDelete is provided (i.e. for courses you teach).
-function CourseGroup({ label, count, courses, onOpen, onDelete }: {
+function CourseGroup({ label, count, courses, onOpen, onDelete, onRename }: {
   label: string; count: number; courses: SageCourseSummary[];
   onOpen: (c: SageCourseSummary) => void; onDelete?: (c: SageCourseSummary) => void;
+  onRename?: (c: SageCourseSummary) => void;
 }) {
   const { t } = useTranslation();
   return (
@@ -629,7 +670,8 @@ function CourseGroup({ label, count, courses, onOpen, onDelete }: {
                 display: "flex", alignItems: "center", padding: 6, flexShrink: 0 }}>
               <Icon name="arrow" color={C.muted} />
             </button>
-            {onDelete && <CourseMenu onDelete={() => onDelete(c)} />}
+            {onDelete && <CourseMenu onRename={onRename ? () => onRename(c) : undefined}
+              onDelete={() => onDelete(c)} />}
           </Card>
         ))}
       </div>
@@ -641,6 +683,7 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
   const { t } = useTranslation();
   const [courses, setCourses] = useState<SageCourseSummary[]>([]);
   const [msg, setMsg] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<SageCourseSummary | null>(null);
   const load = () => sageApi.courses().then(setCourses).catch(() => setCourses([]));
   useEffect(() => { load(); }, []);
 
@@ -684,7 +727,11 @@ function Courses({ onOpen, userName }: { onOpen: (c: SageCourseSummary) => void;
         <CourseGroup
           label={t("sage.courses.teaching", { defaultValue: "Teaching" })}
           count={teaching.length}
-          courses={teaching} onOpen={onOpen} onDelete={removeCourse} />
+          courses={teaching} onOpen={onOpen} onDelete={removeCourse} onRename={setRenaming} />
+      )}
+      {renaming && (
+        <RenameCourseDialog course={renaming} onClose={() => setRenaming(null)}
+          onDone={() => { setRenaming(null); load(); }} />
       )}
       {enrolled.length > 0 && (
         <CourseGroup

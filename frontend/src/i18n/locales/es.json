@@ -399,7 +399,8 @@
       "deleteConfirm": "¿Eliminar «{{name}}» y todo su contenido (cuestionarios, resultados, lista)? Esto no se puede deshacer.",
       "menu": "Opciones del curso",
       "teaching": "Impartes",
-      "enrolled": "Inscrito como estudiante"
+      "enrolled": "Inscrito como estudiante",
+      "rename": "Renombrar curso"
     },
     "stat": {
       "courses": "Cursos",

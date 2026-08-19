@@ -235,6 +235,26 @@ def my_courses(db: Session = Depends(get_db), user: User = Depends(get_current_u
     return sorted(out, key=lambda x: x["id"], reverse=True)
 
 
+@router.put("/courses/{course_id}")
+def rename_course(
+    course_id: int, payload: CourseCreate,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user),
+) -> dict:
+    """Rename a course. Instructor-only."""
+    course, role = _require_role(db, course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+    name = payload.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Course name is required")
+    course.title = name
+    # Keep the human-readable code prefix in sync with the name (join code stays put).
+    course.code = f"{name[:40]} [{course.join_code}]" if course.join_code else name[:40]
+    db.commit()
+    db.refresh(course)
+    return _course_summary(db, course, role)
+
+
 @router.get("/courses/{course_id}")
 def course_detail(
     course_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)

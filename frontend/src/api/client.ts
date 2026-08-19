@@ -409,6 +409,9 @@ export const sageApi = {
       body: JSON.stringify({ name, subject }) }),
   deleteCourse: (courseId: number) =>
     request<void>(`/sage/courses/${courseId}`, { method: "DELETE" }),
+  renameCourse: (courseId: number, name: string) =>
+    request<SageCourseSummary>(`/sage/courses/${courseId}`, { method: "PUT",
+      body: JSON.stringify({ name }) }),
   courseDetail: (id: number) => request<SageCourseDetail>(`/sage/courses/${id}`),
   profile: () => request<SageProfile>(`/sage/me`),
   updateProfile: (p: { full_name?: string; title?: string; bio?: string }) =>
