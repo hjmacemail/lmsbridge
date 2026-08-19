@@ -2101,14 +2101,19 @@ function Profile({ onName, onBack }: { onName: (n: string) => void; onBack: () =
     catch (e) { setMsg((e as Error).message); } finally { setBusy(false); }
   }
   const lbl: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: C.muted };
+  const isGuest = !!p && /@sage\.local$/i.test(p.email);
   return (
-    <div style={{ maxWidth: 520, margin: "0 auto" }}>
-      <GhostBtn onClick={onBack}><Icon name="back" size={16} /> {t("sage.back")}</GhostBtn>
-      <h2 style={{ color: C.brand, fontSize: 22, marginTop: 12 }}>{t("sage.profile.title")}</h2>
-      <p style={{ color: C.muted, fontSize: 14, marginTop: 0 }}>
-        {t("sage.profile.subtitle")}</p>
+    <div style={{ maxWidth: 520, margin: "0 auto", display: "grid", gap: 16 }}>
+      <div>
+        <GhostBtn onClick={onBack}><Icon name="back" size={16} /> {t("sage.back")}</GhostBtn>
+        <h2 style={{ color: C.brand, fontSize: 22, marginTop: 12, marginBottom: 4 }}>{t("sage.profile.title")}</h2>
+        <p style={{ color: C.muted, fontSize: 14, margin: 0 }}>{t("sage.profile.subtitle")}</p>
+      </div>
       <Card>
         <form onSubmit={save} style={{ display: "grid", gap: 6 }}>
+          <label style={lbl}>{t("sage.profile.email", { defaultValue: "Email address" })}</label>
+          <input style={{ ...inputStyle, background: C.soft, color: C.muted }} value={p?.email || ""}
+            readOnly aria-readonly title={t("sage.profile.emailHint", { defaultValue: "Your sign-in email can't be changed here." })} />
           <label style={lbl}>{t("sage.profile.name")}</label>
           <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} />
           <label style={lbl}>{t("sage.profile.titleField")}</label>
@@ -2119,10 +2124,52 @@ function Profile({ onName, onBack }: { onName: (n: string) => void; onBack: () =
             onChange={(e) => setBio(e.target.value)} />
           <div style={{ marginTop: 8 }}><PrimaryBtn type="submit" disabled={busy}>{busy ? t("sage.profile.saving") : t("sage.profile.save")}</PrimaryBtn></div>
           {msg && <div style={{ fontSize: 13, color: msg === t("sage.profile.saved") ? C.success : C.danger }}>{msg}</div>}
-          {p && <div style={{ fontSize: 12, color: C.muted }}>{p.email}</div>}
         </form>
       </Card>
+      {p && !isGuest && <ChangePassword />}
     </div>
+  );
+}
+
+// Change-password card for the signed-in user (verifies current password server-side).
+function ChangePassword() {
+  const { t } = useTranslation();
+  const [cur, setCur] = useState(""); const [next, setNext] = useState(""); const [confirm, setConfirm] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const lbl: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: C.muted };
+  async function submit(e: React.FormEvent) {
+    e.preventDefault(); setMsg(null);
+    if (next.length < 6) { setMsg({ ok: false, text: t("sage.pw.tooShort", { defaultValue: "New password must be at least 6 characters." }) }); return; }
+    if (next !== confirm) { setMsg({ ok: false, text: t("sage.pw.mismatch", { defaultValue: "New passwords don't match." }) }); return; }
+    setBusy(true);
+    try {
+      await sageApi.changePassword(cur, next);
+      setMsg({ ok: true, text: t("sage.pw.changed", { defaultValue: "Password changed." }) });
+      setCur(""); setNext(""); setConfirm("");
+    } catch (e) { setMsg({ ok: false, text: (e as Error).message }); } finally { setBusy(false); }
+  }
+  return (
+    <Card>
+      <h3 style={{ marginTop: 0, marginBottom: 10, fontSize: 16, color: C.ink }}>
+        {t("sage.pw.title", { defaultValue: "Change password" })}</h3>
+      <form onSubmit={submit} style={{ display: "grid", gap: 6 }}>
+        <label style={lbl}>{t("sage.pw.current", { defaultValue: "Current password" })}</label>
+        <input type="password" autoComplete="current-password" style={inputStyle}
+          value={cur} onChange={(e) => setCur(e.target.value)} />
+        <label style={lbl}>{t("sage.pw.new", { defaultValue: "New password" })}</label>
+        <input type="password" autoComplete="new-password" style={inputStyle}
+          value={next} onChange={(e) => setNext(e.target.value)} />
+        <label style={lbl}>{t("sage.pw.confirm", { defaultValue: "Confirm new password" })}</label>
+        <input type="password" autoComplete="new-password" style={inputStyle}
+          value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+        <div style={{ marginTop: 8 }}>
+          <PrimaryBtn type="submit" disabled={busy || !cur || !next}>
+            {busy ? t("sage.profile.saving") : t("sage.pw.title", { defaultValue: "Change password" })}</PrimaryBtn>
+        </div>
+        {msg && <div style={{ fontSize: 13, color: msg.ok ? C.success : C.danger }}>{msg.text}</div>}
+      </form>
+    </Card>
   );
 }
 

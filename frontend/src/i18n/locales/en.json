@@ -539,7 +539,9 @@
       "bio": "Short bio",
       "save": "Save",
       "saving": "Saving…",
-      "saved": "Saved."
+      "saved": "Saved.",
+      "email": "Email address",
+      "emailHint": "Your sign-in email can't be changed here."
     },
     "syllabus": {
       "phEdit": "Course overview, schedule, grading, policies…",
@@ -609,6 +611,15 @@
     "file": {
       "choose": "Choose file",
       "none": "No file chosen"
+    },
+    "pw": {
+      "title": "Change password",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "changed": "Password changed.",
+      "mismatch": "New passwords don't match.",
+      "tooShort": "New password must be at least 6 characters."
     }
   },
   "lms": {

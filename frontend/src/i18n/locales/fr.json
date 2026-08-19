@@ -539,7 +539,9 @@
       "bio": "Courte bio",
       "save": "Enregistrer",
       "saving": "Enregistrement…",
-      "saved": "Enregistré."
+      "saved": "Enregistré.",
+      "email": "Adresse e-mail",
+      "emailHint": "Votre e-mail de connexion ne peut pas être modifié ici."
     },
     "syllabus": {
       "phEdit": "Présentation du cours, calendrier, évaluation, règles…",
@@ -609,6 +611,15 @@
     "file": {
       "choose": "Choisir un fichier",
       "none": "Aucun fichier sélectionné"
+    },
+    "pw": {
+      "title": "Changer le mot de passe",
+      "current": "Mot de passe actuel",
+      "new": "Nouveau mot de passe",
+      "confirm": "Confirmer le nouveau mot de passe",
+      "changed": "Mot de passe modifié.",
+      "mismatch": "Les mots de passe ne correspondent pas.",
+      "tooShort": "Le nouveau mot de passe doit comporter au moins 6 caractères."
     }
   },
   "lms": {

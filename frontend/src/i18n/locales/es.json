@@ -539,7 +539,9 @@
       "bio": "Biografía breve",
       "save": "Guardar",
       "saving": "Guardando…",
-      "saved": "Guardado."
+      "saved": "Guardado.",
+      "email": "Correo electrónico",
+      "emailHint": "Tu correo de acceso no se puede cambiar aquí."
     },
     "syllabus": {
       "phEdit": "Descripción del curso, calendario, evaluación, políticas…",
@@ -609,6 +611,15 @@
     "file": {
       "choose": "Elegir archivo",
       "none": "Ningún archivo seleccionado"
+    },
+    "pw": {
+      "title": "Cambiar contraseña",
+      "current": "Contraseña actual",
+      "new": "Nueva contraseña",
+      "confirm": "Confirmar nueva contraseña",
+      "changed": "Contraseña cambiada.",
+      "mismatch": "Las contraseñas no coinciden.",
+      "tooShort": "La nueva contraseña debe tener al menos 6 caracteres."
     }
   },
   "lms": {

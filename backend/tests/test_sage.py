@@ -145,6 +145,25 @@ def test_sage_assignment_full_workflow(client):
                        json={"grade": 5}).status_code == 403
 
 
+def test_sage_change_password(client):
+    """A user can change their password after verifying the current one; the new password works
+    for login and the old one no longer does."""
+    signup = client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr P", "email": "pw@uni.edu", "password": "secret123"}).json()
+    ih = _auth(signup)
+    # Wrong current password -> 400.
+    assert client.put("/api/v1/sage/me/password", headers=ih, json={
+        "current_password": "nope", "new_password": "brandnew1"}).status_code == 400
+    # Correct current password -> changed.
+    assert client.put("/api/v1/sage/me/password", headers=ih, json={
+        "current_password": "secret123", "new_password": "brandnew1"}).status_code == 200
+    # Old password fails, new one works at login.
+    assert client.post("/api/v1/auth/login", data={
+        "username": "pw@uni.edu", "password": "secret123"}).status_code == 401
+    assert client.post("/api/v1/auth/login", data={
+        "username": "pw@uni.edu", "password": "brandnew1"}).status_code == 200
+
+
 def test_sage_rename_course(client):
     """Instructors can rename their course; students (and non-members) cannot."""
     ih = _auth(client.post("/api/v1/sage/signup", json={

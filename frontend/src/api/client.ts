@@ -417,6 +417,9 @@ export const sageApi = {
   profile: () => request<SageProfile>(`/sage/me`),
   updateProfile: (p: { full_name?: string; title?: string; bio?: string }) =>
     request<SageProfile>(`/sage/me`, { method: "PUT", body: JSON.stringify(p) }),
+  changePassword: (current_password: string, new_password: string) =>
+    request<{ ok: boolean }>(`/sage/me/password`, { method: "PUT",
+      body: JSON.stringify({ current_password, new_password }) }),
   updateSyllabus: (courseId: number, syllabus: string) =>
     request<{ syllabus: string | null }>(`/sage/courses/${courseId}/syllabus`,
       { method: "PUT", body: JSON.stringify({ syllabus }) }),

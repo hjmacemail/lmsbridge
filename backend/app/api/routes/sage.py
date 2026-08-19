@@ -21,7 +21,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
-from app.core.security import create_access_token, hash_password
+from app.core.security import create_access_token, hash_password, verify_password
 from app.db.session import get_db
 from app.models.assessment import Assessment, AssessmentResult, Question
 from app.models.concept import Concept
@@ -42,6 +42,7 @@ from app.schemas.sage import (
     GradeSubmission,
     JoinByCode,
     MaterialTextCreate,
+    PasswordChange,
     ProfileUpdate,
     QuizCreate,
     QuizSubmit,
@@ -293,6 +294,18 @@ def update_profile(
     db.refresh(user)
     return {"id": user.id, "full_name": user.full_name, "email": user.email,
             "title": user.title, "bio": user.bio}
+
+
+@router.put("/me/password")
+def change_password(
+    payload: PasswordChange, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> dict:
+    """Change the signed-in user's password after verifying the current one."""
+    if not verify_password(payload.current_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    user.hashed_password = hash_password(payload.new_password)
+    db.commit()
+    return {"ok": True}
 
 
 @router.put("/courses/{course_id}/syllabus")
