@@ -605,7 +605,11 @@
       "download": "Télécharger la pièce jointe",
       "errBodyOrFile": "Rédigez une réponse ou joignez un fichier avant de rendre."
     },
-    "save": "Enregistrer"
+    "save": "Enregistrer",
+    "file": {
+      "choose": "Choisir un fichier",
+      "none": "Aucun fichier sélectionné"
+    }
   },
   "lms": {
     "nav": {

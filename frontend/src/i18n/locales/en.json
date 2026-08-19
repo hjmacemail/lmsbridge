@@ -605,7 +605,11 @@
       "download": "Download attachment",
       "errBodyOrFile": "Write a response or attach a file before submitting."
     },
-    "save": "Save"
+    "save": "Save",
+    "file": {
+      "choose": "Choose file",
+      "none": "No file chosen"
+    }
   },
   "lms": {
     "nav": {

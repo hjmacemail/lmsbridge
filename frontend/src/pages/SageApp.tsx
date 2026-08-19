@@ -2191,6 +2191,23 @@ function Materials({ course, instr }: { course: SageCourseSummary; instr: boolea
   );
 }
 
+// Translated file picker: hides the browser-native input (whose "Choose File / No file chosen"
+// text can't be translated) behind our own localized button + filename label.
+function FilePicker({ file, onChange }: { file: File | null; onChange: (f: File | null) => void }) {
+  const { t } = useTranslation();
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <label style={{ ...ghostLike, cursor: "pointer" }}>
+        <Icon name="file" size={15} /> {t("sage.file.choose", { defaultValue: "Choose file" })}
+        <input type="file" style={{ display: "none" }}
+          onChange={(e) => onChange(e.target.files?.[0] || null)} />
+      </label>
+      <span style={{ fontSize: 13, color: C.muted }}>
+        {file ? file.name : t("sage.file.none", { defaultValue: "No file chosen" })}</span>
+    </div>
+  );
+}
+
 function MaterialForm({ courseId, kind, onDone }:
   { courseId: number; kind: "note" | "code" | "file"; onDone: () => void }) {
   const { t } = useTranslation();
@@ -2218,7 +2235,7 @@ function MaterialForm({ courseId, kind, onDone }:
         placeholder={t("sage.materials.phTitle")}
         value={title} onChange={(e) => setTitle(e.target.value)} />
       {kind === "file" ? (
-        <input type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+        <FilePicker file={file} onChange={setFile} />
       ) : (
         <>
           {kind === "code" && <input style={{ ...inputStyle, marginBottom: 8 }}
