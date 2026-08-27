@@ -581,10 +581,10 @@
 </div>
 <h3 data-i18n="k127" style="margin:26px 0 12px;font-size:17px">One-page install guide for your LMS</h3>
 <div class="grid cols-2">
-<a class="card" data-i18n="k128" href="/guides/install-canvas.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Canvas</b><br/><span class="mini">install-canvas.pdf</span></span></a>
-<a class="card" data-i18n="k129" href="/guides/install-moodle.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Moodle</b><br/><span class="mini">install-moodle.pdf</span></span></a>
-<a class="card" data-i18n="k130" href="/guides/install-brightspace.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Brightspace (D2L)</b><br/><span class="mini">install-brightspace.pdf</span></span></a>
-<a class="card" data-i18n="k131" href="/guides/install-blackboard.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Blackboard (Anthology)</b><br/><span class="mini">install-blackboard.pdf</span></span></a>
+<a class="card" data-guide="canvas" href="/guides/install-canvas.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Canvas</b><br/><span class="mini">install-canvas.pdf</span></span></a>
+<a class="card" data-guide="moodle" href="/guides/install-moodle.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Moodle</b><br/><span class="mini">install-moodle.pdf</span></span></a>
+<a class="card" data-guide="brightspace" href="/guides/install-brightspace.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Brightspace (D2L)</b><br/><span class="mini">install-brightspace.pdf</span></span></a>
+<a class="card" data-guide="blackboard" href="/guides/install-blackboard.pdf" style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">📄</span><span><b>Blackboard (Anthology)</b><br/><span class="mini">install-blackboard.pdf</span></span></a>
 </div>
 <p class="mini" data-i18n="k132" style="margin-top:16px">Prefer to self-host? Bring it up with Docker and point it at your own AI key — the full runbook is in the repo (<code>docs/INSTALL_LTI.md</code>, <code>docs/DEPLOY_RAILWAY.md</code>). No student data leaves your environment.</p>
 </div></section>
@@ -758,6 +758,12 @@
       if(el.dataset.enPh === undefined) el.dataset.enPh = el.getAttribute('placeholder') || '';
       if(lang === 'en' || !d || d[k] === undefined){ el.setAttribute('placeholder', el.dataset.enPh); }
       else { el.setAttribute('placeholder', d[k]); }
+    });
+    // Point each per-LMS install guide at the language-appropriate PDF.
+    document.querySelectorAll('[data-guide]').forEach(function(el){
+      var file = 'install-' + el.getAttribute('data-guide') + (lang === 'en' ? '' : '.' + lang) + '.pdf';
+      el.setAttribute('href', '/guides/' + file);
+      var mini = el.querySelector('.mini'); if(mini) mini.textContent = file;
     });
     document.documentElement.setAttribute('lang', lang);
     document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
