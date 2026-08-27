@@ -678,5 +678,68 @@
     "italicText": "texte en italique",
     "codeText": "code",
     "linkText": "texte"
+  },
+  "connect": {
+    "headerTitle": "LMS Bridge · Connectez votre LMS",
+    "headerSubtitle": "Tout ce dont un administrateur a besoin pour enregistrer l'outil : copiez une URL et suivez les étapes. Aucune documentation requise.",
+    "loadError": "Impossible de charger les URL de l'outil ({{err}}). Vérifiez que le backend est accessible.",
+    "loading": "Chargement des URL de l'outil…",
+    "oneClickTitle": "En un clic pour Canvas et Moodle",
+    "oneClickDesc": "Collez cette unique URL d'enregistrement dynamique et le LMS configure tout automatiquement :",
+    "dynRegLabel": "URL d'enregistrement dynamique",
+    "urlsTitle": "Toutes les URL que votre LMS peut demander",
+    "oidcLabel": "Connexion / initiation OIDC",
+    "targetLabel": "Lien cible / URI de lancement",
+    "redirectLabel": "URI de redirection",
+    "jwksLabel": "Jeu de clés publiques (JWKS)",
+    "deepLinkLabel": "URL de liaison profonde",
+    "connectedYes": "✓ Au moins un LMS est déjà connecté.",
+    "connectedNo": "Aucun LMS connecté pour l'instant.",
+    "scopes": "Portées demandées : AGS (notes), NRPS (liste des inscrits).",
+    "stepsTitle": "Étape par étape pour votre LMS",
+    "oneClickYes": "✓ Prend en charge l'enregistrement dynamique en un clic.",
+    "oneClickNo": "Enregistrement manuel (pas d'option en un clic pour ce LMS).",
+    "runbookPre": "Besoin de tous les détails ? Consultez le guide complet par LMS dans ",
+    "runbookPost": ".",
+    "copy": "Copier",
+    "copied": "Copié ✓",
+    "lms": {
+      "canvas": {
+        "name": "Canvas",
+        "steps": [
+          "Admin → Developer Keys → + Developer Key → + LTI Registration.",
+          "Collez l'URL d'enregistrement dynamique → Continue → confirmez → Enable & Close.",
+          "Réglez l'état (State) de la clé sur ON et copiez le Client ID.",
+          "Installez-la : Admin → Settings → Apps → +App → By Client ID (pour tout le compte), ou transmettez le Client ID aux enseignants pour l'ajouter par cours."
+        ]
+      },
+      "moodle": {
+        "name": "Moodle",
+        "steps": [
+          "Site administration → Plugins → Activity modules → External tool → Manage tools.",
+          "Collez l'URL d'enregistrement dynamique dans Tool URL → Add LTI Advantage.",
+          "Vérifiez l'outil en attente, activez-le et cochez « Show in activity chooser ».",
+          "Les enseignants l'ajoutent par cours comme activité."
+        ]
+      },
+      "brightspace": {
+        "name": "Brightspace (D2L)",
+        "steps": [
+          "Admin → Manage Extensibility → LTI Advantage → Register Tool → Dynamic → collez l'URL d'enregistrement dynamique → Register, puis activez-la.",
+          "Admin → External Learning Tools → New Deployment → sélectionnez vos unités → Create Deployment.",
+          "Sur le déploiement → View Links → New Link → Target Link / Launch URL → Save.",
+          "Les enseignants ajoutent le lien via Content → Add Existing → External Learning Tools."
+        ]
+      },
+      "blackboard": {
+        "name": "Blackboard (Anthology)",
+        "steps": [
+          "Enregistrez-vous une fois dans l'Anthology Developer Portal avec les URL Login, Redirect et JWKS ci-dessous → obtenez un Client ID.",
+          "L'administrateur Blackboard de chaque établissement : Admin → Integrations → LTI Tool Providers → Register LTI 1.3/Advantage Tool → collez le Client ID.",
+          "Réglez Tool Status = Approved ; activez les services de notes (AGS) et d'appartenance (NRPS).",
+          "Les enseignants l'ajoutent via le Content Market (Ultra) ou Build Content (Original)."
+        ]
+      }
+    }
   }
 }

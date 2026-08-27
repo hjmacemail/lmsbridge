@@ -678,5 +678,68 @@
     "italicText": "texto en cursiva",
     "codeText": "código",
     "linkText": "texto"
+  },
+  "connect": {
+    "headerTitle": "LMS Bridge · Conecta tu LMS",
+    "headerSubtitle": "Todo lo que un administrador necesita para registrar la herramienta: copia una URL y sigue los pasos. Sin documentación.",
+    "loadError": "No se pudieron cargar las URL de la herramienta ({{err}}). Asegúrate de que el backend sea accesible.",
+    "loading": "Cargando las URL de la herramienta…",
+    "oneClickTitle": "Un clic para Canvas y Moodle",
+    "oneClickDesc": "Pega esta única URL de registro dinámico y el LMS lo configura todo automáticamente:",
+    "dynRegLabel": "URL de registro dinámico",
+    "urlsTitle": "Todas las URL que tu LMS podría pedir",
+    "oidcLabel": "Inicio de sesión / inicio OIDC",
+    "targetLabel": "Enlace de destino / URI de lanzamiento",
+    "redirectLabel": "URI de redirección",
+    "jwksLabel": "Conjunto de claves públicas (JWKS)",
+    "deepLinkLabel": "URL de enlace profundo",
+    "connectedYes": "✓ Ya hay al menos un LMS conectado.",
+    "connectedNo": "Todavía no hay ningún LMS conectado.",
+    "scopes": "Ámbitos solicitados: AGS (calificaciones), NRPS (lista de estudiantes).",
+    "stepsTitle": "Paso a paso para tu LMS",
+    "oneClickYes": "✓ Admite registro dinámico con un clic.",
+    "oneClickNo": "Registro manual (sin un clic para este LMS).",
+    "runbookPre": "¿Necesitas todos los detalles? Consulta la guía completa por LMS en ",
+    "runbookPost": ".",
+    "copy": "Copiar",
+    "copied": "Copiado ✓",
+    "lms": {
+      "canvas": {
+        "name": "Canvas",
+        "steps": [
+          "Admin → Developer Keys → + Developer Key → + LTI Registration.",
+          "Pega la URL de registro dinámico → Continue → confirma → Enable & Close.",
+          "Pon el State de la clave en ON y copia el Client ID.",
+          "Instálala: Admin → Settings → Apps → +App → By Client ID (para toda la cuenta), o entrega el Client ID a los docentes para añadirla por curso."
+        ]
+      },
+      "moodle": {
+        "name": "Moodle",
+        "steps": [
+          "Site administration → Plugins → Activity modules → External tool → Manage tools.",
+          "Pega la URL de registro dinámico en Tool URL → Add LTI Advantage.",
+          "Revisa la herramienta pendiente, actívala y marca «Show in activity chooser».",
+          "Los docentes la añaden por curso como actividad."
+        ]
+      },
+      "brightspace": {
+        "name": "Brightspace (D2L)",
+        "steps": [
+          "Admin → Manage Extensibility → LTI Advantage → Register Tool → Dynamic → pega la URL de registro dinámico → Register y luego actívala.",
+          "Admin → External Learning Tools → New Deployment → selecciona tus unidades → Create Deployment.",
+          "En el deployment → View Links → New Link → Target Link / Launch URL → Save.",
+          "Los docentes añaden el enlace en Content → Add Existing → External Learning Tools."
+        ]
+      },
+      "blackboard": {
+        "name": "Blackboard (Anthology)",
+        "steps": [
+          "Regístrate una vez en el Anthology Developer Portal con las URL de Login, Redirect y JWKS de abajo → obtén un Client ID.",
+          "El administrador de Blackboard de cada institución: Admin → Integrations → LTI Tool Providers → Register LTI 1.3/Advantage Tool → pega el Client ID.",
+          "Pon Tool Status = Approved; habilita los servicios de calificaciones (AGS) y de miembros (NRPS).",
+          "Los docentes la añaden desde el Content Market (Ultra) o Build Content (Original)."
+        ]
+      }
+    }
   }
 }

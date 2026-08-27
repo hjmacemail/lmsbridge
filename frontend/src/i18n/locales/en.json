@@ -678,5 +678,68 @@
     "italicText": "italic text",
     "codeText": "code",
     "linkText": "text"
+  },
+  "connect": {
+    "headerTitle": "LMS Bridge · Connect your LMS",
+    "headerSubtitle": "Everything an admin needs to register the tool — copy a URL, follow the steps. No docs required.",
+    "loadError": "Could not load the tool's URLs ({{err}}). Make sure the backend is reachable.",
+    "loading": "Loading the tool's URLs…",
+    "oneClickTitle": "One-click for Canvas & Moodle",
+    "oneClickDesc": "Paste this single Dynamic Registration URL and the LMS configures everything automatically:",
+    "dynRegLabel": "Dynamic Registration URL",
+    "urlsTitle": "All the URLs your LMS may ask for",
+    "oidcLabel": "OIDC login / initiation",
+    "targetLabel": "Target Link / Launch URI",
+    "redirectLabel": "Redirect URI",
+    "jwksLabel": "Public keyset (JWKS)",
+    "deepLinkLabel": "Deep Linking URL",
+    "connectedYes": "✓ At least one LMS is already connected.",
+    "connectedNo": "No LMS connected yet.",
+    "scopes": "Scopes requested: AGS (grades), NRPS (roster).",
+    "stepsTitle": "Step-by-step for your LMS",
+    "oneClickYes": "✓ Supports one-click Dynamic Registration.",
+    "oneClickNo": "Manual registration (no one-click for this LMS).",
+    "runbookPre": "Need the full detail? See the complete per-LMS runbook in ",
+    "runbookPost": ".",
+    "copy": "Copy",
+    "copied": "Copied ✓",
+    "lms": {
+      "canvas": {
+        "name": "Canvas",
+        "steps": [
+          "Admin → Developer Keys → + Developer Key → + LTI Registration.",
+          "Paste the Dynamic Registration URL → Continue → confirm → Enable & Close.",
+          "Set the key's State to ON and copy the Client ID.",
+          "Install it: Admin → Settings → Apps → +App → By Client ID (account-wide), or hand the Client ID to instructors to add per course."
+        ]
+      },
+      "moodle": {
+        "name": "Moodle",
+        "steps": [
+          "Site administration → Plugins → Activity modules → External tool → Manage tools.",
+          "Paste the Dynamic Registration URL in Tool URL → Add LTI Advantage.",
+          "Review the pending tool, then Activate it and set 'Show in activity chooser'.",
+          "Instructors add it per course as an activity."
+        ]
+      },
+      "brightspace": {
+        "name": "Brightspace (D2L)",
+        "steps": [
+          "Admin → Manage Extensibility → LTI Advantage → Register Tool → Dynamic → paste the Dynamic Registration URL → Register, then enable it.",
+          "Admin → External Learning Tools → New Deployment → select your org units → Create Deployment.",
+          "On the deployment → View Links → New Link → Target Link / Launch URL → Save.",
+          "Instructors add the link via Content → Add Existing → External Learning Tools."
+        ]
+      },
+      "blackboard": {
+        "name": "Blackboard (Anthology)",
+        "steps": [
+          "Register once in the Anthology Developer Portal using the Login, Redirect, and JWKS URLs below → get a Client ID.",
+          "Each institution's Blackboard admin: Admin → Integrations → LTI Tool Providers → Register LTI 1.3/Advantage Tool → paste the Client ID.",
+          "Set Tool Status = Approved; enable grade (AGS) and membership (NRPS) services.",
+          "Instructors add it via the Content Market (Ultra) or Build Content (Original)."
+        ]
+      }
+    }
   }
 }

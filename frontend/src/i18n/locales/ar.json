@@ -678,5 +678,68 @@
     "italicText": "نص مائل",
     "codeText": "شيفرة",
     "linkText": "نص"
+  },
+  "connect": {
+    "headerTitle": "LMS Bridge · وصّل نظام إدارة التعلّم لديك",
+    "headerSubtitle": "كل ما يحتاجه المسؤول لتسجيل الأداة — انسخ رابطًا واتبع الخطوات. لا حاجة إلى وثائق.",
+    "loadError": "تعذّر تحميل روابط الأداة ({{err}}). تأكّد من إمكانية الوصول إلى الخادم.",
+    "loading": "جارٍ تحميل روابط الأداة…",
+    "oneClickTitle": "بنقرة واحدة لـ Canvas وMoodle",
+    "oneClickDesc": "الصق رابط التسجيل الديناميكي هذا وسيُعِدّ النظام كل شيء تلقائيًا:",
+    "dynRegLabel": "رابط التسجيل الديناميكي",
+    "urlsTitle": "جميع الروابط التي قد يطلبها نظامك",
+    "oidcLabel": "تسجيل الدخول / البدء عبر OIDC",
+    "targetLabel": "رابط الهدف / رابط التشغيل",
+    "redirectLabel": "رابط إعادة التوجيه",
+    "jwksLabel": "مجموعة المفاتيح العامة (JWKS)",
+    "deepLinkLabel": "رابط الربط العميق",
+    "connectedYes": "✓ يوجد نظام إدارة تعلّم واحد على الأقل متصل بالفعل.",
+    "connectedNo": "لا يوجد نظام إدارة تعلّم متصل بعد.",
+    "scopes": "النطاقات المطلوبة: AGS (الدرجات)، NRPS (قائمة الطلاب).",
+    "stepsTitle": "خطوة بخطوة لنظامك",
+    "oneClickYes": "✓ يدعم التسجيل الديناميكي بنقرة واحدة.",
+    "oneClickNo": "تسجيل يدوي (لا يوجد خيار بنقرة واحدة لهذا النظام).",
+    "runbookPre": "تحتاج إلى التفاصيل الكاملة؟ راجِع دليل التشغيل لكل نظام في ",
+    "runbookPost": ".",
+    "copy": "نسخ",
+    "copied": "تم النسخ ✓",
+    "lms": {
+      "canvas": {
+        "name": "Canvas",
+        "steps": [
+          "Admin ← Developer Keys ← + Developer Key ← + LTI Registration.",
+          "الصق رابط التسجيل الديناميكي في Dynamic Registration URL ← Continue ← أكِّد ← Enable & Close.",
+          "اضبط حالة المفتاح (State) على ON وانسخ معرّف العميل (Client ID).",
+          "ثبّته: Admin ← Settings ← Apps ← +App ← By Client ID (على مستوى الحساب)، أو سلّم Client ID للمدرّسين لإضافته في كل مقرر."
+        ]
+      },
+      "moodle": {
+        "name": "Moodle",
+        "steps": [
+          "Site administration ← Plugins ← Activity modules ← External tool ← Manage tools.",
+          "الصق رابط التسجيل الديناميكي في Tool URL ← Add LTI Advantage.",
+          "راجِع الأداة المعلّقة ثم فعّلها (Activate) وحدّد «Show in activity chooser».",
+          "يضيفها المدرّسون في كل مقرر كنشاط."
+        ]
+      },
+      "brightspace": {
+        "name": "Brightspace (D2L)",
+        "steps": [
+          "Admin ← Manage Extensibility ← LTI Advantage ← Register Tool ← Dynamic ← الصق رابط التسجيل الديناميكي ← Register ثم فعّلها.",
+          "Admin ← External Learning Tools ← New Deployment ← اختر وحدات مؤسستك ← Create Deployment.",
+          "من النشر (Deployment) ← View Links ← New Link ← Target Link / Launch URL ← Save.",
+          "يضيف المدرّسون الرابط عبر Content ← Add Existing ← External Learning Tools."
+        ]
+      },
+      "blackboard": {
+        "name": "Blackboard (Anthology)",
+        "steps": [
+          "سجّل مرة واحدة في Anthology Developer Portal باستخدام روابط Login وRedirect وJWKS أدناه ← احصل على Client ID.",
+          "مسؤول Blackboard في كل مؤسسة: Admin ← Integrations ← LTI Tool Providers ← Register LTI 1.3/Advantage Tool ← الصق Client ID.",
+          "اضبط Tool Status = Approved، وفعّل خدمتَي الدرجات (AGS) والعضوية (NRPS).",
+          "يضيفها المدرّسون عبر Content Market (في Ultra) أو Build Content (في Original)."
+        ]
+      }
+    }
   }
 }
