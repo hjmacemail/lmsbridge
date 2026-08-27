@@ -49,7 +49,7 @@
   with automatic database migrations and an idempotent seed.
 - Fastest path: download docker-compose.prod.yml (prebuilt images from GitHub Container Registry) and
   a .env file, then `docker compose -f docker-compose.prod.yml up -d`. Also deployable to Render,
-  Railway, Fly.io, or Kubernetes. Step-by-step guide: https://www.lmsbridge.app/selfhost.html
+  Railway, Fly.io, or Kubernetes. Full runbook: docs/DEPLOYMENT.md in the repository.
 
 ## Languages
 
@@ -66,6 +66,5 @@
 - Homepage: https://www.lmsbridge.app/
 - Source code (GitHub, AGPL-3.0): https://github.com/hjmacemail/lmsbridge
 - Install guides (per LMS): https://www.lmsbridge.app/#install
-- Self-hosting / deployment guide: https://www.lmsbridge.app/selfhost.html
 - Contact form: https://www.lmsbridge.app/#contact
 - Knowledge in Service of Society Initiative: https://www.lmsbridge.app/initiative.html
