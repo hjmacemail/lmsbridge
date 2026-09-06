@@ -608,7 +608,16 @@
       "submit": "Submit",
       "attachFile": "Attach file",
       "download": "Download attachment",
-      "errBodyOrFile": "Write a response or attach a file before submitting."
+      "errBodyOrFile": "Write a response or attach a file before submitting.",
+      "missedConcepts": "Concepts the student missed",
+      "missedPh": "e.g. Binary arithmetic, Inheritance",
+      "missedHint": "Comma-separated. Each concept gets the student a targeted guided-practice session — works even for offline/paper work. ✨ Analyze reads the submission and suggests concepts.",
+      "analyze": "✨ Analyze with AI",
+      "analyzing": "Analyzing…",
+      "remediated": "Created {{n}} guided practice session(s).",
+      "analyzeNone": "No analyzable text in this submission (images aren't read yet).",
+      "analyzeClean": "No clear misconception found.",
+      "analyzeFound": "Flagged: {{list}} · {{n}} practice session(s) created."
     },
     "save": "Save",
     "file": {

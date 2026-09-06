@@ -80,6 +80,9 @@ class SubmissionCreate(BaseModel):
 class GradeSubmission(BaseModel):
     grade: float = Field(..., ge=0, le=1000)
     feedback: str = Field("", max_length=8000)
+    # Concepts the student got wrong on this (possibly offline) work. Each drives the same
+    # remediation pipeline the quizzes use — so LMS Bridge helps even with no digital submission.
+    missed_concepts: list[str] = Field(default_factory=list, max_length=20)
 
 
 class QuizAnswer(BaseModel):

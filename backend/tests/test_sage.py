@@ -131,10 +131,10 @@ def test_sage_assignment_full_workflow(client):
 
     # Grade shows up (normalized) in grades, and the student sees their grade.
     grades = client.get(f"/api/v1/sage/courses/{cid}/grades", headers=ih).json()
-    assert grades["assignments"][0]["id"] == aid
+    assert any(a["id"] == aid for a in grades["assignments"])
     assert grades["rows"][0]["assignment_scores"][str(aid)] == 0.9  # 18/20
     mine = client.get(f"/api/v1/sage/courses/{cid}/assignments", headers=sh).json()
-    assert mine[0]["my_submission"]["grade"] == 18
+    assert next(x for x in mine if x["id"] == aid)["my_submission"]["grade"] == 18
 
     # Can't resubmit after grading; over-limit grade rejected; students can't grade.
     assert client.post(f"/api/v1/sage/assignments/{aid}/submit", headers=sh,
@@ -166,6 +166,47 @@ def test_sage_avatar_upload_serve_remove(client):
     assert client.delete("/api/v1/sage/me/avatar", headers=ih).status_code == 204
     assert client.get("/api/v1/sage/me", headers=ih).json()["has_avatar"] is False
     assert client.get(f"/api/v1/sage/users/{me['id']}/avatar", headers=ih).status_code == 404
+
+
+def test_sage_grade_with_missed_concepts_creates_remediation(client):
+    """Concept-tagged grading of an assignment drives the remediation pipeline: the student gets
+    a guided module even though the work had no auto-graded quiz."""
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr M", "email": "miss@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "Off"}).json()["id"]
+    aid = client.post(f"/api/v1/sage/courses/{cid}/assignments", headers=ih, json={
+        "title": "Paper 1", "instructions": "x", "points": 20}).json()["id"]
+    code = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"]
+    sh = _auth(client.post("/api/v1/sage/join", json={
+        "join_code": code, "full_name": "Stu", "email": "stu2@uni.edu", "password": "secret123"}).json())
+    sub_id = client.post(f"/api/v1/sage/assignments/{aid}/submit", headers=sh,
+                         data={"body": "my essay"}).json()["id"]
+    g = client.post(f"/api/v1/sage/submissions/{sub_id}/grade", headers=ih, json={
+        "grade": 12, "feedback": "see notes", "missed_concepts": ["Binary arithmetic", "Recursion"]})
+    assert g.status_code == 200
+    assert set(g.json()["remediated_concepts"]) == {"Binary arithmetic", "Recursion"}
+    # The student now has open remediation modules to work on.
+    mods = client.get("/api/v1/remediation/modules", headers=sh).json()
+    assert len([m for m in mods if m["status"] != "completed"]) >= 2
+
+
+def test_sage_analyze_submission(client):
+    """AI analysis of a submission returns concepts and (best-effort) creates remediation;
+    instructor-only; empty submissions are reported as not analyzable."""
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr Z", "email": "an@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "An"}).json()["id"]
+    aid = client.post(f"/api/v1/sage/courses/{cid}/assignments", headers=ih, json={
+        "title": "Code", "instructions": "x", "points": 10}).json()["id"]
+    code = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"]
+    sh = _auth(client.post("/api/v1/sage/join", json={
+        "join_code": code, "full_name": "S", "email": "s3@uni.edu", "password": "secret123"}).json())
+    sub_id = client.post(f"/api/v1/sage/assignments/{aid}/submit", headers=sh,
+                         data={"body": "def add(a,b): return a-b  # my attempt"}).json()["id"]
+    r = client.post(f"/api/v1/sage/submissions/{sub_id}/analyze", headers=ih)
+    assert r.status_code == 200 and r.json()["analyzable"] is True and "concepts" in r.json()
+    # Students can't analyze.
+    assert client.post(f"/api/v1/sage/submissions/{sub_id}/analyze", headers=sh).status_code == 403
 
 
 def test_sage_change_password(client):

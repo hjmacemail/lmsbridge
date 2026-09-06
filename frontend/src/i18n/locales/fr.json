@@ -608,7 +608,16 @@
       "submit": "Rendre",
       "attachFile": "Joindre un fichier",
       "download": "Télécharger la pièce jointe",
-      "errBodyOrFile": "Rédigez une réponse ou joignez un fichier avant de rendre."
+      "errBodyOrFile": "Rédigez une réponse ou joignez un fichier avant de rendre.",
+      "missedConcepts": "Concepts manqués par l'étudiant",
+      "missedPh": "p. ex. Arithmétique binaire, Héritage",
+      "missedHint": "Séparés par des virgules. Chaque concept déclenche une session d'entraînement guidée ciblée — fonctionne même pour un travail hors ligne/papier. ✨ Analyser lit le rendu et suggère des concepts.",
+      "analyze": "✨ Analyser avec l'IA",
+      "analyzing": "Analyse…",
+      "remediated": "{{n}} session(s) d'entraînement guidé créée(s).",
+      "analyzeNone": "Aucun texte analysable dans ce rendu (les images ne sont pas encore lues).",
+      "analyzeClean": "Aucune erreur de compréhension claire trouvée.",
+      "analyzeFound": "Repéré : {{list}} · {{n}} session(s) d'entraînement créée(s)."
     },
     "save": "Enregistrer",
     "file": {

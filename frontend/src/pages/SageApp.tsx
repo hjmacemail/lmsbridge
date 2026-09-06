@@ -1581,7 +1581,7 @@ function AssignmentsInstructor({ course }: { course: SageCourseSummary }) {
 
   if (grading != null) {
     const a = items.find((x) => x.id === grading);
-    return <GradingView assignmentId={grading} title={a?.title || ""}
+    return <GradingView assignmentId={grading} courseId={course.id} title={a?.title || ""}
       onBack={() => { setGrading(null); load(); }} />;
   }
   if (form) {
@@ -1689,13 +1689,16 @@ function AssignmentForm({ courseId, initial, onCancel, onDone }: {
   );
 }
 
-function GradingView({ assignmentId, title, onBack }: {
-  assignmentId: number; title: string; onBack: () => void;
+function GradingView({ assignmentId, courseId, title, onBack }: {
+  assignmentId: number; courseId: number; title: string; onBack: () => void;
 }) {
   const { t } = useTranslation();
   const [view, setView] = useState<SageSubmissionsView | null>(null);
+  const [concepts, setConcepts] = useState<string[]>([]);
+  const loadConcepts = () => sageApi.courseConcepts(courseId).then(setConcepts).catch(() => setConcepts([]));
   const load = () => sageApi.submissions(assignmentId).then(setView).catch(() => setView(null));
-  useEffect(() => { load(); }, [assignmentId]);
+  useEffect(() => { load(); loadConcepts(); }, [assignmentId, courseId]);
+  const refresh = () => { load(); loadConcepts(); };
 
   const points = view?.assignment.points ?? 100;
   return (
@@ -1704,12 +1707,13 @@ function GradingView({ assignmentId, title, onBack }: {
         <GhostBtn onClick={onBack}><Icon name="back" size={16} /> {t("sage.asg.back", { defaultValue: "Back to assignments" })}</GhostBtn>
         <h3 style={{ margin: 0, fontSize: 17 }}>{title}</h3>
       </div>
+      <datalist id="sage-grade-concepts">{concepts.map((c) => <option key={c} value={c} />)}</datalist>
       {view && view.rows.length === 0 && (
         <Card style={{ textAlign: "center", color: C.muted, background: C.soft, border: "none" }}>
           {t("sage.asg.noStudents", { defaultValue: "No students are enrolled yet." })}</Card>
       )}
       {view?.rows.map((r) => (
-        <SubmissionRow key={r.student_id} row={r} points={points} onGraded={load} />
+        <SubmissionRow key={r.student_id} row={r} points={points} onGraded={refresh} />
       ))}
     </div>
   );
@@ -1722,14 +1726,45 @@ function SubmissionRow({ row, points, onGraded }: {
   const sub = row.submission;
   const [grade, setGrade] = useState<string>(sub?.grade != null ? String(sub.grade) : "");
   const [feedback, setFeedback] = useState(sub?.feedback || "");
+  const [missed, setMissed] = useState("");
   const [busy, setBusy] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+
+  function parseConcepts(s: string): string[] {
+    return s.split(",").map((x) => x.trim()).filter(Boolean);
+  }
 
   async function save() {
     if (!sub) return;
-    setBusy(true);
-    try { await sageApi.gradeSubmission(sub.id, Number(grade) || 0, feedback); onGraded(); }
-    catch (e) { window.alert((e as Error).message); } finally { setBusy(false); }
+    setBusy(true); setNote(null);
+    try {
+      const r = await sageApi.gradeSubmission(sub.id, Number(grade) || 0, feedback, parseConcepts(missed));
+      const n = r.remediated_concepts?.length || 0;
+      if (n > 0) setNote(t("sage.asg.remediated", { defaultValue: "Created {{n}} guided practice session(s).", n }));
+      setMissed("");
+      onGraded();
+    } catch (e) { window.alert((e as Error).message); } finally { setBusy(false); }
+  }
+
+  async function analyze() {
+    if (!sub) return;
+    setAnalyzing(true); setNote(null);
+    try {
+      const r = await sageApi.analyzeSubmission(sub.id);
+      if (!r.analyzable) {
+        setNote(t("sage.asg.analyzeNone", { defaultValue: "No analyzable text in this submission (images aren't read yet)." }));
+      } else if (r.concepts.length === 0) {
+        setNote(t("sage.asg.analyzeClean", { defaultValue: "No clear misconception found." }));
+      } else {
+        setMissed(r.concepts.map((c) => c.name).join(", "));
+        setNote(t("sage.asg.analyzeFound", {
+          defaultValue: "Flagged: {{list}} · {{n}} practice session(s) created.",
+          list: r.concepts.map((c) => c.name).join(", "), n: r.remediation_created }));
+        onGraded();
+      }
+    } catch (e) { window.alert((e as Error).message); } finally { setAnalyzing(false); }
   }
 
   return (
@@ -1765,7 +1800,22 @@ function SubmissionRow({ row, points, onGraded }: {
           <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)}
             placeholder={t("sage.asg.phFeedback", { defaultValue: "Feedback for the student (optional)…" })}
             style={{ ...inputStyle, minHeight: 70, resize: "vertical", marginBottom: 10 }} />
-          <PrimaryBtn onClick={save} disabled={busy}>{t("sage.asg.saveGrade", { defaultValue: "Save grade" })}</PrimaryBtn>
+          <label style={{ fontSize: 13, fontWeight: 600, color: C.muted, display: "block", marginBottom: 4 }}>
+            {t("sage.asg.missedConcepts", { defaultValue: "Concepts the student missed" })}</label>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <input list="sage-grade-concepts" value={missed} onChange={(e) => setMissed(e.target.value)}
+              placeholder={t("sage.asg.missedPh", { defaultValue: "e.g. Binary arithmetic, Inheritance" })}
+              style={{ ...inputStyle, flex: "1 1 240px" }} />
+            <GhostBtn onClick={analyze} disabled={analyzing || busy}>
+              {analyzing ? t("sage.asg.analyzing", { defaultValue: "Analyzing…" })
+                : t("sage.asg.analyze", { defaultValue: "✨ Analyze with AI" })}</GhostBtn>
+          </div>
+          <div style={{ fontSize: 12, color: C.muted, margin: "4px 0 10px" }}>
+            {t("sage.asg.missedHint", { defaultValue: "Comma-separated. Each concept gets the student a targeted guided-practice session — works even for offline/paper work. ✨ Analyze reads the submission and suggests concepts." })}</div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <PrimaryBtn onClick={save} disabled={busy}>{t("sage.asg.saveGrade", { defaultValue: "Save grade" })}</PrimaryBtn>
+            {note && <span style={{ fontSize: 13, color: C.success }}>{note}</span>}
+          </div>
         </div>
       )}
     </Card>

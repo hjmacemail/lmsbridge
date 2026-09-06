@@ -26,7 +26,13 @@ from app.db.session import get_db
 from app.models.assessment import Assessment, AssessmentResult, Question
 from app.models.concept import Concept
 from app.models.course import Course, Enrollment
-from app.models.enums import AssessmentType, RemediationStatus, UserRole
+from app.models.enums import (
+    AssessmentType,
+    MasteryStatus,
+    PedagogyStrategy,
+    RemediationStatus,
+    UserRole,
+)
 from app.models.material import CourseMaterial
 from app.models.remediation import RemediationModule
 from app.models.sage import SageAnnouncement, SageAssignment, SageSubmission
@@ -52,7 +58,9 @@ from app.schemas.sage import (
     SageSignup,
     SyllabusUpdate,
 )
+from app.services import mastery_service
 from app.services.ingestion_service import ingest_result
+from app.services.remediation_engine import generate_module
 from app.services.material_service import MAX_UPLOAD_BYTES, create_material
 
 router = APIRouter(prefix="/sage", tags=["sage"])
@@ -427,6 +435,83 @@ def _get_or_create_concept(db: Session, course_id: int, name: str) -> Concept:
         db.add(c)
         db.flush()
     return c
+
+
+def _remediate_for_concepts(
+    db: Session, course: Course, student: User, concept_names: list[str],
+    observed_score: float = 0.3,
+) -> list[str]:
+    """Drive the standard remediation pipeline for concepts a student got wrong on work that
+    didn't flow through an auto-graded quiz (offline/paper/project, or AI-detected). For each
+    concept: resolve/create it, push mastery down, and generate a guided module if the concept is
+    now at-risk and none is already open. Returns the concept names that got a new module."""
+    created: list[str] = []
+    for raw in concept_names:
+        name = (raw or "").strip()
+        if not name:
+            continue
+        concept = _get_or_create_concept(db, course.id, name)
+        mastery = mastery_service.update_mastery(
+            db, student_id=student.id, concept_id=concept.id, observed_score=observed_score)
+        open_exists = db.scalar(select(RemediationModule).where(
+            RemediationModule.student_id == student.id,
+            RemediationModule.concept_id == concept.id,
+            RemediationModule.status.in_(
+                [RemediationStatus.pending, RemediationStatus.in_progress]))) is not None
+        if mastery.status == MasteryStatus.at_risk and not open_exists:
+            generate_module(
+                db, student_id=student.id, course_id=course.id, concept=concept,
+                course_title=course.title, mastery_score=mastery.mastery_score,
+                strategy=PedagogyStrategy.socratic_scaffolding)
+            created.append(concept.name)
+    db.commit()
+    return created
+
+
+_TEXT_CTYPES = {"application/json", "application/xml", "application/javascript",
+                "application/x-python", "application/x-sh", "application/x-yaml"}
+
+
+def _submission_text(sub: SageSubmission, limit: int = 12000) -> str:
+    """The analyzable text of a submission: the written response plus a text/code attachment
+    (decoded). Binary/image files are skipped (no OCR)."""
+    parts = [sub.body or ""]
+    ct = (sub.content_type or "").lower()
+    if sub.file_content is not None and (ct.startswith("text/") or ct in _TEXT_CTYPES):
+        parts.append(sub.file_content.decode("utf-8", errors="ignore"))
+    return "\n\n".join(p for p in parts if p and p.strip()).strip()[:limit]
+
+
+def _llm_detect_misconceptions(
+    db: Session, course_id: int, title: str, work: str, existing: list[str]
+) -> list[dict]:
+    """Ask the model which course concepts the work reveals a misconception in. Best-effort:
+    returns [] on any failure so the request never breaks."""
+    try:
+        llm = resolve_provider(db, course_id=course_id)
+        system = (
+            "You are an expert STEM instructor reviewing a student's submitted work to find "
+            "concept-level MISCONCEPTIONS (genuine misunderstandings, not typos). Prefer concept "
+            "names from the provided course list; add a short new concept name only if clearly "
+            "needed. Reply in the SAME LANGUAGE as the work. Respond with ONLY JSON: "
+            '{"concepts":[{"name":"...","rationale":"one short sentence"}]}. If the work shows no '
+            "clear misconception, return an empty list."
+        )
+        payload = json.dumps({"assignment": title, "course_concepts": existing, "work": work},
+                             ensure_ascii=False)
+        resp = llm.complete([LLMMessage("system", system), LLMMessage("user", payload)],
+                            json_mode=True)
+        items = extract_json(resp.text).get("concepts")
+        out: list[dict] = []
+        if isinstance(items, list):
+            for it in items[:8]:
+                name = str((it or {}).get("name") or "").strip()
+                if name:
+                    out.append({"name": name[:80],
+                                "rationale": str((it or {}).get("rationale") or "").strip()[:240]})
+        return out
+    except Exception:  # noqa: BLE001 — analysis is best-effort.
+        return []
 
 
 _QTYPES = {"mcq", "true_false", "multi", "short"}
@@ -926,7 +1011,41 @@ def grade_submission(
     sub.graded_by = user.id
     db.commit()
     db.refresh(sub)
-    return _submission_out(sub)
+    out = _submission_out(sub)
+    # Concept tags the instructor flagged -> generate targeted practice for the student.
+    remediated = []
+    if payload.missed_concepts:
+        student = db.get(User, sub.student_id)
+        if student:
+            remediated = _remediate_for_concepts(db, _course, student, payload.missed_concepts)
+    out["remediated_concepts"] = remediated
+    return out
+
+
+@router.post("/submissions/{submission_id}/analyze")
+def analyze_submission(
+    submission_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+) -> dict:
+    """Instructor action: read a student's submitted work (text response and/or a text/code file)
+    and let the model flag concept-level misconceptions, then build targeted practice for each.
+    Turns any digital artifact into a remediation signal — no auto-graded quiz required."""
+    sub = db.get(SageSubmission, submission_id)
+    if not sub:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    a = db.get(SageAssignment, sub.assignment_id)
+    course, role = _require_role(db, a.course_id, user)
+    if role != "instructor":
+        raise HTTPException(status_code=403, detail="Instructors only")
+
+    work = _submission_text(sub)
+    if not work:
+        return {"analyzable": False, "concepts": [], "remediation_created": 0}
+    existing = [c.name for c in db.scalars(
+        select(Concept).where(Concept.course_id == course.id)).all()]
+    detected = _llm_detect_misconceptions(db, course.id, a.title, work, existing)
+    student = db.get(User, sub.student_id)
+    created = _remediate_for_concepts(db, course, student, [c["name"] for c in detected]) if student else []
+    return {"analyzable": True, "concepts": detected, "remediation_created": len(created)}
 
 
 @router.get("/courses/{course_id}/quizzes")

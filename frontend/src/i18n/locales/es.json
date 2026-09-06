@@ -608,7 +608,16 @@
       "submit": "Entregar",
       "attachFile": "Adjuntar archivo",
       "download": "Descargar adjunto",
-      "errBodyOrFile": "Escribe una respuesta o adjunta un archivo antes de entregar."
+      "errBodyOrFile": "Escribe una respuesta o adjunta un archivo antes de entregar.",
+      "missedConcepts": "Conceptos que el estudiante falló",
+      "missedPh": "p. ej. Aritmética binaria, Herencia",
+      "missedHint": "Separados por comas. Cada concepto genera una sesión de práctica guiada dirigida — funciona incluso para trabajo offline/en papel. ✨ Analizar lee la entrega y sugiere conceptos.",
+      "analyze": "✨ Analizar con IA",
+      "analyzing": "Analizando…",
+      "remediated": "Se crearon {{n}} sesión(es) de práctica guiada.",
+      "analyzeNone": "No hay texto analizable en esta entrega (las imágenes aún no se leen).",
+      "analyzeClean": "No se encontró ningún error conceptual claro.",
+      "analyzeFound": "Marcado: {{list}} · {{n}} sesión(es) de práctica creada(s)."
     },
     "save": "Guardar",
     "file": {

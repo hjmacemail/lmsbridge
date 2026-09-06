@@ -527,7 +527,10 @@ export const sageApi = {
     api.authedDownload(`/sage/submissions/${submissionId}/file`, filename),
   submissions: (assignmentId: number) =>
     request<SageSubmissionsView>(`/sage/assignments/${assignmentId}/submissions`),
-  gradeSubmission: (submissionId: number, grade: number, feedback: string) =>
-    request<SageSubmission>(`/sage/submissions/${submissionId}/grade`,
-      { method: "POST", body: JSON.stringify({ grade, feedback }) }),
+  gradeSubmission: (submissionId: number, grade: number, feedback: string, missed_concepts: string[] = []) =>
+    request<SageSubmission & { remediated_concepts?: string[] }>(`/sage/submissions/${submissionId}/grade`,
+      { method: "POST", body: JSON.stringify({ grade, feedback, missed_concepts }) }),
+  analyzeSubmission: (submissionId: number) =>
+    request<{ analyzable: boolean; concepts: { name: string; rationale: string }[]; remediation_created: number }>(
+      `/sage/submissions/${submissionId}/analyze`, { method: "POST" }),
 };
