@@ -127,7 +127,8 @@ export default function DemoPage() {
       {/* Slim, branded control bar */}
       <div style={{ background: "#3C3489", color: "#fff", display: "flex", flexWrap: "wrap",
         alignItems: "center", gap: "8px 14px", padding: "7px 16px" }}>
-        <span style={{ display: "inline-flex", alignItems: "baseline", gap: 7 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+          <img src="/lmsbridge-mark.png" alt="" style={{ height: 22 }} />
           <span style={{ fontWeight: 800, fontSize: 15.5 }}>LMS Bridge</span>
           <span style={{ fontSize: 11, opacity: .7, textTransform: "uppercase", letterSpacing: ".6px" }}>
             {t("demo.brandTag")}</span>

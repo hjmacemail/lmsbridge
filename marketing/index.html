@@ -168,6 +168,7 @@
   .pill{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);background:rgba(124,108,245,.12);border:1px solid rgba(124,108,245,.28);padding:6px 12px;border-radius:999px}
   .brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:18px;letter-spacing:-.3px}
   .brand .mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#7c6cf5,#5b4df5);display:inline-flex;align-items:center;justify-content:center;font-size:14px}
+  .brand .mark-img{width:26px;height:26px;object-fit:contain;display:inline-block}
   .brand small{font-weight:500;color:var(--muted);font-size:12.5px}
 
   /* nav */
@@ -370,7 +371,7 @@
 </head>
 <body>
 <nav><div class="wrap">
-<a class="brand" href="#top" aria-label="LMS Bridge — back to top" onclick="window.scrollTo({top:0,behavior:'smooth'});history.replaceState(null,'',location.pathname);return false;"><span class="mark">📘</span> LMS Bridge</a>
+<a class="brand" href="#top" aria-label="LMS Bridge — back to top" onclick="window.scrollTo({top:0,behavior:'smooth'});history.replaceState(null,'',location.pathname);return false;"><img class="mark-img" src="/lmsbridge-mark.png" alt=""> LMS Bridge</a>
 <div class="links">
 <a data-i18n="k001" href="#why">Why LMS Bridge</a>
 <a data-i18n="k002" href="#how">How it works</a>
@@ -407,7 +408,7 @@
 <div class="mock">
 <div class="mock-bar">
 <span style="opacity:.7">▦ CS 101</span><span style="opacity:.5">›</span>
-<span class="brand" style="font-size:13.5px"><span class="mark" style="width:18px;height:18px;font-size:10px">📘</span> LMS Bridge</span>
+<span class="brand" style="font-size:13.5px"><img class="mark-img" src="/lmsbridge-mark.png" alt="" style="width:18px;height:18px"> LMS Bridge</span>
 <span data-i18n="k200" style="margin-left:auto;font-size:11.5px;opacity:.7">CS-UY 2110 · Computer Architecture</span>
 </div>
 <div class="dash-main" style="padding:15px 16px">
@@ -654,7 +655,7 @@
 </main>
 <footer><div class="wrap" style="flex-direction:column;align-items:flex-start;gap:14px">
 <div class="wrap" style="width:100%;margin:0;padding:0">
-<span class="brand" style="font-size:16px"><span class="mark" style="width:22px;height:22px;font-size:12px">📘</span> LMS Bridge <small data-i18n="k192">· © 2025 · AGPL-3.0</small></span>
+<span class="brand" style="font-size:16px"><img class="mark-img" src="/lmsbridge-mark.png" alt="" style="width:22px;height:22px"> LMS Bridge <small data-i18n="k192">· © 2025 · AGPL-3.0</small></span>
 <div class="fl">
 <a data-gh="" data-i18n="k193" href="#">Documentation</a>
 <a data-gh="" href="#">GitHub</a>

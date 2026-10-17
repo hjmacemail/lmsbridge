@@ -194,7 +194,7 @@ export default function SageApp() {
             <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0, flexWrap: "wrap" }}>
               <span style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 18,
                 whiteSpace: "nowrap" }}>
-                {BRAND.logoUrl ? <img src={BRAND.logoUrl} alt={BRAND.name} style={{ height: 22 }} />
+                {BRAND.markUrl ? <img src={BRAND.markUrl} alt="" style={{ height: 24 }} />
                   : <Icon name="school" size={20} />} {BRAND.name}</span>
               <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer"
                 style={{ opacity: 0.75, fontWeight: 400, fontSize: 12.5, color: "#fff",
@@ -221,17 +221,17 @@ export default function SageApp() {
       <aside style={{ width: 232, flexShrink: 0, background: C.sidebar, borderRight: `1px solid ${C.line}`,
         display: "flex", flexDirection: "column", padding: "16px 12px", position: "sticky", top: 0,
         height: "100vh", boxSizing: "border-box" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "4px 8px 14px",
-          borderBottom: `1px solid ${C.line}`, marginBottom: 10 }}>
-          <span style={{ width: 30, height: 30, borderRadius: 9, background: C.primary, color: "#fff",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            {BRAND.logoUrl ? <img src={BRAND.logoUrl} alt="" style={{ height: 18 }} /> : <Icon name="school" size={18} color="#fff" />}
-          </span>
-          <div style={{ lineHeight: 1.15 }}>
-            <div style={{ fontWeight: 800, fontSize: 16, color: C.ink }}>{BRAND.name}</div>
-            <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer"
-              style={{ fontSize: 10.5, color: C.muted, textDecoration: "none" }}>· {BRAND.attribution}</a>
-          </div>
+        <div style={{ padding: "2px 8px 14px", borderBottom: `1px solid ${C.line}`, marginBottom: 10 }}>
+          {BRAND.logoUrl
+            ? <img src={BRAND.logoUrl} alt={BRAND.name} style={{ height: 30, display: "block", maxWidth: "100%" }} />
+            : <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                <span style={{ width: 30, height: 30, borderRadius: 9, background: C.primary, color: "#fff",
+                  display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Icon name="school" size={18} color="#fff" /></span>
+                <div style={{ fontWeight: 800, fontSize: 16, color: C.ink }}>{BRAND.name}</div>
+              </div>}
+          <a href={LMSBRIDGE_HOME} target="_blank" rel="noreferrer"
+            style={{ fontSize: 10.5, color: C.muted, textDecoration: "none", display: "inline-block", marginTop: 4 }}>· {BRAND.attribution}</a>
         </div>
 
         <nav style={{ display: "grid", gap: 2, flex: 1, alignContent: "start" }}>

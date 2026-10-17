@@ -33,7 +33,8 @@ export default function Login() {
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 4 }}>
           <LanguageSwitcher />
         </div>
-        <h1>LMS<span style={{ color: "var(--primary)" }}> Bridge</span></h1>
+        <img src="/lmsbridge-logo.png" alt="LMS Bridge"
+          style={{ height: 40, display: "block", margin: "2px 0 8px" }} />
         <p className="muted" style={{ marginTop: 0 }}>{t("login.subtitle")}</p>
         <form onSubmit={submit}>
           <div className="field">

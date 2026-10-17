@@ -10,13 +10,16 @@ export interface Brand {
   name: string;
   attribution: string;   // shown after the name, links to the LMS Bridge home (AGPL attribution)
   accent?: string;       // optional header colour override
-  logoUrl?: string;      // optional logo image (replaces the default mark)
+  logoUrl?: string;      // full lockup (mark + wordmark) — for light backgrounds
+  markUrl?: string;      // emblem only — for dark backgrounds / compact spots
   tagline?: string;      // welcome-screen subtitle
 }
 
 const DEFAULT: Brand = {
   name: "Sage",
   attribution: "by LMS Bridge",
+  logoUrl: "/sage-logo.png",
+  markUrl: "/sage-mark.png",
   tagline: "Your own mini class platform — create a course, add quizzes, and let LMS Bridge guide "
     + "students through what they miss. No LMS needed.",
 };

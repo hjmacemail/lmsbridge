@@ -25,7 +25,9 @@ function TopBar() {
   const home = auth.role === "student" ? "/dashboard" : "/instructor";
   return (
     <div className="topbar">
-      <Link to={home} className="brand" style={{ color: "#fff" }}>
+      <Link to={home} className="brand" style={{ color: "#fff", display: "inline-flex",
+        alignItems: "center", gap: 8 }}>
+        <img src="/lmsbridge-mark.png" alt="" style={{ height: 26 }} />
         LMS<span> Bridge</span>
       </Link>
       <div className="user">

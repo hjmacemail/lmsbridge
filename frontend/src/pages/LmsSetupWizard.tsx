@@ -46,11 +46,14 @@ export default function LmsSetupWizard() {
       <header style={{ background: ink, color: "#fff", padding: "16px 0" }}>
         <div style={{ maxWidth: 820, margin: "0 auto", padding: "0 16px", display: "flex",
           alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 19 }}>
-              {t("connect.headerTitle", { defaultValue: "LMS Bridge · Connect your LMS" })}</div>
-            <div style={{ opacity: 0.7, fontSize: 13, marginTop: 2 }}>
-              {t("connect.headerSubtitle", { defaultValue: "Everything an admin needs to register the tool — copy a URL, follow the steps. No docs required." })}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <img src="/lmsbridge-mark.png" alt="" style={{ height: 34, flexShrink: 0 }} />
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 19 }}>
+                {t("connect.headerTitle", { defaultValue: "LMS Bridge · Connect your LMS" })}</div>
+              <div style={{ opacity: 0.7, fontSize: 13, marginTop: 2 }}>
+                {t("connect.headerSubtitle", { defaultValue: "Everything an admin needs to register the tool — copy a URL, follow the steps. No docs required." })}
+              </div>
             </div>
           </div>
           <LanguageSwitcher dark />
