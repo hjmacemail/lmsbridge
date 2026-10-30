@@ -2,15 +2,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 
 from jose import jwt
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.lti import claims as C
 from app.lti.jwks_client import find_key
 from app.lti.oidc import LtiError
 from app.models.lti import LtiDeployment, LtiNonce, LtiRegistration
+
+# A login state/nonce is valid only for the short OIDC→launch round-trip. Anything older is
+# rejected (anti-replay) so a leaked unused pair cannot be launched later.
+LAUNCH_STATE_TTL = timedelta(minutes=15)
 
 
 @dataclass
@@ -41,11 +46,25 @@ class LtiLaunch:
 def _consume_state(db: Session, state: str) -> LtiNonce:
     row = db.scalar(select(LtiNonce).where(LtiNonce.state == state))
     if not row:
-        raise LtiError("Unknown or expired launch state")
+        raise LtiError("Unknown launch state")
     if row.used:
         raise LtiError("Launch state already used (possible replay)")
+    created = row.created_at
+    if created is not None:
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) - created > LAUNCH_STATE_TTL:
+            row.used = True
+            db.flush()
+            raise LtiError("Launch state expired — please relaunch from your LMS")
     row.used = True
     db.flush()
+    # Best-effort housekeeping so the nonce table can't grow unbounded (never blocks a launch).
+    try:
+        db.execute(delete(LtiNonce).where(
+            LtiNonce.created_at < datetime.now(timezone.utc) - LAUNCH_STATE_TTL))
+    except Exception:  # noqa: BLE001
+        pass
     return row
 
 

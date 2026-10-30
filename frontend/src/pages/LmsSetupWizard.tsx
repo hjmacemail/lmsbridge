@@ -11,7 +11,9 @@ const accent = "#4f46e5";
 const LMS_KEYS = ["canvas", "moodle", "brightspace", "blackboard"] as const;
 type LmsKey = (typeof LMS_KEYS)[number];
 const ONE_CLICK: Record<LmsKey, boolean> = {
-  canvas: true, moodle: true, brightspace: false, blackboard: false,
+  // Brightspace supports LTI Advantage Dynamic Registration (Register Tool → Dynamic), matching
+  // its install guide; Blackboard (Anthology) needs the two-party manual flow.
+  canvas: true, moodle: true, brightspace: true, blackboard: false,
 };
 
 function CopyRow({ label, value }: { label: string; value: string }) {

@@ -562,3 +562,23 @@ def test_sage_join_requires_valid_code(client):
         "full_name": "X", "email": "x@uni.edu", "password": "secret123"})
     bad = client.post("/api/v1/sage/guest", json={"join_code": "ZZZZZZ", "full_name": "Nobody"})
     assert bad.status_code == 404
+
+
+def test_sage_short_answer_grading_is_tolerant(client):
+    """A short-answer that differs only by surrounding punctuation/case/whitespace is correct,
+    so students aren't falsely marked wrong (and falsely remediated)."""
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr SA", "email": "sa@uni.edu", "password": "secret123"}).json())
+    cid = client.post("/api/v1/sage/courses", headers=ih, json={"name": "SA"}).json()["id"]
+    qid = client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih, json={
+        "title": "Q", "questions": [
+            {"prompt": "1011 in decimal?", "qtype": "short", "choices": [], "correct": "11",
+             "concept": "Binary representation"}]}).json()["id"]
+    code = client.get(f"/api/v1/sage/courses/{cid}", headers=ih).json()["join_code"]
+    sh = _auth(client.post("/api/v1/sage/guest", json={"join_code": code, "full_name": "S"}).json())
+    take = client.get(f"/api/v1/sage/quizzes/{qid}/take", headers=sh).json()
+    qq = take["questions"][0]["id"]
+    # "  11.  " must still be graded correct.
+    res = client.post(f"/api/v1/sage/quizzes/{qid}/submit", headers=sh,
+                      json={"answers": [{"question_id": qq, "choice": "  11.  "}]}).json()
+    assert res["correct"] == 1 and res["total"] == 1

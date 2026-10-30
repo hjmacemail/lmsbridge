@@ -71,8 +71,12 @@ def ags_get_lineitems(db: Session, reg: LtiRegistration, lineitems_url: str) -> 
 
 def ags_get_results(db: Session, reg: LtiRegistration, lineitem_url: str) -> list[dict]:
     token = get_access_token(db, reg, [C.SCOPE_AGS_RESULT])
-    sep = "&" if "?" in lineitem_url else "?"
-    url = f"{lineitem_url}{sep}" if lineitem_url.endswith("/results") else f"{lineitem_url}/results"
+    # The results endpoint is the line-item URL with "/results" appended before any query
+    # string (which some platforms attach to the line-item URL and we must preserve).
+    base, _, query = lineitem_url.partition("?")
+    if not base.endswith("/results"):
+        base = base.rstrip("/") + "/results"
+    url = base + (f"?{query}" if query else "")
     resp = httpx.get(
         url,
         headers={"Authorization": f"Bearer {token}",

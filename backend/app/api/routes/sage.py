@@ -216,6 +216,9 @@ def create_course(
     course = Course(
         code=f"{payload.name.strip()[:40]} [{code}]", title=payload.name.strip(),
         term="Sage", join_code=code, owner_id=user.id,
+        # Inherit the creator's institution so its BYO-AI key and external-AI opt-out govern
+        # this course's LLM calls (otherwise Sage would always use the platform default).
+        tenant_id=user.tenant_id,
     )
     db.add(course)
     db.flush()
@@ -607,6 +610,13 @@ def _correct_list(q: Question) -> list[str]:
     return [q.correct_answer] if q.correct_answer else []
 
 
+def _norm_short(s: str) -> str:
+    """Normalize a short-answer string so trivial differences (case, surrounding punctuation,
+    repeated/edge whitespace) don't mark a correct answer wrong — e.g. '10.' == '10', 'True' =='true'."""
+    s = re.sub(r"\s+", " ", (s or "").strip().lower())
+    return s.strip(" .!?,;:'\"()")
+
+
 def _grade(q: Question, ans) -> tuple[bool, str]:
     """Return (is_correct, selected_display) for one answered question."""
     qtype = q.qtype or "mcq"
@@ -616,8 +626,8 @@ def _grade(q: Question, ans) -> tuple[bool, str]:
         return (bool(correct) and selected == correct, ", ".join(sorted(selected)))
     if qtype == "short":
         sel = (ans.choice or "").strip()
-        accepted = {a.strip().lower() for a in _correct_list(q)}
-        return (bool(accepted) and sel.lower() in accepted, sel)
+        accepted = {_norm_short(a) for a in _correct_list(q)}
+        return (bool(accepted) and _norm_short(sel) in accepted, sel)
     sel = ans.choice
     return (sel is not None and sel == q.correct_answer, sel or "")
 

@@ -31,8 +31,12 @@ from app.services.remediation_engine import _evidence_summary
 
 logger = get_logger("tutor")
 
-# Mastery credit awarded when a student completes a tutoring session for a concept.
+# Mastery credit when the tutor itself judges the student has grasped the concept.
 COMPLETION_MASTERY_SCORE = 0.85
+# Weaker credit when the session is force-ended at the turn cap (engaged, but mastery not
+# demonstrated) — kept below the mastery threshold so it won't clear an at-risk student on its
+# own, letting remediation re-trigger if they're still struggling.
+PARTIAL_COMPLETION_SCORE = 0.6
 # After this many student turns, the tutor wraps up gracefully so sessions never run forever.
 MAX_STUDENT_TURNS = 10
 
@@ -271,6 +275,8 @@ def post_message(
         # non-repeating nudge tied to the concept — never a dismissive canned line.
         reply = _help_fallback(module)
 
+    # Did the tutor itself judge the student has grasped the concept, or did we just hit the cap?
+    model_judged_complete = complete
     if at_limit:
         complete = True  # enforce the cap even if the model doesn't comply
 
@@ -279,14 +285,17 @@ def post_message(
     if complete:
         module.status = RemediationStatus.completed
         module.completed_at = datetime.now(timezone.utc)
-        # Completing the session is evidence of improvement -> raise mastery.
+        # A tutor-judged completion credits near-mastery; a forced turn-cap wrap-up credits only
+        # a weaker "engaged" signal, so finishing doesn't masquerade as demonstrated mastery.
+        observed = COMPLETION_MASTERY_SCORE if model_judged_complete else PARTIAL_COMPLETION_SCORE
         mastery_service.update_mastery(
             db, student_id=module.student_id, concept_id=module.concept_id,
-            observed_score=COMPLETION_MASTERY_SCORE,
+            observed_score=observed,
         )
         logger.info(
-            "Tutor session for module #%s completed; mastery for concept %s raised.",
-            module.id, module.concept_id,
+            "Tutor session for module #%s completed (tutor_judged=%s); mastery for concept %s "
+            "updated with observed=%.2f.",
+            module.id, model_judged_complete, module.concept_id, observed,
         )
 
     db.commit()

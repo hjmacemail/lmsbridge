@@ -21,8 +21,18 @@ def find_registration(
         LtiRegistration.issuer == issuer, LtiRegistration.active.is_(True)
     )
     if client_id:
-        stmt = stmt.where(LtiRegistration.client_id == client_id)
-    reg = db.scalars(stmt).first()
+        reg = db.scalars(stmt.where(LtiRegistration.client_id == client_id)).first()
+    else:
+        # No client_id supplied: only safe when the issuer has exactly one registration.
+        # One platform (issuer) can host several tool client_ids, so picking .first()
+        # arbitrarily could bind the launch to the wrong registration.
+        regs = db.scalars(stmt).all()
+        if len(regs) > 1:
+            raise LtiError(
+                f"Multiple LTI registrations for issuer={issuer}; the login request must "
+                "include client_id to disambiguate."
+            )
+        reg = regs[0] if regs else None
     if not reg:
         raise LtiError(f"No LTI registration for issuer={issuer} client_id={client_id}")
     return reg

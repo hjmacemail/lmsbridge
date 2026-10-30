@@ -230,7 +230,7 @@ def guides(lang: str) -> dict:
             ("table", [["Issuer", "https://blackboard.com"],
                        ["OIDC auth", "https://developer.blackboard.com/api/v1/gateway/oidcauth"],
                        ["Token", "https://developer.blackboard.com/api/v1/gateway/oauth2/jwttoken"],
-                       ["Platform JWKS", ".../management/applications//jwks.json"]]),
+                       ["Platform JWKS", ".../management/applications/<application_id>/jwks.json"]]),
             ("p", L("Tip: enable auto-register deployments on this registration so each school’s Deployment ID is trusted on first launch.",
                     "نصيحة: فعّل auto-register deployments على هذا التسجيل كي يُوثَّق Deployment ID لكل مؤسسة عند أول تشغيل.",
                     "Consejo: activa auto-register deployments en este registro para que el Deployment ID de cada institución se confíe en el primer lanzamiento.",
