@@ -43,9 +43,10 @@ def demo_login(payload: DemoLoginRequest, db: Session = Depends(get_db)) -> Toke
     """Password-less sign-in as the seeded demo student/instructor (for the public demo).
 
     Returns the demo account for the requested role. Disabled when `demo_login_enabled` is
-    false (set that on a real institutional deployment). Never returns an admin account.
+    false, and never active on a production community (self-hosted) deployment — so it can't be
+    used to sign into a real account. Never returns an admin account.
     """
-    if not settings.demo_login_enabled:
+    if not settings.demo_login_active:
         raise HTTPException(status_code=404, detail="Demo login is disabled")
     role = UserRole.instructor if payload.role == "instructor" else UserRole.student
     user = db.scalar(
@@ -79,7 +80,7 @@ def demo_login(payload: DemoLoginRequest, db: Session = Depends(get_db)) -> Toke
 @router.post("/demo-reset")
 def demo_reset(db: Session = Depends(get_db)) -> dict:
     """Restore the seeded demo data to its pristine starting state (public-demo affordance)."""
-    if not settings.demo_login_enabled:
+    if not settings.demo_login_active:
         raise HTTPException(status_code=404, detail="Demo is disabled")
     from app.services.demo_service import reset_demo_data
     return reset_demo_data(db)

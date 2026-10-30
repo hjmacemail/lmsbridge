@@ -35,6 +35,17 @@ async def lifespan(_: FastAPI):
         settings.app_name, __version__, settings.app_env,
         settings.llm_provider, settings.brightspace_adapter,
     )
+    # Refuse to boot on a production deployment that still has insecure defaults.
+    errors = settings.security_errors()
+    if errors:
+        for e in errors:
+            logger.error("Insecure production configuration: %s", e)
+        raise RuntimeError("Insecure production configuration — " + " ".join(errors))
+    if settings.is_production and settings.demo_login_enabled and not settings.demo_login_active:
+        logger.warning(
+            "DEMO_LOGIN_ENABLED is set but ignored: password-less demo sign-in is disabled "
+            "on a production community deployment."
+        )
     # Idempotent: provision the platform operator from env vars (no shell needed on PaaS).
     from app.scripts.seed import ensure_platform_admin
     ensure_platform_admin()

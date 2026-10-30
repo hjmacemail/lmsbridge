@@ -6,6 +6,11 @@ from functools import lru_cache
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# The throwaway signing key shipped for local dev. A production deploy that still uses this
+# can have its JWTs forged, so the app refuses to boot with it in production (see
+# security_errors()).
+DEFAULT_SECRET_KEY = "dev-secret-change-me"
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", case_sensitive=False)
@@ -30,7 +35,7 @@ class Settings(BaseSettings):
     demo_login_enabled: bool = True
 
     # Security
-    secret_key: str = "dev-secret-change-me"
+    secret_key: str = DEFAULT_SECRET_KEY
     access_token_expire_minutes: int = 60
     algorithm: str = "HS256"
     # Stored as a raw comma-separated string to avoid pydantic-settings JSON-decoding
@@ -115,6 +120,31 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.app_env.lower() == "production"
+
+    @property
+    def demo_login_active(self) -> bool:
+        """Whether the password-less demo sign-in (POST /auth/demo-login) is available.
+
+        Always on outside production. In production it is NEVER active for a self-hosted
+        institution (deployment_mode="community") — otherwise it would be a password-less
+        sign-in into a real account — and is only honored for the multi-tenant hosted demo
+        (deployment_mode="hosted") when explicitly enabled.
+        """
+        if not self.demo_login_enabled:
+            return False
+        if not self.is_production:
+            return True
+        return self.deployment_mode.lower() == "hosted"
+
+    def security_errors(self) -> list[str]:
+        """Fatal misconfigurations that must block startup in production."""
+        errors: list[str] = []
+        if self.is_production and self.secret_key == DEFAULT_SECRET_KEY:
+            errors.append(
+                "SECRET_KEY is still the built-in dev value. Set a strong, unique SECRET_KEY "
+                "in production — otherwise session tokens can be forged."
+            )
+        return errors
 
 
 @lru_cache
