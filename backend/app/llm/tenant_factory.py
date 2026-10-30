@@ -14,10 +14,37 @@ from app.llm.base import LLMProvider
 from app.llm.factory import get_llm_provider
 from app.llm.guard import GuardedProvider
 from app.llm.providers.mock import MockProvider
-from app.models.course import Course
+from app.models.course import Course, Enrollment
 from app.models.tenant import Tenant
+from app.models.user import User
 
 logger = get_logger("llm.tenant")
+
+
+def _course_names(db: Session, course_id: int) -> list[str]:
+    """Names of everyone in a course (students + instructor) so the privacy guard can scrub
+    them from anything sent to the LLM — e.g. a student's name inside their own essay/code
+    submission. Returns full names plus their individual tokens (len >= 4) to catch partial
+    mentions, while avoiding over-redacting very short tokens."""
+    names: set[str] = set()
+    rows = db.execute(
+        select(User.full_name).join(Enrollment, Enrollment.user_id == User.id)
+        .where(Enrollment.course_id == course_id)
+    ).scalars().all()
+    course = db.get(Course, course_id)
+    if course and course.owner_id:
+        owner = db.get(User, course.owner_id)
+        if owner and owner.full_name:
+            rows = [*rows, owner.full_name]
+    out: set[str] = set()
+    for full in rows:
+        full = (full or "").strip()
+        if len(full) >= 3:
+            out.add(full)
+        for tok in full.split():
+            if len(tok) >= 4:
+                out.add(tok)
+    return list(names | out)
 
 
 def _provider_from_tenant(tenant: Tenant) -> LLMProvider | None:
@@ -53,11 +80,15 @@ def resolve_provider(db: Session, *, course_id: int | None = None,
             tenant = db.get(Tenant, course.tenant_id)
 
     inner = (_provider_from_tenant(tenant) if tenant else None) or get_llm_provider()
+    pii = tenant.pii_minimization if tenant else True
+    # Scrub course members' names from outgoing content (only needed when redaction is on).
+    names = _course_names(db, course_id) if (pii and course_id is not None) else []
     return GuardedProvider(
         inner,
         fallback=MockProvider(settings.llm_model),
-        pii_minimization=(tenant.pii_minimization if tenant else True),
+        pii_minimization=pii,
         external_allowed=(tenant.external_ai_allowed if tenant else True),
+        redact_names=names,
     )
 
 

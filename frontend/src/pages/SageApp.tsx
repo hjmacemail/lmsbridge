@@ -164,6 +164,7 @@ export default function SageApp() {
   // Create/Join course dialog (opened from the sidebar) + a counter that refreshes the list.
   const [courseDialog, setCourseDialog] = useState<"create" | "join" | null>(null);
   const [coursesReload, setCoursesReload] = useState(0);
+  const [navOpen, setNavOpen] = useState(false);  // mobile drawer (sidebar) open state
   const { t } = useTranslation();
   // Keep the shared AuthContext in sync so the LMS Bridge tutor route (/modules/:id,
   // a Protected route) recognises the Sage session instead of bouncing to /login.
@@ -216,9 +217,19 @@ export default function SageApp() {
     : ["Home", "Quizzes", "Assignments", "Grades", "Needs review", "Materials", "Syllabus"];
 
   return (
-    <div style={{ minHeight: "100vh", background: C.pageBg, color: C.ink, display: "flex" }}>
-      {/* persistent app sidebar */}
-      <aside style={{ width: 232, flexShrink: 0, background: C.sidebar, borderRight: `1px solid ${C.line}`,
+    <div className="sage-shell" style={{ minHeight: "100vh", background: C.pageBg, color: C.ink, display: "flex" }}>
+      {/* mobile-only top bar with a menu button (CSS hides it on desktop) */}
+      <div className="sage-mtopbar">
+        <button aria-label={t("sage.menu", { defaultValue: "Menu" })} onClick={() => setNavOpen(true)}
+          style={{ background: "none", border: "none", cursor: "pointer", padding: 6, display: "inline-flex", alignItems: "center" }}>
+          <span style={{ fontSize: 22, lineHeight: 1, color: C.ink }}>☰</span></button>
+        {BRAND.markUrl && <img src={BRAND.markUrl} alt="" style={{ height: 22 }} />}
+        <span style={{ fontWeight: 800, fontSize: 15, color: C.ink }}>{BRAND.name}</span>
+      </div>
+      {navOpen && <div className="sage-overlay" onClick={() => setNavOpen(false)} />}
+      {/* persistent app sidebar (becomes a slide-in drawer on mobile) */}
+      <aside className={"sage-aside" + (navOpen ? " open" : "")}
+        style={{ width: 232, flexShrink: 0, background: C.sidebar, borderRight: `1px solid ${C.line}`,
         display: "flex", flexDirection: "column", padding: "16px 12px", position: "sticky", top: 0,
         height: "100vh", boxSizing: "border-box" }}>
         <div style={{ padding: "2px 8px 14px", borderBottom: `1px solid ${C.line}`, marginBottom: 10 }}>
@@ -234,7 +245,7 @@ export default function SageApp() {
             style={{ fontSize: 10.5, color: C.muted, textDecoration: "none", display: "inline-block", marginTop: 4 }}>· {BRAND.attribution}</a>
         </div>
 
-        <nav style={{ display: "grid", gap: 2, flex: 1, alignContent: "start" }}>
+        <nav onClick={() => setNavOpen(false)} style={{ display: "grid", gap: 2, flex: 1, alignContent: "start" }}>
           {inCourse ? (
             <>
               <button onClick={() => setView("courses")} style={{ display: "flex", alignItems: "center", gap: 8,
@@ -285,7 +296,7 @@ export default function SageApp() {
       </aside>
 
       {/* content */}
-      <div style={{ flex: 1, minWidth: 0, padding: "28px 32px 56px", maxWidth: 1120 }}>
+      <div className="sage-main" style={{ flex: 1, minWidth: 0, padding: "28px 32px 56px", maxWidth: 1120 }}>
         {view === "profile" && <Profile onName={(n) => user && setUser({ ...user, full_name: n })}
           onBack={() => setView("courses")} />}
         {view === "courses" && <Courses key={coursesReload} userName={user.full_name} onOpen={openCourse} />}

@@ -632,7 +632,8 @@
       "changed": "Contraseña cambiada.",
       "mismatch": "Las contraseñas no coinciden.",
       "tooShort": "La nueva contraseña debe tener al menos 6 caracteres."
-    }
+    },
+    "menu": "Menú"
   },
   "lms": {
     "nav": {

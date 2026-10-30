@@ -90,3 +90,30 @@ def test_tenant_ai_settings_admin_only(client, db):
 
     # Instructor is forbidden.
     assert client.get("/api/v1/tenants/me", headers=_login(client, "prof@x.edu")).status_code == 403
+
+
+def test_resolve_provider_redacts_course_member_names(db):
+    """resolve_provider wires course members' names into the privacy guard, so a student's
+    name inside their own submission is scrubbed before any external LLM call."""
+    from app.core.privacy import redact_pii
+    from app.core.security import hash_password
+    from app.llm.tenant_factory import resolve_provider
+    from app.models.course import Course, Enrollment
+    from app.models.enums import UserRole
+    from app.models.user import User
+
+    owner = User(email="prof@t.edu", full_name="Alex Rivera", role=UserRole.instructor,
+                 hashed_password=hash_password("pw"))
+    stu = User(email="s@t.edu", full_name="Jordan Diaz", role=UserRole.student,
+               hashed_password=hash_password("pw"))
+    db.add_all([owner, stu]); db.flush()
+    course = Course(code="C1", title="T", term="x", owner_id=owner.id)
+    db.add(course); db.flush()
+    db.add(Enrollment(user_id=stu.id, course_id=course.id, role=UserRole.student))
+    db.commit()
+
+    g = resolve_provider(db, course_id=course.id)
+    assert isinstance(g, GuardedProvider)
+    assert "Jordan Diaz" in g._names and "Jordan" in g._names and "Alex Rivera" in g._names
+    scrubbed = redact_pii("Jordan Diaz wrote that recursion calls itself.", g._names)
+    assert "Jordan" not in scrubbed and "[name redacted]" in scrubbed

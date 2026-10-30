@@ -632,7 +632,8 @@
       "changed": "Mot de passe modifié.",
       "mismatch": "Les mots de passe ne correspondent pas.",
       "tooShort": "Le nouveau mot de passe doit comporter au moins 6 caractères."
-    }
+    },
+    "menu": "Menu"
   },
   "lms": {
     "nav": {
