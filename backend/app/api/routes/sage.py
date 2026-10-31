@@ -328,13 +328,26 @@ def remove_avatar(db: Session = Depends(get_db), user: User = Depends(get_curren
     db.commit()
 
 
+def _shares_course(db: Session, a_id: int, b_id: int) -> bool:
+    """True if users a and b are both enrolled in (or own) at least one common course."""
+    if a_id == b_id:
+        return True
+    a_courses = select(Enrollment.course_id).where(Enrollment.user_id == a_id)
+    return db.scalar(
+        select(Enrollment.id).where(
+            Enrollment.user_id == b_id, Enrollment.course_id.in_(a_courses)).limit(1)
+    ) is not None
+
+
 @router.get("/users/{user_id}/avatar")
 def get_avatar(
-    user_id: int, db: Session = Depends(get_db), _viewer: User = Depends(get_current_user)
+    user_id: int, db: Session = Depends(get_db), viewer: User = Depends(get_current_user)
 ) -> StreamingResponse:
-    """Serve a user's profile photo (any signed-in user may view it)."""
+    """Serve a user's profile photo — only to the user themselves or someone who shares a
+    course with them (so avatars can't be enumerated by id). 404 (not 403) to avoid leaking
+    which ids exist."""
     u = db.get(User, user_id)
-    if not u or u.avatar is None:
+    if not u or u.avatar is None or not _shares_course(db, viewer.id, user_id):
         raise HTTPException(status_code=404, detail="No avatar")
     return StreamingResponse(io.BytesIO(u.avatar),
                              media_type=u.avatar_type or "application/octet-stream")

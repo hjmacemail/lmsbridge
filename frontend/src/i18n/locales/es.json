@@ -52,7 +52,8 @@
       "retrieval_practice": "práctica de recuperación",
       "socratic_scaffolding": "andamiaje socrático",
       "mastery_progression": "progresión por dominio"
-    }
+    },
+    "showMore": "Ver más ({{count}})"
   },
   "status": {
     "at_risk": "en riesgo",
@@ -321,6 +322,23 @@
       "instructor": "Consola del docente",
       "institution": "Administración de la institución",
       "platform": "Consola de la plataforma"
+    },
+    "courses": {
+      "newCourse": "+ Nuevo curso",
+      "syncing": "Sincronizando…",
+      "sync": "Sincronizar",
+      "exportCsv": "Exportar CSV",
+      "opsBlurb": "Vista de operaciones: configura la IA y la privacidad y supervisa la adopción en toda la institución. Los datos de los estudiantes a nivel de curso permanecen con los docentes.",
+      "createTitle": "Crear un curso",
+      "code": "Código",
+      "codePh": "p. ej. CS-101",
+      "title": "Título",
+      "titlePh": "p. ej. Introducción a la informática",
+      "term": "Periodo",
+      "creating": "Creando…",
+      "createBtn": "Crear curso",
+      "afterCreate": "Después de crear, usa la pestaña Configuración del curso para añadir conceptos y evaluaciones.",
+      "noneYet": "Aún no hay cursos. Usa «+ Nuevo curso» para crear uno."
     }
   },
   "sage": {
@@ -491,7 +509,8 @@
       "suggesting": "Sugiriendo…",
       "suggestNone": "No se pudo sugerir un concepto — escríbelo manualmente.",
       "preview": "Vista previa",
-      "acceptedLabel": "Respuestas aceptadas:"
+      "acceptedLabel": "Respuestas aceptadas:",
+      "qLabel": "P{{n}}"
     },
     "qtype": {
       "mcq": "Opción múltiple",
@@ -564,7 +583,10 @@
       "phCode": "Pega código…",
       "save": "Guardar",
       "saving": "Guardando…",
-      "download": "Descargar"
+      "download": "Descargar",
+      "errTitle": "Añade un título.",
+      "errFile": "Elige un archivo.",
+      "errContent": "Añade contenido."
     },
     "role": {
       "instructor": "docente",

@@ -146,7 +146,7 @@ function SideLink({ icon, label, active, onClick }:
   { icon: string; label: string; active?: boolean; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{ display: "flex", alignItems: "center", gap: 11, width: "100%",
-      textAlign: "left", cursor: "pointer", padding: "9px 11px", fontSize: 14, borderRadius: 9,
+      textAlign: "start", cursor: "pointer", padding: "9px 11px", fontSize: 14, borderRadius: 9,
       border: "none", fontWeight: active ? 700 : 500, color: active ? C.primary : C.muted,
       background: active ? C.accentBg : "transparent" }}>
       <Icon name={icon} size={18} color={active ? C.primary : C.muted} /> {label}
@@ -361,7 +361,7 @@ function Auth({ onAuth }: { onAuth: (a: SageAuth) => void }) {
   // Role-picker landing.
   if (mode === "pick") {
     const roleCard = (opts: { icon: string; title: string; sub: string; onClick: () => void }) => (
-      <button onClick={opts.onClick} style={{ textAlign: "left", cursor: "pointer", background: "#fff",
+      <button onClick={opts.onClick} style={{ textAlign: "start", cursor: "pointer", background: "#fff",
         border: `1px solid ${C.line}`, borderRadius: 14, padding: "18px 18px", boxShadow: C.shadow,
         display: "flex", gap: 13, alignItems: "center", width: "100%" }}>
         <div style={{ width: 44, height: 44, borderRadius: 12, background: C.accentBg, color: C.primary,
@@ -982,7 +982,7 @@ function QuizPreview({ quiz, onClose }: { quiz: SageQuizForEdit; onClose: () => 
         {quiz.questions.map((q, i) => (
           <div key={i} style={{ border: `1px solid ${C.line}`, borderRadius: 10, padding: 12 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "baseline", marginBottom: 8 }}>
-              <span style={{ fontWeight: 700, color: C.muted, fontSize: 13, flexShrink: 0 }}>Q{i + 1}</span>
+              <span style={{ fontWeight: 700, color: C.muted, fontSize: 13, flexShrink: 0 }}>{t("sage.quiz.qLabel", { defaultValue: "Q{{n}}", n: i + 1 })}</span>
               <span style={{ fontWeight: 600 }}>
                 {q.prompt || <em style={{ color: C.muted }}>—</em>}</span>
             </div>
@@ -1230,7 +1230,7 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
           <div key={i} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12,
             padding: 14, marginBottom: 10 }}>
             <div style={{ display: "flex", gap: 8, marginBottom: 6, alignItems: "baseline" }}>
-              <span style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>Q{i + 1}</span>
+              <span style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>{t("sage.quiz.qLabel", { defaultValue: "Q{{n}}", n: i + 1 })}</span>
               <span style={{ fontSize: 14.5, fontWeight: 600 }}>{q.prompt}</span>
             </div>
             {q.qtype === "short" ? (
@@ -1262,7 +1262,7 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
               {QTYPE_LABELS.map((qt) => <option key={qt.value} value={qt.value}>{t("sage.qtype." + qt.value)}</option>)}
             </select>
             {qs.length > 1 && <button onClick={() => setQs((a) => a.filter((_, j) => j !== i))}
-              title={t("sage.quiz.removeQ")} style={{ marginLeft: "auto", background: "none", border: "none",
+              title={t("sage.quiz.removeQ")} style={{ marginInlineStart: "auto", background: "none", border: "none",
                 color: C.danger, cursor: "pointer" }}><Icon name="trash" size={15} /></button>}
           </div>
           <input style={{ ...inputStyle, marginBottom: 8 }} placeholder={t("sage.quiz.phPrompt")}
@@ -2052,7 +2052,7 @@ function GradesTab({ course }: { course: SageCourseSummary }) {
           <p style={{ color: C.muted, fontSize: 12.5, margin: "4px 0 10px" }}>{t("sage.grades.clickDrill")}</p>
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", fontSize: 13.5, borderCollapse: "collapse", minWidth: 360 }}>
-              <thead><tr style={{ textAlign: "left", color: C.muted }}>
+              <thead><tr style={{ textAlign: "start", color: C.muted }}>
                 <th style={{ padding: "6px 8px" }}>{t("sage.grades.thStudent")}</th>
                 {g.quizzes.map((q) => <th key={`q${q.id}`} style={{ padding: "6px 8px" }}>{q.title}</th>)}
                 {(g.assignments || []).map((a) => <th key={`a${a.id}`} style={{ padding: "6px 8px" }}>
@@ -2379,14 +2379,14 @@ function MaterialForm({ courseId, kind, onDone }:
   const [busy, setBusy] = useState(false); const [err, setErr] = useState<string | null>(null);
   async function save() {
     setErr(null);
-    if (!title.trim()) { setErr("Add a title."); return; }
+    if (!title.trim()) { setErr(t("sage.materials.errTitle", { defaultValue: "Add a title." })); return; }
     setBusy(true);
     try {
       if (kind === "file") {
-        if (!file) { setErr("Choose a file."); setBusy(false); return; }
+        if (!file) { setErr(t("sage.materials.errFile", { defaultValue: "Choose a file." })); setBusy(false); return; }
         await sageApi.uploadCourseFile(courseId, file, title.trim());
       } else {
-        if (!body.trim()) { setErr("Add some content."); setBusy(false); return; }
+        if (!body.trim()) { setErr(t("sage.materials.errContent", { defaultValue: "Add some content." })); setBusy(false); return; }
         await sageApi.addTextMaterial(courseId, { kind, title: title.trim(), body, language: language || undefined });
       }
       onDone();

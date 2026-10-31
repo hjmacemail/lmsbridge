@@ -52,7 +52,8 @@
       "retrieval_practice": "récupération en mémoire",
       "socratic_scaffolding": "étayage socratique",
       "mastery_progression": "progression par maîtrise"
-    }
+    },
+    "showMore": "Voir plus ({{count}})"
   },
   "status": {
     "at_risk": "à risque",
@@ -321,6 +322,23 @@
       "instructor": "Console de l'enseignant",
       "institution": "Administration de l'établissement",
       "platform": "Console de la plateforme"
+    },
+    "courses": {
+      "newCourse": "+ Nouveau cours",
+      "syncing": "Synchronisation…",
+      "sync": "Synchroniser",
+      "exportCsv": "Exporter CSV",
+      "opsBlurb": "Vue opérations : configurez l'IA et la confidentialité et suivez l'adoption dans tout l'établissement. Les données des étudiants au niveau du cours restent avec les enseignants.",
+      "createTitle": "Créer un cours",
+      "code": "Code",
+      "codePh": "p. ex. CS-101",
+      "title": "Titre",
+      "titlePh": "p. ex. Introduction à l'informatique",
+      "term": "Session",
+      "creating": "Création…",
+      "createBtn": "Créer le cours",
+      "afterCreate": "Après la création, utilisez l'onglet Configuration du cours pour ajouter des concepts et des évaluations.",
+      "noneYet": "Aucun cours pour l'instant. Utilisez « + Nouveau cours » pour en créer un."
     }
   },
   "sage": {
@@ -491,7 +509,8 @@
       "suggesting": "Suggestion…",
       "suggestNone": "Impossible de suggérer un concept — saisissez-le manuellement.",
       "preview": "Aperçu",
-      "acceptedLabel": "Réponses acceptées :"
+      "acceptedLabel": "Réponses acceptées :",
+      "qLabel": "Q{{n}}"
     },
     "qtype": {
       "mcq": "QCM",
@@ -564,7 +583,10 @@
       "phCode": "Collez du code…",
       "save": "Enregistrer",
       "saving": "Enregistrement…",
-      "download": "Télécharger"
+      "download": "Télécharger",
+      "errTitle": "Ajoutez un titre.",
+      "errFile": "Choisissez un fichier.",
+      "errContent": "Ajoutez du contenu."
     },
     "role": {
       "instructor": "enseignant",

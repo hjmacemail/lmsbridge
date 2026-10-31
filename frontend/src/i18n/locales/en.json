@@ -52,7 +52,8 @@
       "retrieval_practice": "retrieval practice",
       "socratic_scaffolding": "Socratic scaffolding",
       "mastery_progression": "mastery progression"
-    }
+    },
+    "showMore": "Show more ({{count}})"
   },
   "status": {
     "at_risk": "at risk",
@@ -321,6 +322,23 @@
       "instructor": "Instructor console",
       "institution": "Institution admin",
       "platform": "Platform console"
+    },
+    "courses": {
+      "newCourse": "+ New course",
+      "syncing": "Syncing…",
+      "sync": "Sync",
+      "exportCsv": "Export CSV",
+      "opsBlurb": "Operations view: configure AI & privacy and monitor institution-wide adoption. Course-level student data stays with instructors.",
+      "createTitle": "Create a course",
+      "code": "Code",
+      "codePh": "e.g. CS-101",
+      "title": "Title",
+      "titlePh": "e.g. Intro to Computer Science",
+      "term": "Term",
+      "creating": "Creating…",
+      "createBtn": "Create course",
+      "afterCreate": "After creating, use the Course Setup tab to add concepts and assessments.",
+      "noneYet": "No courses yet. Use “+ New course” to create one."
     }
   },
   "sage": {
@@ -491,7 +509,8 @@
       "suggesting": "Suggesting…",
       "suggestNone": "Couldn't suggest a concept — please type one.",
       "preview": "Preview",
-      "acceptedLabel": "Accepted answers:"
+      "acceptedLabel": "Accepted answers:",
+      "qLabel": "Q{{n}}"
     },
     "qtype": {
       "mcq": "Multiple choice",
@@ -564,7 +583,10 @@
       "phCode": "Paste code…",
       "save": "Save",
       "saving": "Saving…",
-      "download": "Download"
+      "download": "Download",
+      "errTitle": "Add a title.",
+      "errFile": "Choose a file.",
+      "errContent": "Add some content."
     },
     "role": {
       "instructor": "instructor",

@@ -582,3 +582,25 @@ def test_sage_short_answer_grading_is_tolerant(client):
     res = client.post(f"/api/v1/sage/quizzes/{qid}/submit", headers=sh,
                       json={"answers": [{"question_id": qq, "choice": "  11.  "}]}).json()
     assert res["correct"] == 1 and res["total"] == 1
+
+
+def test_sage_avatar_scoped_to_shared_courses(client):
+    """A user's avatar is fetchable by themselves and by course-mates, but not by an unrelated
+    signed-in user enumerating ids."""
+    a = client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr A", "email": "ava@uni.edu", "password": "secret123"}).json()
+    ah = _auth(a)
+    client.post("/api/v1/sage/me/avatar", headers=ah,
+                files={"file": ("a.png", b"\x89PNG\r\n\x1a\nxx", "image/png")})
+    cid = client.post("/api/v1/sage/courses", headers=ah, json={"name": "Shared"}).json()["id"]
+    code = client.get(f"/api/v1/sage/courses/{cid}", headers=ah).json()["join_code"]
+
+    other = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Stranger", "email": "str@uni.edu", "password": "secret123"}).json())
+    # No shared course yet -> 404 (not visible, no id enumeration).
+    assert client.get(f"/api/v1/sage/users/{a['user_id']}/avatar", headers=other).status_code == 404
+    # Self can always see it.
+    assert client.get(f"/api/v1/sage/users/{a['user_id']}/avatar", headers=ah).status_code == 200
+    # After joining A's course, the course-mate can see it.
+    client.post("/api/v1/sage/courses/join", headers=other, json={"join_code": code})
+    assert client.get(f"/api/v1/sage/users/{a['user_id']}/avatar", headers=other).status_code == 200

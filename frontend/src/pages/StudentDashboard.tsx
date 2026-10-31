@@ -204,7 +204,7 @@ export default function StudentDashboard(
               </div>
               {topics.length > VISIBLE && !showAll && (
                 <button className="btn secondary" style={{ marginTop: 12 }} onClick={() => setShowAll(true)}>
-                  Show {topics.length - VISIBLE} more {topics.length - VISIBLE === 1 ? "topic" : "topics"}
+                  {tr("student.showMore", { count: topics.length - VISIBLE, defaultValue: "Show more ({{count}})" })}
                 </button>
               )}
             </>

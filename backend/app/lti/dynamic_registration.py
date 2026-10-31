@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.core.url_guard import require_safe_url
 from app.lti import claims as C
 from app.models.lti import LtiDeployment, LtiRegistration
 
@@ -79,14 +80,16 @@ def _tool_registration_body() -> dict:
 def register_with_platform(
     db: Session, *, openid_configuration_url: str, registration_token: str | None
 ) -> LtiRegistration:
-    # 1. Fetch the platform's OpenID configuration.
+    # 1. Fetch the platform's OpenID configuration (SSRF-guarded: caller-supplied URL).
+    require_safe_url(openid_configuration_url)
     cfg = httpx.get(openid_configuration_url, timeout=15.0)
     cfg.raise_for_status()
     config = cfg.json()
     issuer = config["issuer"]
     registration_endpoint = config["registration_endpoint"]
 
-    # 2. Register this tool as an OpenID client with the platform.
+    # 2. Register this tool as an OpenID client with the platform (also platform-supplied).
+    require_safe_url(registration_endpoint)
     headers = {"Content-Type": "application/json"}
     if registration_token:
         headers["Authorization"] = f"Bearer {registration_token}"

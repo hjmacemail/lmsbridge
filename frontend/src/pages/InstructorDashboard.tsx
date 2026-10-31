@@ -364,49 +364,48 @@ export default function InstructorDashboard({ scoped = false }: { scoped?: boole
             {canAddCourse && (
               <button className="btn secondary" onClick={() =>
                 setNewCourse(newCourse ? null : { code: "", title: "", term: "2026SP" })}>
-                + New course
+                {t("instructor.courses.newCourse", { defaultValue: "+ New course" })}
               </button>
             )}
             {/* Under an LMS launch, results flow in automatically — a manual sync is only
                 meaningful for a standalone (no-LMS) deployment. */}
             {!courseScoped && (
               <button className="btn secondary" onClick={sync} disabled={busy}>
-                {busy ? "Syncing…" : "Sync"}
+                {busy ? t("instructor.courses.syncing", { defaultValue: "Syncing…" }) : t("instructor.courses.sync", { defaultValue: "Sync" })}
               </button>
             )}
-            <button className="btn secondary" onClick={exportCsv}>Export CSV</button>
+            <button className="btn secondary" onClick={exportCsv}>{t("instructor.courses.exportCsv", { defaultValue: "Export CSV" })}</button>
           </div>
         )}
       </div>
       {persona === "institution" && (
         <p className="muted" style={{ marginTop: 2, fontSize: 13 }}>
-          Operations view: configure AI &amp; privacy and monitor institution-wide adoption.
-          Course-level student data stays with instructors.
+          {t("instructor.courses.opsBlurb", { defaultValue: "Operations view: configure AI & privacy and monitor institution-wide adoption. Course-level student data stays with instructors." })}
         </p>
       )}
       {err && <div className="error">{err}</div>}
 
       {canAddCourse && newCourse && (
         <div className="card" style={{ marginTop: 12, background: "var(--soft)" }}>
-          <h3 style={{ marginTop: 0 }}>Create a course</h3>
+          <h3 style={{ marginTop: 0 }}>{t("instructor.courses.createTitle", { defaultValue: "Create a course" })}</h3>
           <div className="grid cols-3" style={{ alignItems: "end" }}>
-            <div className="field" style={{ marginBottom: 0 }}><label>Code</label>
+            <div className="field" style={{ marginBottom: 0 }}><label>{t("instructor.courses.code", { defaultValue: "Code" })}</label>
               <input value={newCourse.code}
                 onChange={(e) => setNewCourse({ ...newCourse, code: e.target.value })}
-                placeholder="e.g. CS-101" /></div>
-            <div className="field" style={{ marginBottom: 0 }}><label>Title</label>
+                placeholder={t("instructor.courses.codePh", { defaultValue: "e.g. CS-101" })} /></div>
+            <div className="field" style={{ marginBottom: 0 }}><label>{t("instructor.courses.title", { defaultValue: "Title" })}</label>
               <input value={newCourse.title}
                 onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
-                placeholder="e.g. Intro to Computer Science" /></div>
-            <div className="field" style={{ marginBottom: 0 }}><label>Term</label>
+                placeholder={t("instructor.courses.titlePh", { defaultValue: "e.g. Intro to Computer Science" })} /></div>
+            <div className="field" style={{ marginBottom: 0 }}><label>{t("instructor.courses.term", { defaultValue: "Term" })}</label>
               <input value={newCourse.term}
                 onChange={(e) => setNewCourse({ ...newCourse, term: e.target.value })} /></div>
           </div>
           <button className="btn" style={{ marginTop: 14 }} onClick={createCourse} disabled={busy}>
-            {busy ? "Creating…" : "Create course"}
+            {busy ? t("instructor.courses.creating", { defaultValue: "Creating…" }) : t("instructor.courses.createBtn", { defaultValue: "Create course" })}
           </button>
           <p className="muted" style={{ fontSize: 12, marginBottom: 0 }}>
-            After creating, use the <strong>Course Setup</strong> tab to add concepts and assessments.
+            {t("instructor.courses.afterCreate", { defaultValue: "After creating, use the Course Setup tab to add concepts and assessments." })}
           </p>
         </div>
       )}
@@ -438,7 +437,7 @@ export default function InstructorDashboard({ scoped = false }: { scoped?: boole
           {tab === "remediation" && <RemediationPanel courseId={selected} />}
         </div>
       ) : (
-        <p className="muted">No courses yet. Use <strong>+ New course</strong> to create one.</p>
+        <p className="muted">{t("instructor.courses.noneYet", { defaultValue: "No courses yet. Use “+ New course” to create one." })}</p>
       )}
     </div>
   );
