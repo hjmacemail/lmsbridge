@@ -482,6 +482,8 @@
       "saveQuiz": "Enregistrer le quiz",
       "saving": "Enregistrement…",
       "markCorrect": "Marquer correct",
+      "miscPh": "Facultatif : idée fausse que révèle cette réponse (cible la remédiation)",
+      "miscTag": "→ {{m}}",
       "errTitle": "Ajoutez un titre au quiz.",
       "errPromptConcept": "Chaque question a besoin d'un énoncé et d'un concept.",
       "errShort": "Ajoutez la ou les réponses acceptées pour : {{p}}",

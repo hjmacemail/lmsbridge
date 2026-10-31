@@ -53,6 +53,9 @@ class QuizQuestionIn(BaseModel):
     # Accepts a single string or a list.
     correct: list[str] | str = Field(...)
     concept: str = Field(..., min_length=1, max_length=120)
+    # Optional: map a WRONG choice string to the misconception choosing it reveals. Keys that
+    # are not (non-correct) choices are ignored on build. Empty values are dropped.
+    distractor_misconceptions: dict[str, str] | None = None
 
 
 class QuizCreate(BaseModel):

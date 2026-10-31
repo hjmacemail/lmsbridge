@@ -1005,6 +1005,10 @@ function QuizPreview({ quiz, onClose }: { quiz: SageQuizForEdit; onClose: () => 
                         : <span style={{ width: 15, flexShrink: 0 }} />}
                       <span style={{ color: ok ? C.success : C.ink, fontWeight: ok ? 600 : 400 }}>
                         {q.qtype === "true_false" ? tfLabel(q.qtype, c, t) : c}</span>
+                      {!ok && (q.distractor_misconceptions || {})[c] && (
+                        <span style={{ marginInlineStart: "auto", fontSize: 12, color: C.muted, fontStyle: "italic" }}>
+                          {t("sage.quiz.miscTag", { defaultValue: "→ {{m}}", m: (q.distractor_misconceptions || {})[c] })}</span>
+                      )}
                     </div>
                   );
                 })}
@@ -1166,15 +1170,33 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
       const old = q.choices[ci];
       const choices = q.choices.map((x, k) => k === ci ? v : x);
       const correct = q.correct.map((c) => c === old ? v : c);
-      return { ...q, choices, correct };
+      // Carry any misconception tag across the rename so editing a choice doesn't lose it.
+      const dm = { ...(q.distractor_misconceptions || {}) };
+      if (old in dm && old !== v) { if (v) dm[v] = dm[old]; delete dm[old]; }
+      return { ...q, choices, correct, distractor_misconceptions: dm };
+    }));
+  }
+  function setMisc(i: number, choice: string, v: string) {
+    setQs((arr) => arr.map((q, j) => {
+      if (j !== i) return q;
+      const dm = { ...(q.distractor_misconceptions || {}) };
+      if (v.trim()) dm[choice] = v; else delete dm[choice];
+      return { ...q, distractor_misconceptions: dm };
     }));
   }
   function toggleCorrect(i: number, choice: string, single: boolean) {
     setQs((arr) => arr.map((q, j) => {
       if (j !== i) return q;
-      if (single) return { ...q, correct: [choice] };
+      // A correct choice can't carry a "wrong-answer" misconception — drop it if present.
+      const dm = { ...(q.distractor_misconceptions || {}) };
+      if (single) {
+        for (const k of Object.keys(dm)) if (k === choice) delete dm[k];
+        return { ...q, correct: [choice], distractor_misconceptions: dm };
+      }
       const has = q.correct.includes(choice);
-      return { ...q, correct: has ? q.correct.filter((c) => c !== choice) : [...q.correct, choice] };
+      if (!has) delete dm[choice];
+      return { ...q, correct: has ? q.correct.filter((c) => c !== choice) : [...q.correct, choice],
+        distractor_misconceptions: dm };
     }));
   }
   async function save() {
@@ -1195,7 +1217,15 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
         }
         if (q.qtype === "multi" && correct.length < 1) { setErr(t("sage.quiz.errMulti", { p: q.prompt })); return; }
       }
-      payload.push({ ...q, choices, correct });
+      // Keep only misconception tags on a current, non-correct choice with real text.
+      const dmSrc = q.distractor_misconceptions || {};
+      const dm: Record<string, string> = {};
+      if (q.qtype !== "short") {
+        for (const c of choices) {
+          if (!correct.includes(c) && (dmSrc[c] || "").trim()) dm[c] = dmSrc[c].trim();
+        }
+      }
+      payload.push({ ...q, choices, correct, distractor_misconceptions: dm });
     }
     const due = dueAt ? new Date(dueAt).toISOString() : null;
     setBusy(true);
@@ -1281,18 +1311,30 @@ function QuizBuilder({ courseId, editId, initial, onDone, onCancel }: {
             <>
               <div style={{ fontSize: 12, color: C.muted, marginBottom: 6 }}>
                 {q.qtype === "multi" ? t("sage.quiz.checkAll") : t("sage.quiz.selectOne")}</div>
-              {(q.qtype === "true_false" ? ["True", "False"] : q.choices).map((c, ci) => (
-                <div key={ci} style={{ display: "flex", gap: 9, alignItems: "center", marginBottom: 6 }}>
-                  <input type={q.qtype === "multi" ? "checkbox" : "radio"} name={`correct-${i}`}
-                    checked={q.correct.includes(c) && !!c}
-                    onChange={() => toggleCorrect(i, c, q.qtype !== "multi")}
-                    style={{ accentColor: C.primary }} title={t("sage.quiz.markCorrect")} />
-                  {q.qtype === "true_false"
-                    ? <span style={{ fontSize: 14 }}>{tfLabel(q.qtype, c, t)}</span>
-                    : <input style={inputStyle} placeholder={t("sage.quiz.choiceN", { n: ci + 1 })} value={c}
-                        onChange={(e) => setChoice(i, ci, e.target.value)} />}
+              {(q.qtype === "true_false" ? ["True", "False"] : q.choices).map((c, ci) => {
+                const isWrong = !!c && !q.correct.includes(c);
+                return (
+                <div key={ci} style={{ marginBottom: 6 }}>
+                  <div style={{ display: "flex", gap: 9, alignItems: "center" }}>
+                    <input type={q.qtype === "multi" ? "checkbox" : "radio"} name={`correct-${i}`}
+                      checked={q.correct.includes(c) && !!c}
+                      onChange={() => toggleCorrect(i, c, q.qtype !== "multi")}
+                      style={{ accentColor: C.primary }} title={t("sage.quiz.markCorrect")} />
+                    {q.qtype === "true_false"
+                      ? <span style={{ fontSize: 14 }}>{tfLabel(q.qtype, c, t)}</span>
+                      : <input style={inputStyle} placeholder={t("sage.quiz.choiceN", { n: ci + 1 })} value={c}
+                          onChange={(e) => setChoice(i, ci, e.target.value)} />}
+                  </div>
+                  {isWrong && (
+                    <input style={{ ...inputStyle, marginTop: 4, marginInlineStart: 26,
+                        width: "auto", flex: 1, fontSize: 12.5, background: C.soft, borderStyle: "dashed" }}
+                      placeholder={t("sage.quiz.miscPh", { defaultValue: "Optional: misconception this answer reveals (targets remediation)" })}
+                      value={(q.distractor_misconceptions || {})[c] || ""}
+                      onChange={(e) => setMisc(i, c, e.target.value)} />
+                  )}
                 </div>
-              ))}
+                );
+              })}
               {q.qtype !== "true_false" && (
                 <GhostBtn onClick={() => upd(i, { choices: [...q.choices, ""] })}>{t("sage.quiz.addChoice")}</GhostBtn>
               )}

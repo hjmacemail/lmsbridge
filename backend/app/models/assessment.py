@@ -52,6 +52,11 @@ class Question(Base, TimestampMixin):
     qtype: Mapped[str] = mapped_column(String(16), default="mcq", server_default="mcq")
     choices: Mapped[list | None] = mapped_column(JSON)
     correct_answer: Mapped[str | None] = mapped_column(Text)
+    # Optional per-distractor diagnosis (mcq/true_false/multi): maps a WRONG choice string to the
+    # misconception picking it reveals. When a student selects that choice, submit_quiz copies the
+    # misconception into the item score, so remediation targets the specific wrong idea rather than
+    # just "got this concept wrong". Shape: {"<choice text>": "<misconception>"}.
+    distractor_misconceptions: Mapped[dict | None] = mapped_column(JSON)
 
     assessment: Mapped[Assessment] = relationship(back_populates="questions")
     concept: Mapped[Concept | None] = relationship()  # noqa: F821

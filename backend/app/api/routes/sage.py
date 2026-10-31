@@ -608,9 +608,23 @@ def _build_question(db: Session, assessment_id: int, course_id: int, q) -> Quest
         choices = []
     concept = _get_or_create_concept(db, course_id, q.concept)
     correct_answer = json.dumps(correct) if qtype in ("multi", "short") else correct[0]
+    # Keep only misconception tags attached to an actual WRONG choice (ignore correct options,
+    # stray keys, and blank text). Short-answer questions have no distractors, so skip them.
+    distractors = None
+    raw = getattr(q, "distractor_misconceptions", None) or {}
+    if qtype in ("mcq", "true_false", "multi") and raw:
+        cset = set(choices)
+        correct_set = set(correct)
+        tags = {
+            k.strip(): v.strip()
+            for k, v in raw.items()
+            if k and k.strip() in cset and k.strip() not in correct_set and (v or "").strip()
+        }
+        distractors = tags or None
     return Question(
         assessment_id=assessment_id, concept_id=concept.id, prompt=q.prompt.strip(),
-        max_points=1.0, qtype=qtype, choices=choices or None, correct_answer=correct_answer)
+        max_points=1.0, qtype=qtype, choices=choices or None, correct_answer=correct_answer,
+        distractor_misconceptions=distractors)
 
 
 def _correct_list(q: Question) -> list[str]:
@@ -628,6 +642,23 @@ def _norm_short(s: str) -> str:
     repeated/edge whitespace) don't mark a correct answer wrong — e.g. '10.' == '10', 'True' =='true'."""
     s = re.sub(r"\s+", " ", (s or "").strip().lower())
     return s.strip(" .!?,;:'\"()")
+
+
+def _misconception_for(q: Question, ans) -> str | None:
+    """The misconception a wrong answer reveals, if the chosen distractor was tagged with one.
+    Returns None for correct/untagged answers and short questions (no distractors)."""
+    tags = q.distractor_misconceptions or {}
+    if not tags or (q.qtype or "mcq") not in ("mcq", "true_false", "multi") or ans is None:
+        return None
+    if (q.qtype or "mcq") == "multi":
+        picked = set(ans.choices or ([ans.choice] if ans.choice else []))
+        wrong = picked - set(_correct_list(q))
+        # Deterministic: first wrong-but-tagged choice in sorted order.
+        for choice in sorted(wrong):
+            if tags.get(choice):
+                return tags[choice]
+        return None
+    return tags.get(ans.choice) if ans.choice else None
 
 
 def _grade(q: Question, ans) -> tuple[bool, str]:
@@ -730,7 +761,8 @@ def duplicate_quiz(
     for q in questions:
         db.add(Question(assessment_id=copy.id, concept_id=q.concept_id, prompt=q.prompt,
                         max_points=q.max_points, qtype=q.qtype, choices=q.choices,
-                        correct_answer=q.correct_answer))
+                        correct_answer=q.correct_answer,
+                        distractor_misconceptions=q.distractor_misconceptions))
     db.commit()
     db.refresh(copy)
     return {"id": copy.id, "title": copy.title, "question_count": len(questions)}
@@ -759,6 +791,7 @@ def quiz_for_edit(
             "prompt": q.prompt, "qtype": q.qtype or "mcq", "choices": q.choices or [],
             "correct": _correct_list(q),
             "concept": (db.get(Concept, q.concept_id).name if q.concept_id else ""),
+            "distractor_misconceptions": q.distractor_misconceptions or {},
         } for q in questions],
     }
 
@@ -1170,12 +1203,19 @@ def submit_quiz(
             correct_n += 1
         concept = db.get(Concept, q.concept_id) if q.concept_id else None
         correct_disp = ", ".join(_correct_list(q))
-        item_scores.append({
+        item = {
             "question_id": q.id, "concept_key": concept.key if concept else None,
             "earned": 1.0 if is_correct else 0.0, "max": 1.0,
             "question": q.prompt, "choices": q.choices or [],
             "selected": selected, "correct": correct_disp, "is_correct": is_correct,
-        })
+        }
+        # Tag the specific misconception the chosen distractor reveals (if the author set one),
+        # so the remediation pipeline targets the wrong idea, not just the concept.
+        if not is_correct:
+            misc = _misconception_for(q, ans)
+            if misc:
+                item["misconception"] = misc
+        item_scores.append(item)
         review.append({"question_id": q.id, "is_correct": is_correct,
                        "correct": correct_disp, "selected": selected})
 

@@ -386,6 +386,82 @@ def test_sage_minilms_end_to_end(client):
     assert sg["is_instructor"] is False and "scores" in sg
 
 
+def test_sage_distractor_misconception_flows_into_item_scores(client, db):
+    """A wrong choice tagged with a misconception carries that misconception into the stored
+    item score, so remediation can target the specific wrong idea (not just the concept)."""
+    from app.models.assessment import AssessmentResult
+
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr Ngo", "email": "ngo@uni.edu", "password": "secret123"}).json())
+    course = client.post("/api/v1/sage/courses", headers=ih,
+                         json={"name": "Digital Logic", "subject": "Computing"}).json()
+    cid, code = course["id"], course["join_code"]
+
+    # One MCQ whose wrong option "2" reveals a specific misconception; "13" is untagged.
+    q = client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih, json={
+        "title": "Binary", "questions": [{
+            "prompt": "1 + 1 in binary?", "choices": ["10", "2", "13"], "correct": "10",
+            "concept": "Binary arithmetic",
+            "distractor_misconceptions": {
+                "2": "Reads binary digits as base-10 numerals",
+                "10": "should be dropped — it's the correct answer",
+                "not a choice": "should be dropped — not an option",
+            },
+        }]})
+    assert q.status_code == 201, q.text
+    quiz_id = q.json()["id"]
+
+    # The edit view round-trips only the valid tag (correct option + stray key dropped on build).
+    edit = client.get(f"/api/v1/sage/quizzes/{quiz_id}/edit", headers=ih).json()
+    assert edit["questions"][0]["distractor_misconceptions"] == {
+        "2": "Reads binary digits as base-10 numerals"}
+
+    # Student picks the tagged distractor.
+    sh = _auth(client.post("/api/v1/sage/guest", json={
+        "join_code": code, "full_name": "Pat"}).json())
+    qid = client.get(f"/api/v1/sage/quizzes/{quiz_id}/take", headers=sh).json()["questions"][0]["id"]
+    sub = client.post(f"/api/v1/sage/quizzes/{quiz_id}/submit", headers=sh,
+                      json={"answers": [{"question_id": qid, "choice": "2"}]})
+    assert sub.status_code == 200, sub.text
+
+    # The stored result's item score carries the misconception the chosen distractor reveals.
+    db.expire_all()
+    result = db.query(AssessmentResult).filter(
+        AssessmentResult.assessment_id == quiz_id).one()
+    item = (result.item_scores or [])[0]
+    assert item["is_correct"] is False
+    assert item["misconception"] == "Reads binary digits as base-10 numerals"
+
+
+def test_sage_untagged_wrong_answer_has_no_misconception(client, db):
+    """A wrong choice without a tag (and a correct answer) leaves no misconception on the item."""
+    from app.models.assessment import AssessmentResult
+
+    ih = _auth(client.post("/api/v1/sage/signup", json={
+        "full_name": "Dr Ola", "email": "ola@uni.edu", "password": "secret123"}).json())
+    course = client.post("/api/v1/sage/courses", headers=ih,
+                         json={"name": "Logic", "subject": "Computing"}).json()
+    cid, code = course["id"], course["join_code"]
+    quiz_id = client.post(f"/api/v1/sage/courses/{cid}/quizzes", headers=ih, json={
+        "title": "B", "questions": [{
+            "prompt": "1011 in decimal?", "choices": ["9", "11", "13"], "correct": "11",
+            "concept": "Binary representation",
+            "distractor_misconceptions": {"9": "off-by-one on the low bit"},
+        }]}).json()["id"]
+
+    sh = _auth(client.post("/api/v1/sage/guest", json={
+        "join_code": code, "full_name": "Kai"}).json())
+    qid = client.get(f"/api/v1/sage/quizzes/{quiz_id}/take", headers=sh).json()["questions"][0]["id"]
+    # Picks the UNtagged wrong choice "13".
+    client.post(f"/api/v1/sage/quizzes/{quiz_id}/submit", headers=sh,
+                json={"answers": [{"question_id": qid, "choice": "13"}]})
+    db.expire_all()
+    item = (db.query(AssessmentResult).filter(
+        AssessmentResult.assessment_id == quiz_id).one().item_scores or [])[0]
+    assert item["is_correct"] is False
+    assert "misconception" not in item
+
+
 def test_sage_profile_syllabus_and_materials(client):
     ih = _auth(client.post("/api/v1/sage/signup", json={
         "full_name": "Dr Ray", "email": "ray@uni.edu", "password": "secret123"}).json())

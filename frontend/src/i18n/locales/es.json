@@ -482,6 +482,8 @@
       "saveQuiz": "Guardar cuestionario",
       "saving": "Guardando…",
       "markCorrect": "Marcar correcta",
+      "miscPh": "Opcional: idea errónea que revela esta respuesta (orienta la remediación)",
+      "miscTag": "→ {{m}}",
       "errTitle": "Añade un título al cuestionario.",
       "errPromptConcept": "Cada pregunta necesita un enunciado y un concepto.",
       "errShort": "Añade respuesta(s) aceptada(s) para: {{p}}",

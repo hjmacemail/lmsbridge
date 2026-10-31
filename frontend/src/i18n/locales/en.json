@@ -482,6 +482,8 @@
       "saveQuiz": "Save quiz",
       "saving": "Saving…",
       "markCorrect": "Mark correct",
+      "miscPh": "Optional: misconception this answer reveals (targets remediation)",
+      "miscTag": "→ {{m}}",
       "errTitle": "Add a quiz title.",
       "errPromptConcept": "Each question needs a prompt and a concept.",
       "errShort": "Add accepted answer(s) for: {{p}}",

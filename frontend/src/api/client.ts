@@ -369,6 +369,8 @@ export interface SageSubmissionsView {
 export type SageQType = "mcq" | "true_false" | "multi" | "short";
 export interface SageQuestionDraft {
   prompt: string; qtype: SageQType; choices: string[]; correct: string[]; concept: string;
+  // Optional: wrong-choice text -> the misconception picking it reveals. Drives targeted remediation.
+  distractor_misconceptions?: Record<string, string>;
 }
 export interface SageQuizForEdit {
   id: number; title: string; due_at?: string | null; questions: SageQuestionDraft[];
